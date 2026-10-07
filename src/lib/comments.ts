@@ -5,7 +5,7 @@ import type { CommentView, CommentViewer } from "@/lib/comments-shared";
 export type { CommentAuthor, CommentView, CommentViewer } from "@/lib/comments-shared";
 
 const SELECT =
-  "id, user_id, content, created_at, profiles(username, avatar_url, role, is_verified, badges)";
+  "id, user_id, content, created_at, author:profiles(username, avatar_url, role, is_verified, badges)";
 
 /** Public comment thread for one anime (episode = null) or one episode. */
 export async function getComments(
