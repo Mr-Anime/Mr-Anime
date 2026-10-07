@@ -68,6 +68,7 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
       {viewer ? (
         <div className="flex gap-3">
           <Avatar size="sm" className="mt-0.5">
+            {viewer.avatar_url ? <AvatarImage src={viewer.avatar_url} alt="" /> : null}
             <AvatarFallback>{viewer.username.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 space-y-2">
