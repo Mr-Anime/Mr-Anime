@@ -6,8 +6,10 @@ import {
   anyProviderSupportsLang,
   buildUrl,
   getProviders,
+  providerSupportsLang,
   type AudioLang,
 } from "@/config/providers";
+import { isEmbedUrlAvailable } from "@/lib/embed-availability";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
 import { CommentSection } from "@/components/comments/comment-section";
 import { PlayerHost } from "@/components/watch/player-host";
@@ -125,12 +127,44 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   }
 
   const allProviders = getProviders();
-  const providers = allProviders.map((p) => ({
+  const langSupported = anyProviderSupportsLang(allProviders);
+
+  // Some providers only carry dub for certain titles (megaplay's /dub 404s
+  // per episode, with an HTTP 200 error page) — probe each dub URL once and
+  // cache for 6h so the toggle can show the truth instead of the 404 page.
+  const dubFlags = await Promise.all(
+    allProviders.map((p) =>
+      providerSupportsLang(p.base)
+        ? isEmbedUrlAvailable(
+            buildUrl(p, {
+              mediaId: media.id,
+              episode,
+              title,
+              tmdbId,
+              season: seasonN,
+              lang: "dub",
+            }),
+          )
+        : Promise.resolve(false),
+    ),
+  );
+  const dubAvailable = dubFlags.some(Boolean);
+  const effectiveLang: AudioLang =
+    lang === "dub" && dubAvailable ? "dub" : "sub";
+  const dubMissing = lang === "dub" && !dubAvailable;
+
+  const providers = allProviders.map((p, i) => ({
     id: p.id,
     name: p.name,
-    url: buildUrl(p, { mediaId: media.id, episode, title, tmdbId, season: seasonN, lang }),
+    url: buildUrl(p, {
+      mediaId: media.id,
+      episode,
+      title,
+      tmdbId,
+      season: seasonN,
+      lang: lang === "dub" && dubFlags[i] ? "dub" : "sub",
+    }),
   }));
-  const langSupported = anyProviderSupportsLang(allProviders);
 
   const thumbs: Record<number, string> = {};
   if (completeStreamingList) {
@@ -194,10 +228,17 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
         title={title}
         episodeTitle={episodeTitle}
         totalEpisodes={total}
-        lang={lang}
+        lang={effectiveLang}
         langSupported={langSupported}
+        dubAvailable={dubAvailable}
         query={navQuery}
       />
+
+      {dubMissing ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          This episode has no dub — showing subtitles.
+        </p>
+      ) : null}
 
       <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
         <MarkWatchedButton

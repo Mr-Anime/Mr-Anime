@@ -26,6 +26,8 @@ type Props = {
   lang?: AudioLang;
   /** whether any provider URL varies with sub/dub */
   langSupported?: boolean;
+  /** whether a dub actually exists for this episode (else Dub is disabled) */
+  dubAvailable?: boolean;
   /** current search params string (?s=…&lang=dub) for prev/next links */
   query?: string;
 };
@@ -47,6 +49,7 @@ export function PlayerHost({
   totalEpisodes,
   lang = "sub",
   langSupported = false,
+  dubAvailable = true,
   query = "",
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(providers[0]?.id ?? null);
@@ -113,17 +116,29 @@ export function PlayerHost({
               role="group"
               aria-label="Audio language"
             >
-              {(["sub", "dub"] as const).map((l) => (
-                <Button
-                  key={l}
-                  variant={l === lang ? "secondary" : "ghost"}
-                  size="sm"
-                  aria-pressed={l === lang}
-                  render={<Link href={langHref(mediaId, episode, query, l)} />}
-                >
-                  {l === "sub" ? "Sub" : "Dub"}
-                </Button>
-              ))}
+              {(["sub", "dub"] as const).map((l) => {
+                const disabled = l === "dub" && !dubAvailable;
+                return (
+                  <Button
+                    key={l}
+                    variant={l === lang ? "secondary" : "ghost"}
+                    size="sm"
+                    aria-pressed={l === lang}
+                    disabled={disabled}
+                    aria-disabled={disabled || undefined}
+                    title={
+                      disabled ? "No dub available for this episode" : undefined
+                    }
+                    render={
+                      disabled ? undefined : (
+                        <Link href={langHref(mediaId, episode, query, l)} />
+                      )
+                    }
+                  >
+                    {l === "sub" ? "Sub" : "Dub"}
+                  </Button>
+                );
+              })}
             </div>
           ) : null}
           <Button
