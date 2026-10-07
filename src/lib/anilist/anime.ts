@@ -1,6 +1,6 @@
 import "server-only";
 import { anilistRequest } from "@/lib/anilist/client";
-import { MEDIA_DETAILS_QUERY, PAGE_MEDIA_QUERY } from "@/lib/anilist/queries";
+import { MEDIA_BY_IDS_QUERY, MEDIA_DETAILS_QUERY, PAGE_MEDIA_QUERY } from "@/lib/anilist/queries";
 import type { Media, PageResult } from "@/lib/anilist/types";
 import { cacheTtl } from "@/lib/config";
 
@@ -82,4 +82,29 @@ export async function getAnimeDetails(id: number): Promise<Media | null> {
     }
     throw error;
   }
+}
+
+/**
+ * Batch fetch media by ids (My List). Chunks of 50, sequential, so the
+ * 30 req/min AniList limit is respected; failures degrade to fewer rows.
+ */
+export async function getMediaByIds(ids: number[]): Promise<Media[]> {
+  const unique = [...new Set(ids.filter((n) => Number.isInteger(n) && n > 0))];
+  if (unique.length === 0) return [];
+
+  const out: Media[] = [];
+  for (let i = 0; i < unique.length; i += 50) {
+    const chunk = unique.slice(i, i + 50);
+    try {
+      const data = await anilistRequest<{ Page: { media: Media[] } }>(
+        MEDIA_BY_IDS_QUERY,
+        { ids: chunk, perPage: chunk.length },
+        cacheTtl.details,
+      );
+      out.push(...(data.Page.media ?? []));
+    } catch (error) {
+      console.warn("[list] media batch lookup failed", error);
+    }
+  }
+  return out;
 }

@@ -55,6 +55,17 @@ query (
 }
 `;
 
+/** Batch lookup by ids (My List rows). Chunk to 50 ids per request. */
+export const MEDIA_BY_IDS_QUERY = `
+query ($ids: [Int], $perPage: Int) {
+  Page(page: 1, perPage: $perPage) {
+    media(id_in: $ids, type: ANIME, sort: [ID]) {
+      ${CORE_MEDIA_FIELDS}
+    }
+  }
+}
+`;
+
 /** Full details for /anime/[id]. */
 export const MEDIA_DETAILS_QUERY = `
 query ($id: Int) {

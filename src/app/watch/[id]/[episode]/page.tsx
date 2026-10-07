@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeftIcon, PlayIcon, TvIcon } from "lucide-react";
-import { buildUrl, getProviders } from "@/config/providers";
+import {
+  anyProviderSupportsLang,
+  buildUrl,
+  getProviders,
+  type AudioLang,
+} from "@/config/providers";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
 import { CommentSection } from "@/components/comments/comment-section";
 import { PlayerHost } from "@/components/watch/player-host";
@@ -12,6 +17,8 @@ import type { Media } from "@/lib/anilist/types";
 import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getComments, getCommentViewer } from "@/lib/comments";
+import { getListEntry } from "@/lib/list";
+import { MarkWatchedButton } from "@/components/list/mark-watched-button";
 import {
   getTmdbSeason,
   isTmdbConfigured,
@@ -21,7 +28,7 @@ import {
 
 type PageProps = {
   params: Promise<{ id: string; episode: string }>;
-  searchParams: Promise<{ s?: string | string[] }>;
+  searchParams: Promise<{ s?: string | string[]; lang?: string | string[] }>;
 };
 
 async function resolveWatch(
@@ -64,9 +71,10 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   const { media, episode } = await resolveWatch(id, episodeParam);
   if (!media) notFound();
 
-  const [comments, viewer] = await Promise.all([
+  const [comments, viewer, listEntry] = await Promise.all([
     getComments(media.id, episode),
     getCommentViewer(),
+    getListEntry(media.id),
   ]);
 
   const title = mediaTitle(media);
@@ -75,6 +83,16 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   // TMDB season (default 1) — lets later cours use ?s=2…
   const rawSeason = Array.isArray(sp.s) ? sp.s[0] : sp.s;
   const seasonN = rawSeason && /^\d+$/.test(rawSeason) ? Number(rawSeason) : 1;
+
+  // Audio language — ?lang=dub switches sub/dub-capable providers.
+  const rawLang = Array.isArray(sp.lang) ? sp.lang[0] : sp.lang;
+  const lang: AudioLang = rawLang === "dub" ? "dub" : "sub";
+
+  // Query string preserved across prev/next and episode links.
+  const navParams = new URLSearchParams();
+  if (seasonN > 1) navParams.set("s", String(seasonN));
+  if (lang === "dub") navParams.set("lang", "dub");
+  const navQuery = navParams.toString();
 
   let tmdbId: number | null = null;
   let tmdbEp: TmdbEpisode | null = null;
@@ -106,11 +124,13 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
     episodeThumb ??= streamingList[episode - 1].thumbnail ?? null;
   }
 
-  const providers = getProviders().map((p) => ({
+  const allProviders = getProviders();
+  const providers = allProviders.map((p) => ({
     id: p.id,
     name: p.name,
-    url: buildUrl(p, { mediaId: media.id, episode, title, tmdbId, season: seasonN }),
+    url: buildUrl(p, { mediaId: media.id, episode, title, tmdbId, season: seasonN, lang }),
   }));
+  const langSupported = anyProviderSupportsLang(allProviders);
 
   const thumbs: Record<number, string> = {};
   if (completeStreamingList) {
@@ -174,7 +194,21 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
         title={title}
         episodeTitle={episodeTitle}
         totalEpisodes={total}
+        lang={lang}
+        langSupported={langSupported}
+        query={navQuery}
       />
+
+      <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
+        <MarkWatchedButton
+          anilistId={media.id}
+          episode={episode}
+          totalEpisodes={total}
+          entry={listEntry}
+          signedIn={Boolean(viewer)}
+          next={`/watch/${media.id}/${episode}${navQuery ? `?${navQuery}` : ""}`}
+        />
+      </div>
 
       <section className="space-y-4" aria-label="Episodes">
         <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
@@ -182,7 +216,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
           Episodes
           {total ? <span className="text-sm font-normal text-muted-foreground">({total})</span> : null}
         </h2>
-        <EpisodeGrid mediaId={media.id} total={total} thumbnails={thumbs} />
+        <EpisodeGrid mediaId={media.id} total={total} thumbnails={thumbs} query={navQuery} />
       </section>
 
       <CommentSection

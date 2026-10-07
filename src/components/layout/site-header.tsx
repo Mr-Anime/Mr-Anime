@@ -6,6 +6,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/search", label: "Browse" },
   { href: "/search?sort=TRENDING_DESC", label: "Trending" },
+  { href: "/list", label: "My List" },
   { href: "/about", label: "About" },
 ];
 

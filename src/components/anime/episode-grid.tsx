@@ -13,11 +13,13 @@ type Props = {
   thumbnails?: Record<number, string>;
   /** AniList/TMDB episode titles, when available */
   titles?: Record<number, string>;
+  /** query string (?s=…&lang=dub) preserved on episode links */
+  query?: string;
 };
 
 const PAGE_SIZE = 48;
 
-export function EpisodeGrid({ mediaId, total, thumbnails, titles }: Props) {
+export function EpisodeGrid({ mediaId, total, thumbnails, titles, query = "" }: Props) {
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   if (total <= 0) {
@@ -30,6 +32,7 @@ export function EpisodeGrid({ mediaId, total, thumbnails, titles }: Props) {
 
   const shown = Array.from({ length: Math.min(visible, total) }, (_, i) => i + 1);
   const remaining = total - shown.length;
+  const qs = query ? `?${query}` : "";
 
   return (
     <div className="space-y-4">
@@ -40,7 +43,7 @@ export function EpisodeGrid({ mediaId, total, thumbnails, titles }: Props) {
           return (
             <Link
               key={ep}
-              href={`/watch/${mediaId}/${ep}`}
+              href={`/watch/${mediaId}/${ep}${qs}`}
               className="group overflow-hidden rounded-lg border border-border/60 bg-card transition-colors hover:border-sky-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label={`Watch episode ${ep}${title ? `: ${title}` : ""}`}
             >

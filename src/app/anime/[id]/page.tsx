@@ -21,6 +21,8 @@ import type { Media } from "@/lib/anilist/types";
 import { ANIME_GENRES, mediaTitle, SEASON_LABELS } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getComments, getCommentViewer } from "@/lib/comments";
+import { getListEntry } from "@/lib/list";
+import { ListEntryControls } from "@/components/list/list-entry-controls";
 import { sanitizeRichText, stripHtml } from "@/lib/sanitize";
 import { isTmdbConfigured, getTmdbVideos, matchTmdbForTitle } from "@/lib/tmdb/client";
 
@@ -105,9 +107,10 @@ export default async function AnimeDetailsPage({ params }: Params) {
   const media = await fetchMedia(id);
   if (!media) notFound();
 
-  const [comments, viewer] = await Promise.all([
+  const [comments, viewer, listEntry] = await Promise.all([
     getComments(media.id, null),
     getCommentViewer(),
+    getListEntry(media.id),
   ]);
 
   const title = mediaTitle(media);
@@ -251,12 +254,19 @@ export default async function AnimeDetailsPage({ params }: Params) {
               <p className="text-sm text-muted-foreground">{media.title.romaji}</p>
             ) : null}
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Button render={<Link href={`/watch/${media.id}/1`} />} size="lg">
                 <PlayIcon />
                 Watch now
               </Button>
               {youtubeId ? <TrailerDialog youtubeId={youtubeId} title={title} /> : null}
+              <ListEntryControls
+                anilistId={media.id}
+                entry={listEntry}
+                totalEpisodes={media.episodes ?? 0}
+                signedIn={Boolean(viewer)}
+                next={`/anime/${media.id}`}
+              />
             </div>
           </div>
         </div>

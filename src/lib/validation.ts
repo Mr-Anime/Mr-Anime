@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { LIST_STATUSES } from "@/lib/list-shared";
 
 export const usernameSchema = z
   .string()
@@ -68,6 +69,23 @@ export const commentSchema = z.object({
     .trim()
     .min(1, { error: "Comment cannot be empty." })
     .max(1000, { error: "Comment must be 1000 characters or fewer." }),
+});
+
+export const listAnilistIdSchema = z.coerce.number().int().positive();
+
+export const listStatusSchema = z.enum(LIST_STATUSES, {
+  error: "Pick a valid list status.",
+});
+
+export const listProgressSchema = z.object({
+  anilistId: listAnilistIdSchema,
+  episodesWatched: z.coerce.number().int().min(0).max(10000),
+});
+
+export const markWatchedSchema = z.object({
+  anilistId: listAnilistIdSchema,
+  episode: z.coerce.number().int().min(1).max(10000),
+  total: z.coerce.number().int().min(0).max(10000),
 });
 
 export type FieldErrors<T extends Record<string, unknown>> = Partial<

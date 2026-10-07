@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { ReportDialog } from "@/components/watch/report-dialog";
 
 export type PlayerProvider = { id: string; name: string; url: string };
+export type AudioLang = "sub" | "dub";
 
 type Props = {
   providers: PlayerProvider[];
@@ -21,7 +22,21 @@ type Props = {
   title: string;
   episodeTitle?: string | null;
   totalEpisodes: number;
+  /** current audio language (from ?lang=) */
+  lang?: AudioLang;
+  /** whether any provider URL varies with sub/dub */
+  langSupported?: boolean;
+  /** current search params string (?s=…&lang=dub) for prev/next links */
+  query?: string;
 };
+
+function langHref(mediaId: number, episode: number, query: string, lang: AudioLang) {
+  const params = new URLSearchParams(query);
+  if (lang === "dub") params.set("lang", "dub");
+  else params.delete("lang");
+  const qs = params.toString();
+  return `/watch/${mediaId}/${episode}${qs ? `?${qs}` : ""}`;
+}
 
 export function PlayerHost({
   providers,
@@ -30,6 +45,9 @@ export function PlayerHost({
   title,
   episodeTitle,
   totalEpisodes,
+  lang = "sub",
+  langSupported = false,
+  query = "",
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(providers[0]?.id ?? null);
 
@@ -41,6 +59,7 @@ export function PlayerHost({
   const hasPrev = episode > 1;
   const hasNext = totalEpisodes === 0 || episode < totalEpisodes;
   const providerName = active?.name ?? "none";
+  const qs = query ? `?${query}` : "";
 
   return (
     <div className="space-y-4">
@@ -52,7 +71,6 @@ export function PlayerHost({
             title={`${title} — episode ${episode} on ${active.name}`}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
             referrerPolicy="strict-origin-when-cross-origin"
             className="h-full w-full border-0"
           />
@@ -89,11 +107,30 @@ export function PlayerHost({
         </div>
 
         <div className="flex items-center gap-1">
+          {langSupported ? (
+            <div
+              className="mr-1 flex items-center rounded-lg border border-border/60 p-0.5"
+              role="group"
+              aria-label="Audio language"
+            >
+              {(["sub", "dub"] as const).map((l) => (
+                <Button
+                  key={l}
+                  variant={l === lang ? "secondary" : "ghost"}
+                  size="sm"
+                  aria-pressed={l === lang}
+                  render={<Link href={langHref(mediaId, episode, query, l)} />}
+                >
+                  {l === "sub" ? "Sub" : "Dub"}
+                </Button>
+              ))}
+            </div>
+          ) : null}
           <Button
             variant="ghost"
             size="sm"
             disabled={!hasPrev}
-            render={hasPrev ? <Link href={`/watch/${mediaId}/${episode - 1}`} /> : undefined}
+            render={hasPrev ? <Link href={`/watch/${mediaId}/${episode - 1}${qs}`} /> : undefined}
           >
             <ChevronLeftIcon />
             Prev
@@ -102,7 +139,7 @@ export function PlayerHost({
             variant="ghost"
             size="sm"
             disabled={!hasNext}
-            render={hasNext ? <Link href={`/watch/${mediaId}/${episode + 1}`} /> : undefined}
+            render={hasNext ? <Link href={`/watch/${mediaId}/${episode + 1}${qs}`} /> : undefined}
           >
             Next
             <ChevronRightIcon />

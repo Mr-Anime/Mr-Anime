@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  ListTodoIcon,
   LogOutIcon,
   SettingsIcon,
   ShieldIcon,
@@ -139,6 +140,10 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => router.push("/account")}>
           <UserRoundIcon />
           Account
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/list")}>
+          <ListTodoIcon />
+          My List
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/account")}>
           <SettingsIcon />
