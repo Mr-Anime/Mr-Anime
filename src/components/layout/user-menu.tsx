@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  IdCardIcon,
   ListTodoIcon,
   LogOutIcon,
   SettingsIcon,
@@ -140,6 +141,10 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => router.push("/account")}>
           <UserRoundIcon />
           Account
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push(`/profile/${profile.username}`)}>
+          <IdCardIcon />
+          View profile
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/list")}>
           <ListTodoIcon />

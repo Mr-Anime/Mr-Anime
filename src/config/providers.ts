@@ -11,9 +11,12 @@ import "server-only";
  *  2. Plain base: https://embed.example/e
  *       → appended as ?id=<anilistId>&ep=<episode>&season=<n>[&tmdb=<id>]
  *
- * Language: prefer the {lang} token. Bases without it whose URL ends with a
- * literal /sub or /dub segment get that segment swapped to the requested
- * language (e.g. megaplay's /stream/ani/{id}/{ep}/sub).
+ * Language: three mechanisms, tried in order —
+ *  1. explicit {lang} token in the template (preferred),
+ *  2. a trailing literal /sub or /dub segment gets swapped (megaplay),
+ *  3. otherwise "dub" appends a /dub segment (anixo-style /{ep} bases);
+ *     "sub" leaves the URL untouched. Watch-page probes check availability
+ *     and disable Dub when the provider has no dub file for the episode.
  *
  * Provider origins are automatically added to the CSP frame-src by
  * next.config.ts (PROVIDER_\d+_BASE).
@@ -40,13 +43,8 @@ export function getProviders(): Provider[] {
   return providers;
 }
 
-/** True when switching sub/dub can change this provider's URL. */
-export function providerSupportsLang(base: string): boolean {
-  return base.includes("{lang}") || /\/(sub|dub)$/.test(base);
-}
-
 export function anyProviderSupportsLang(providers: Provider[]): boolean {
-  return providers.some((p) => providerSupportsLang(p.base));
+  return providers.length > 0;
 }
 
 export type EmbedInput = {
@@ -86,9 +84,13 @@ export function buildUrl(provider: Provider, input: EmbedInput): string {
     }
   }
 
-  // Bases without an explicit {lang} token whose URL ends in /sub or /dub.
+  // Language fallbacks for bases without an explicit {lang} token.
   if (!provider.base.includes("{lang}")) {
-    url = url.replace(/\/(sub|dub)$/, `/${vars.lang}`);
+    if (/\/(sub|dub)$/.test(url)) {
+      url = url.replace(/\/(sub|dub)$/, `/${vars.lang}`);
+    } else if (vars.lang === "dub" && !url.includes("?")) {
+      url = `${url.replace(/\/+$/, "")}/dub`;
+    }
   }
   return url;
 }

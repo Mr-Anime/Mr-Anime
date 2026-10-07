@@ -6,7 +6,6 @@ import {
   anyProviderSupportsLang,
   buildUrl,
   getProviders,
-  providerSupportsLang,
   type AudioLang,
 } from "@/config/providers";
 import { isEmbedUrlAvailable } from "@/lib/embed-availability";
@@ -130,22 +129,21 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   const langSupported = anyProviderSupportsLang(allProviders);
 
   // Some providers only carry dub for certain titles (megaplay's /dub 404s
-  // per episode, with an HTTP 200 error page) — probe each dub URL once and
-  // cache for 6h so the toggle can show the truth instead of the 404 page.
+  // per episode, with an HTTP 200 error page) — probe every provider's dub
+  // URL once and cache for 6h so the toggle can show the truth instead of
+  // the provider's own error screen.
   const dubFlags = await Promise.all(
     allProviders.map((p) =>
-      providerSupportsLang(p.base)
-        ? isEmbedUrlAvailable(
-            buildUrl(p, {
-              mediaId: media.id,
-              episode,
-              title,
-              tmdbId,
-              season: seasonN,
-              lang: "dub",
-            }),
-          )
-        : Promise.resolve(false),
+      isEmbedUrlAvailable(
+        buildUrl(p, {
+          mediaId: media.id,
+          episode,
+          title,
+          tmdbId,
+          season: seasonN,
+          lang: "dub",
+        }),
+      ),
     ),
   );
   const dubAvailable = dubFlags.some(Boolean);

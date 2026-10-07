@@ -67,10 +67,16 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
 
       {viewer ? (
         <div className="flex gap-3">
-          <Avatar size="sm" className="mt-0.5">
-            {viewer.avatar_url ? <AvatarImage src={viewer.avatar_url} alt="" /> : null}
-            <AvatarFallback>{viewer.username.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <Link
+            href={`/profile/${viewer.username}`}
+            className="mt-0.5 shrink-0"
+            aria-label="View your profile"
+          >
+            <Avatar size="sm">
+              {viewer.avatar_url ? <AvatarImage src={viewer.avatar_url} alt="" /> : null}
+              <AvatarFallback>{viewer.username.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="min-w-0 flex-1 space-y-2">
             <Textarea
               value={content}
@@ -124,17 +130,36 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
             const canDelete = viewer !== null && (viewer.id === comment.user_id || viewer.role === "admin");
             return (
               <li key={comment.id} className="flex gap-3">
-                <Avatar size="sm" className="mt-0.5">
-                  {author?.avatar_url ? <AvatarImage src={author.avatar_url} alt="" /> : null}
-                  <AvatarFallback>
-                    {(author?.username ?? "?").charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                {author?.username ? (
+                  <Link
+                    href={`/profile/${author.username}`}
+                    className="mt-0.5 shrink-0"
+                    aria-label={`View ${author.username}'s profile`}
+                  >
+                    <Avatar size="sm">
+                      {author.avatar_url ? <AvatarImage src={author.avatar_url} alt="" /> : null}
+                      <AvatarFallback>
+                        {author.username.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                ) : (
+                  <Avatar size="sm" className="mt-0.5">
+                    <AvatarFallback>?</AvatarFallback>
+                  </Avatar>
+                )}
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-sm font-medium">
-                      {author?.username ?? "deleted user"}
-                    </span>
+                    {author?.username ? (
+                      <Link
+                        href={`/profile/${author.username}`}
+                        className="text-sm font-medium hover:text-sky-400 hover:underline"
+                      >
+                        {author.username}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium">deleted user</span>
+                    )}
                     <UserBadges
                       role={author?.role}
                       isVerified={author?.is_verified}
