@@ -60,6 +60,16 @@ export const reportSchema = z.object({
   message: z.string().trim().max(1000).optional().default(""),
 });
 
+export const commentSchema = z.object({
+  anilistId: z.coerce.number().int().positive(),
+  episode: z.coerce.number().int().min(1).max(10000).nullable().default(null),
+  content: z
+    .string()
+    .trim()
+    .min(1, { error: "Comment cannot be empty." })
+    .max(1000, { error: "Comment must be 1000 characters or fewer." }),
+});
+
 export type FieldErrors<T extends Record<string, unknown>> = Partial<
   Record<keyof T, string[]>
 >;

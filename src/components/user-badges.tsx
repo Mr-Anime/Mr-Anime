@@ -1,7 +1,11 @@
-import { BadgeCheckIcon, ShieldIcon } from "lucide-react";
+import Image from "next/image";
+import { ShieldIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
+
+export const VERIFIED_BADGE_IMAGE =
+  "https://cdn-icons-png.flaticon.com/512/18295/18295118.png";
 
 const BADGE_LABELS: Record<string, string> = {
   supporter: "Supporter",
@@ -36,9 +40,12 @@ export function UserBadges({ role, isVerified, badges, className }: Props) {
         <Tooltip>
           <TooltipTrigger
             render={
-              <BadgeCheckIcon
-                className="size-4 shrink-0 text-sky-400"
-                aria-label="Verified account"
+              <Image
+                src={VERIFIED_BADGE_IMAGE}
+                alt="Verified account"
+                width={16}
+                height={16}
+                className="size-4 shrink-0"
               />
             }
           />

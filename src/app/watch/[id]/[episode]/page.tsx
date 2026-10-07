@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon, PlayIcon, TvIcon } from "lucide-react";
 import { buildUrl, getProviders } from "@/config/providers";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
+import { CommentSection } from "@/components/comments/comment-section";
 import { PlayerHost } from "@/components/watch/player-host";
 import { Badge } from "@/components/ui/badge";
 import { getAnimeDetails } from "@/lib/anilist/anime";
 import type { Media } from "@/lib/anilist/types";
 import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
+import { getComments, getCommentViewer } from "@/lib/comments";
 import {
   getTmdbSeason,
   isTmdbConfigured,
@@ -61,6 +63,11 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   const sp = await searchParams;
   const { media, episode } = await resolveWatch(id, episodeParam);
   if (!media) notFound();
+
+  const [comments, viewer] = await Promise.all([
+    getComments(media.id, episode),
+    getCommentViewer(),
+  ]);
 
   const title = mediaTitle(media);
   const total = media.episodes ?? 0;
@@ -177,6 +184,14 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
         </h2>
         <EpisodeGrid mediaId={media.id} total={total} thumbnails={thumbs} />
       </section>
+
+      <CommentSection
+        anilistId={media.id}
+        episode={episode}
+        comments={comments}
+        viewer={viewer}
+        title={title}
+      />
     </div>
   );
 }

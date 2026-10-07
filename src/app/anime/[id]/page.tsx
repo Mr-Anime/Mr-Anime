@@ -12,6 +12,7 @@ import {
 import { AnimeCard } from "@/components/anime/anime-card";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
 import { TrailerDialog } from "@/components/anime/trailer-dialog";
+import { CommentSection } from "@/components/comments/comment-section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -19,10 +20,13 @@ import { getAnimeDetails } from "@/lib/anilist/anime";
 import type { Media } from "@/lib/anilist/types";
 import { ANIME_GENRES, mediaTitle, SEASON_LABELS } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
+import { getComments, getCommentViewer } from "@/lib/comments";
 import { sanitizeRichText, stripHtml } from "@/lib/sanitize";
 import { isTmdbConfigured, getTmdbVideos, matchTmdbForTitle } from "@/lib/tmdb/client";
 
 type Params = { params: Promise<{ id: string }> };
+
+export const dynamic = "force-dynamic";
 
 const STATUS_LABELS: Record<string, string> = {
   RELEASING: "Airing",
@@ -100,6 +104,11 @@ export default async function AnimeDetailsPage({ params }: Params) {
   const { id } = await params;
   const media = await fetchMedia(id);
   if (!media) notFound();
+
+  const [comments, viewer] = await Promise.all([
+    getComments(media.id, null),
+    getCommentViewer(),
+  ]);
 
   const title = mediaTitle(media);
   const descriptionHtml = sanitizeRichText(media.description);
@@ -344,6 +353,15 @@ export default async function AnimeDetailsPage({ params }: Params) {
               </div>
             </section>
           ) : null}
+
+          {/* Comments */}
+          <CommentSection
+            anilistId={media.id}
+            episode={null}
+            comments={comments}
+            viewer={viewer}
+            title={title}
+          />
         </div>
 
         {/* Sidebar */}

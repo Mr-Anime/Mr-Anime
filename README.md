@@ -51,7 +51,7 @@ npm run dev                   # http://localhost:3000
 ### 1. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply `supabase/migrations/0001_init.sql`
+2. Apply `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_comments.sql`
    (SQL editor, or `supabase db push` with the CLI).
 3. Copy **Project URL**, **anon/publishable key** and **service role key** into `.env.local`.
 4. Sign up through the app, then promote yourself (commented SQL at the bottom
