@@ -154,6 +154,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   const providers = allProviders.map((p, i) => ({
     id: p.id,
     name: p.name,
+    dubOk: dubFlags[i],
     url: buildUrl(p, {
       mediaId: media.id,
       episode,

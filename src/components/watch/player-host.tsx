@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ReportDialog } from "@/components/watch/report-dialog";
 
-export type PlayerProvider = { id: string; name: string; url: string };
+export type PlayerProvider = { id: string; name: string; url: string; dubOk?: boolean };
 export type AudioLang = "sub" | "dub";
 
 type Props = {
@@ -91,6 +91,12 @@ export function PlayerHost({
           </div>
         )}
       </div>
+
+      {lang === "dub" && active && active.dubOk === false ? (
+        <p className="text-sm text-muted-foreground" role="status">
+          {active.name} has no dub for this episode — try another provider.
+        </p>
+      ) : null}
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
