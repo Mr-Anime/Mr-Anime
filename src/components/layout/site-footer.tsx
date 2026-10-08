@@ -5,6 +5,7 @@ const footerLinks = [
   { href: "/about", label: "About" },
   { href: "/dmca", label: "DMCA / Contact" },
   { href: "/search", label: "Browse" },
+  { href: "/docs/api", label: "API" },
   { href: "/account", label: "Account" },
 ];
 

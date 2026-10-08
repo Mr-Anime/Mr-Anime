@@ -54,6 +54,12 @@ export const changePasswordSchema = z.object({
     .max(72, { error: "Password must be at most 72 characters." }),
 });
 
+export const apiTokenNameSchema = z
+  .string()
+  .trim()
+  .min(1, { error: "Token name is required." })
+  .max(60, { error: "Token name must be at most 60 characters." });
+
 export const reportSchema = z.object({
   anilistId: z.coerce.number().int().positive(),
   episode: z.coerce.number().int().min(1).max(10000),

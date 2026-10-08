@@ -30,10 +30,17 @@ through our own Next.js route handlers (with layered caching). Supabase stores
 - **Search** — URL-driven filters (genre, year, season, format, status, sort), debounce, pagination.
 - **Details** — sanitized synopsis, trailer (AniList → TMDB fallback), episode grid,
   characters, relations, recommendations, `TVSeries` JSON-LD, OG/Twitter cards.
-- **Watch** — sandboxed 16:9 provider iframe, provider switcher, TMDB episode
-  titles/stills (`?s=` for later seasons), prev/next, `TVEpisode` JSON-LD, report-broken-video.
+- **Watch** — provider iframe, Sub/Dub toggle with dub availability probing,
+  TMDB episode titles/stills (`?s=` for later seasons), prev/next, `TVEpisode`
+  JSON-LD, report-broken-video.
+- **My List** — MyAnimeList-style status + episode progress per title, with
+  "mark watched" buttons on the player.
+- **Comments & profiles** — episode comments, public profile pages
+  (`/profile/{username}`) linked from comment authors.
 - **Auth** — email/password register, login, forgot/reset password, optional Google OAuth,
   ban handling (`/suspended`), account management (username/avatar/password).
+- **Public REST API** — token-authenticated `/api/v1` endpoints (search,
+  trending, seasonal, details) with docs at `/docs/api`.
 - **Admin** — dashboard, user management (ban, promote/demote, verify, delete) with
   last-admin and self-action guards, append-only audit log (`admin_actions`).
 - **SEO** — sitemap (trending titles), robots, manifest, canonicals, per-page metadata.
@@ -51,7 +58,8 @@ npm run dev                   # http://localhost:3000
 ### 1. Supabase
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_comments.sql`, then `supabase/migrations/0003_user_list.sql`
+2. Apply `supabase/migrations/0001_init.sql`, then `0002_comments.sql`, `0003_user_list.sql`,
+   `0004_api_tokens.sql`
    (SQL editor, or `supabase db push` with the CLI).
 3. Copy **Project URL**, **anon/publishable key** and **service role key** into `.env.local`.
 4. Sign up through the app, then promote yourself (commented SQL at the bottom
@@ -83,6 +91,23 @@ PROVIDER_2_NAME=Provider 2
 ```
 
 Origins are added to the CSP `frame-src` automatically by `next.config.ts`.
+
+## Public API
+
+Base URL: `https://mr-anime.vercel.app/api/v1` — docs at [`/docs/api`](/docs/api).
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /anime/trending\|popular\|top?page=&perPage=` | curated lists |
+| `GET /anime/seasonal?season=&year=` | browse a season (defaults to now) |
+| `GET /anime/search?q=&genre=&year=&status=…` | search + filters |
+| `GET /anime/{id}` | single-title details |
+
+- **Auth:** create a token on `/account` (API tokens card), then send
+  `Authorization: Bearer ma_live_…` (`X-API-Key` also accepted). Only a
+  SHA-256 hash is stored (`api_tokens` table, migration `0004`).
+- **Rate limit:** 60 requests/minute per token; `429` + `Retry-After` beyond.
+- Responses are CDN-cached; CORS is open for browser clients.
 
 ## Environment variables
 
@@ -122,7 +147,9 @@ src/
     anime/[id]/        details page
     watch/[id]/[ep]/   player page
     api/anime|tmdb/    cached upstream proxies
-  components/          ui (shadcn), anime, auth, admin, search, watch
+    api/v1/            public token-authenticated REST API
+    docs/api/          API documentation page
+  components/          ui (shadcn), anime, auth, admin, search, watch, account
   config/providers.ts  env-only provider registry + buildUrl()
   lib/                 anilist, tmdb, supabase clients, cache, rate limit, sanitize
   proxy.ts             Next 16 middleware (session refresh + route guards)
