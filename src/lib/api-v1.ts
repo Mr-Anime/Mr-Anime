@@ -139,3 +139,19 @@ export function upstreamV1Error(error: unknown): Response {
   console.error("v1 upstream error", error);
   return apiV1Error("upstream_error", "Upstream data provider is unavailable.", 502);
 }
+
+/**
+ * Whole-number query parameter. Returns the fallback when absent/empty and
+ * null when the value is not an integer inside [min, max].
+ */
+export function intQuery(
+  params: URLSearchParams,
+  key: string,
+  { fallback, min, max }: { fallback: number; min: number; max: number },
+): number | null {
+  const raw = params.get(key);
+  if (raw === null || raw === "") return fallback;
+  if (!/^\d+$/.test(raw)) return null;
+  const value = Number(raw);
+  return value >= min && value <= max ? value : null;
+}

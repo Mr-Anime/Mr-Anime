@@ -102,6 +102,8 @@ Base URL: `https://mr-anime.vercel.app/api/v1` — docs at [`/docs/api`](/docs/a
 | `GET /anime/seasonal?season=&year=` | browse a season (defaults to now) |
 | `GET /anime/search?q=&genre=&year=&status=…` | search + filters |
 | `GET /anime/{id}` | single-title details |
+| `GET /anime/{id}/episodes?season=` | episode list (titles + thumbnails) |
+| `GET /anime/{id}/episodes/{ep}?lang=&season=` | player payload: metadata, episode meta, embed URLs, dub flags |
 
 - **Auth:** create a token on `/account` (API tokens card), then send
   `Authorization: Bearer ma_live_…` (`X-API-Key` also accepted). Only a

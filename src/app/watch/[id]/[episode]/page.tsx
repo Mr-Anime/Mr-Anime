@@ -4,11 +4,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon, PlayIcon, TvIcon } from "lucide-react";
 import {
   anyProviderSupportsLang,
-  buildUrl,
   getProviders,
   type AudioLang,
 } from "@/config/providers";
-import { isEmbedUrlAvailable } from "@/lib/embed-availability";
+import { getPlayerData } from "@/lib/player-data";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
 import { CommentSection } from "@/components/comments/comment-section";
 import { PlayerHost } from "@/components/watch/player-host";
@@ -20,12 +19,6 @@ import { siteConfig } from "@/lib/config";
 import { getComments, getCommentViewer } from "@/lib/comments";
 import { getListEntry } from "@/lib/list";
 import { MarkWatchedButton } from "@/components/list/mark-watched-button";
-import {
-  getTmdbSeason,
-  isTmdbConfigured,
-  matchTmdbForTitle,
-  type TmdbEpisode,
-} from "@/lib/tmdb/client";
 
 type PageProps = {
   params: Promise<{ id: string; episode: string }>;
@@ -95,75 +88,21 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
   if (lang === "dub") navParams.set("lang", "dub");
   const navQuery = navParams.toString();
 
-  let tmdbId: number | null = null;
-  let tmdbEp: TmdbEpisode | null = null;
-  if (isTmdbConfigured()) {
-    try {
-      const match = await matchTmdbForTitle(title, media.seasonYear);
-      if (match) {
-        tmdbId = match.id;
-        const season = await getTmdbSeason(match.id, seasonN);
-        tmdbEp = season.episodes.find((e) => e.episode_number === episode) ?? null;
-      }
-    } catch (error) {
-      console.warn("watch: TMDB enrichment skipped", error);
-    }
-  }
-
   const streamingList = media.streamingEpisodes ?? [];
   const completeStreamingList =
     media.episodes !== null &&
     media.episodes !== undefined &&
     streamingList.length >= media.episodes;
 
-  let episodeTitle: string | null = tmdbEp?.name ?? null;
-  let episodeThumb: string | null = tmdbEp?.still_path
-    ? `https://image.tmdb.org/t/p/w780${tmdbEp.still_path}`
-    : null;
-  if (completeStreamingList && streamingList[episode - 1]) {
-    episodeTitle ??= streamingList[episode - 1].title ?? null;
-    episodeThumb ??= streamingList[episode - 1].thumbnail ?? null;
-  }
+  // Episode metadata + provider URLs + dub probes — shared with the public
+  // /api/v1 player endpoints so the API mirrors this page exactly.
+  const player = await getPlayerData(media, episode, seasonN, lang);
+  if (!player) notFound();
 
-  const allProviders = getProviders();
-  const langSupported = anyProviderSupportsLang(allProviders);
-
-  // Some providers only carry dub for certain titles (megaplay's /dub 404s
-  // per episode, with an HTTP 200 error page) — probe every provider's dub
-  // URL once and cache for 6h so the toggle can show the truth instead of
-  // the provider's own error screen.
-  const dubFlags = await Promise.all(
-    allProviders.map((p) =>
-      isEmbedUrlAvailable(
-        buildUrl(p, {
-          mediaId: media.id,
-          episode,
-          title,
-          tmdbId,
-          season: seasonN,
-          lang: "dub",
-        }),
-      ),
-    ),
-  );
-  const dubAvailable = dubFlags.some(Boolean);
-  const effectiveLang: AudioLang =
-    lang === "dub" && dubAvailable ? "dub" : "sub";
-  const dubMissing = lang === "dub" && !dubAvailable;
-
-  const providers = allProviders.map((p, i) => ({
-    id: p.id,
-    name: p.name,
-    dubOk: dubFlags[i],
-    url: buildUrl(p, {
-      mediaId: media.id,
-      episode,
-      title,
-      tmdbId,
-      season: seasonN,
-      lang: lang === "dub" && dubFlags[i] ? "dub" : "sub",
-    }),
-  }));
+  const episodeTitle = player.episode.title;
+  const episodeThumb = player.episode.thumbnail;
+  const langSupported = anyProviderSupportsLang(getProviders());
+  const { providers, dubAvailable, effectiveLang, dubMissing } = player;
 
   const thumbs: Record<number, string> = {};
   if (completeStreamingList) {

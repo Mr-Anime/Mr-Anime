@@ -42,6 +42,12 @@ const endpoints = [
   ["GET", "/anime/seasonal", "Browse a season (defaults to the current one)."],
   ["GET", "/anime/search", "Search with filters (q, genre, year, status…)."],
   ["GET", "/anime/{id}", "Full details for a single anime by AniList id."],
+  ["GET", "/anime/{id}/episodes", "Episode list with titles and thumbnails."],
+  [
+    "GET",
+    "/anime/{id}/episodes/{episode}",
+    "Player payload: metadata + episode + embed URLs + dub availability.",
+  ],
 ] as const;
 
 const errors = [
@@ -182,6 +188,17 @@ const { data, pageInfo } = await res.json();`}</Code>
                 <code className="font-mono text-foreground">year</code> default to the current
                 season and year.
               </li>
+              <li>
+                <code className="font-mono text-foreground">episodes</code> endpoints:{" "}
+                <code className="font-mono text-foreground">season</code> (1…9999, default 1 — the
+                site&rsquo;s <code className="font-mono text-foreground">?s=</code>) selects the
+                TMDB season used for titles/thumbnails; the player endpoint also takes{" "}
+                <code className="font-mono text-foreground">lang</code> ={" "}
+                <code className="font-mono text-foreground">sub</code> |{" "}
+                <code className="font-mono text-foreground">dub</code> (default{" "}
+                <code className="font-mono text-foreground">sub</code>), mirroring the site&rsquo;s{" "}
+                <code className="font-mono text-foreground">?lang=</code>.
+              </li>
             </ul>
           </div>
         </Section>
@@ -248,6 +265,55 @@ const { data, pageInfo } = await res.json();`}</Code>
   "data": [ { "id": 16498, "type": "ANIME", "title": { … }, … } ],
   "pageInfo": { "currentPage": 1, "hasNextPage": true, "total": 500 }
 }`}</Code>
+          <p>
+            <code className="font-mono text-foreground">/anime/&#123;id&#125;/episodes</code>{" "}
+            mirrors the site&rsquo;s episode grid — titles and thumbnails come from TMDB first,
+            then AniList&rsquo;s streaming list:
+          </p>
+          <Code>{`GET /api/v1/anime/16498/episodes
+
+{
+  "data": [
+    { "number": 1, "title": "To You, in 2000 Years", "thumbnail": "https://image.tmdb.org/t/p/w780/…" },
+    { "number": 2, "title": "That Day", "thumbnail": "https://image.tmdb.org/t/p/w780/…" }
+  ],
+  "meta": { "episodes": 25, "season": 1 }
+}`}</Code>
+          <p>
+            <code className="font-mono text-foreground">
+              /anime/&#123;id&#125;/episodes/&#123;episode&#125;
+            </code>{" "}
+            mirrors the watch page: full metadata, resolved episode info and one ready-to-embed{" "}
+            <code className="font-mono text-foreground">url</code> per provider (in switcher
+            order), with per-provider dub availability probed the same way the site does:
+          </p>
+          <Code>{`GET /api/v1/anime/16498/episodes/1?lang=dub
+
+{
+  "data": {
+    "anime": { … the same object as GET /anime/{id} … },
+    "episode": { "number": 1, "title": "To You, in 2000 Years", "thumbnail": "https://image.tmdb.org/t/p/w780/…" },
+    "season": 1,
+    "requestedLang": "dub",
+    "effectiveLang": "sub",
+    "dubAvailable": false,
+    "dubMissing": true,
+    "providers": [
+      { "id": "provider-1", "name": "Megaplay", "url": "https://…/1/sub", "dubAvailable": false },
+      { "id": "provider-2", "name": "Anixo",    "url": "https://…/1",     "dubAvailable": true }
+    ]
+  }
+}`}</Code>
+          <p>
+            <code className="font-mono text-foreground">providers[].url</code> can be loaded
+            directly in an iframe (<code className="font-mono text-foreground">srcdoc</code>-free
+            plain embed). If you request{" "}
+            <code className="font-mono text-foreground">lang=dub</code> but no provider has dub
+            for that episode, <code className="font-mono text-foreground">effectiveLang</code>{" "}
+            becomes <code className="font-mono text-foreground">sub</code> and{" "}
+            <code className="font-mono text-foreground">dubMissing</code> is true — exactly what
+            the site shows.
+          </p>
         </Section>
 
         <Section id="errors" title="Errors">
