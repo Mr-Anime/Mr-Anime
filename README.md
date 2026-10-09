@@ -86,15 +86,19 @@ still enrichment is simply skipped (API routes return 503).
 Providers are **never hard-coded**. In `.env.local`:
 
 ```bash
-# template style — tokens: {id} {ep} {title} {tmdb} {season}
+# template style — tokens: {id} {ep} {title} {tmdb} {season} {lang}
 PROVIDER_1_BASE=https://your-legal-embed-provider.example/e/{id}/{ep}
 PROVIDER_1_NAME=Provider 1
 # plain base → ?id=…&ep=…&season=…&tmdb=… is appended
 PROVIDER_2_BASE=https://another-provider.example/embed
 PROVIDER_2_NAME=Provider 2
+# subtitles-only provider (no dub): Dub is disabled for it
+PROVIDER_3_SUBONLY=1
 ```
 
 Origins are added to the CSP `frame-src` automatically by `next.config.ts`.
+A template using `{tmdb}` (e.g. VidRift's `/embed/tv/{tmdb}/{season}/{ep}`)
+is skipped for titles without a TMDB id.
 
 ## Public API
 

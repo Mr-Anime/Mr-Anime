@@ -11,6 +11,14 @@ import "server-only";
  *  2. Plain base: https://embed.example/e
  *       → appended as ?id=<anilistId>&ep=<episode>&season=<n>[&tmdb=<id>]
  *
+ * Optional flags per slot:
+ *  PROVIDER_n_SUBONLY=1   provider serves subtitles only (no dub): Dub is
+ *                         disabled for it and its URL never gets a dub
+ *                         suffix (e.g. VidRift, whose /embed/tv/{tmdb}/…
+ *                         shape has no audio-language segment).
+ *  A template containing {tmdb} is skipped entirely for titles without a
+ *  TMDB id (the URL would be unusable).
+ *
  * Language: three mechanisms, tried in order —
  *  1. explicit {lang} token in the template (preferred),
  *  2. a trailing literal /sub or /dub segment gets swapped (megaplay),
@@ -26,6 +34,7 @@ export type Provider = {
   id: string;
   name: string;
   base: string;
+  subOnly: boolean;
 };
 
 export type AudioLang = "sub" | "dub";
@@ -38,7 +47,13 @@ export function getProviders(): Provider[] {
     const base = process.env[`PROVIDER_${i}_BASE`]?.trim();
     if (!base) continue;
     const name = process.env[`PROVIDER_${i}_NAME`]?.trim() || `Provider ${i}`;
-    providers.push({ id: `provider-${i}`, name, base: base.replace(/\/+$/, "") });
+    const flag = process.env[`PROVIDER_${i}_SUBONLY`]?.trim().toLowerCase();
+    providers.push({
+      id: `provider-${i}`,
+      name,
+      base: base.replace(/\/+$/, ""),
+      subOnly: flag === "1" || flag === "true",
+    });
   }
   return providers;
 }
@@ -85,7 +100,8 @@ export function buildUrl(provider: Provider, input: EmbedInput): string {
   }
 
   // Language fallbacks for bases without an explicit {lang} token.
-  if (!provider.base.includes("{lang}")) {
+  // Sub-only providers (e.g. VidRift) never get a dub suffix.
+  if (!provider.base.includes("{lang}") && !provider.subOnly) {
     if (/\/(sub|dub)$/.test(url)) {
       url = url.replace(/\/(sub|dub)$/, `/${vars.lang}`);
     } else if (vars.lang === "dub" && !url.includes("?")) {

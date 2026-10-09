@@ -134,19 +134,25 @@ export async function getPlayerData(
   // Providers may only carry dub for certain titles (megaplay's /dub 404s
   // per episode) — probe every provider's dub URL once (6h cache) so the
   // response reflects reality instead of the provider's own error screen.
-  const allProviders = getProviders();
+  // Templates anchored on {tmdb} (e.g. VidRift's /embed/tv/{tmdb}/…) are
+  // unusable without a TMDB id, and sub-only providers never have dub.
+  const allProviders = getProviders().filter(
+    (p) => !(p.base.includes("{tmdb}") && !tmdbId),
+  );
   const dubFlags = await Promise.all(
     allProviders.map((p) =>
-      isEmbedUrlAvailable(
-        buildUrl(p, {
-          mediaId: media.id,
-          episode,
-          title,
-          tmdbId,
-          season,
-          lang: "dub",
-        }),
-      ),
+      p.subOnly
+        ? Promise.resolve(false)
+        : isEmbedUrlAvailable(
+            buildUrl(p, {
+              mediaId: media.id,
+              episode,
+              title,
+              tmdbId,
+              season,
+              lang: "dub",
+            }),
+          ),
     ),
   );
   const dubAvailable = dubFlags.some(Boolean);
