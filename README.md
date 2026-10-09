@@ -37,7 +37,8 @@ through our own Next.js route handlers (with layered caching). Supabase stores
   "mark watched" buttons on the player.
 - **Comments & profiles** — episode comments, public profile pages
   (`/profile/{username}`) linked from comment authors.
-- **Auth** — email/password register, login, forgot/reset password, optional Google OAuth,
+- **Auth** — email/password register, login, forgot/reset password, optional OAuth
+  login (Google, GitHub, Discord),
   ban handling (`/suspended`), account management (username/avatar/password).
 - **Public REST API** — token-authenticated `/api/v1` endpoints (search,
   trending, seasonal, details) with docs at `/docs/api`.
@@ -122,7 +123,7 @@ Base URL: `https://mr-anime.vercel.app/api/v1` — docs at [`/docs/api`](/docs/a
 | `PROVIDER_N_BASE` / `PROVIDER_N_NAME` | server | embed providers (N = 1…6) |
 | `NEXT_PUBLIC_SITE_URL` | server | canonical origin (OG, sitemap) |
 | `REQUIRE_LOGIN_TO_WATCH` | server | `1` = `/watch` requires login |
-| `ENABLE_GOOGLE_OAUTH` | server | `1` = show Google sign-in |
+| `ENABLE_GOOGLE_OAUTH` / `ENABLE_GITHUB_OAUTH` / `ENABLE_DISCORD_OAUTH` | server | `1` = show that OAuth sign-in button |
 | `REPORT_WEBHOOK_URL` | server | forward broken-video reports |
 
 Local dev without Supabase credentials is tolerated: auth pages render,

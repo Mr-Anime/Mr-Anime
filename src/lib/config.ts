@@ -1,6 +1,11 @@
 import "server-only";
+import { OAUTH_ENV_FLAGS, OAUTH_PROVIDERS, type OAuthProvider } from "@/lib/oauth";
 
 const bool = (v: string | undefined) => v === "1" || v?.toLowerCase() === "true";
+
+const oauthProviders: OAuthProvider[] = OAUTH_PROVIDERS.filter((provider) =>
+  bool(process.env[OAUTH_ENV_FLAGS[provider]]),
+);
 
 export const siteConfig = {
   name: "Mr.Anime",
@@ -12,7 +17,7 @@ export const siteConfig = {
   attribution:
     "Data from AniList and TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.",
   requireLoginToWatch: bool(process.env.REQUIRE_LOGIN_TO_WATCH),
-  googleOAuthEnabled: bool(process.env.ENABLE_GOOGLE_OAUTH),
+  oauthProviders,
 } as const;
 
 export const cacheTtl = {

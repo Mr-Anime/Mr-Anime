@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { RegisterForm } from "@/components/auth/register-form";
+import { siteConfig } from "@/lib/config";
 import { tryCreateClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ export default async function RegisterPage() {
         </>
       }
     >
-      <RegisterForm />
+      <RegisterForm oauthProviders={siteConfig.oauthProviders} />
     </AuthShell>
   );
 }

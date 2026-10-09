@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { register } from "@/app/actions/auth";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { FieldError, FormMessage } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { OAuthProvider } from "@/lib/oauth";
 
-export function RegisterForm() {
+export function RegisterForm({ oauthProviders }: { oauthProviders: OAuthProvider[] }) {
   const [state, action, pending] = useActionState(register, undefined);
 
   if (state?.success) {
@@ -76,6 +78,8 @@ export function RegisterForm() {
       <Button type="submit" className="w-full" disabled={pending}>
         {pending ? "Creating account…" : "Create account"}
       </Button>
+
+      <OAuthButtons providers={oauthProviders} next="/" />
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}

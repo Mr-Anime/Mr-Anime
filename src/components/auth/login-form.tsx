@@ -2,38 +2,24 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { toast } from "sonner";
 import { login } from "@/app/actions/auth";
-import { createClient } from "@/lib/supabase/client";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
 import { FieldError, FormMessage } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { OAuthProvider } from "@/lib/oauth";
 
 export function LoginForm({
   next,
-  googleEnabled,
+  oauthProviders,
   initialMessage,
 }: {
   next: string;
-  googleEnabled: boolean;
+  oauthProviders: OAuthProvider[];
   initialMessage?: string;
 }) {
   const [state, action, pending] = useActionState(login, undefined);
-
-  async function signInWithGoogle() {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-        },
-      });
-    } catch {
-      toast.error("Google sign-in is not configured on this server.");
-    }
-  }
 
   return (
     <form action={action} className="space-y-4">
@@ -82,22 +68,7 @@ export function LoginForm({
         {pending ? "Signing in…" : "Sign in"}
       </Button>
 
-      {googleEnabled ? (
-        <>
-          <div className="relative py-1 text-center text-xs text-muted-foreground">
-            <span className="relative z-10 bg-card px-2">or</span>
-            <span className="absolute inset-x-0 top-1/2 h-px bg-border" />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => void signInWithGoogle()}
-          >
-            Continue with Google
-          </Button>
-        </>
-      ) : null}
+      <OAuthButtons providers={oauthProviders} next={next} />
 
       <p className="text-center text-sm text-muted-foreground">
         New here?{" "}

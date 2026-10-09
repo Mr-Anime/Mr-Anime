@@ -43,7 +43,7 @@ export default async function LoginPage({
     >
       <LoginForm
         next={safeNext}
-        googleEnabled={siteConfig.googleOAuthEnabled}
+        oauthProviders={siteConfig.oauthProviders}
         initialMessage={error}
       />
     </AuthShell>
