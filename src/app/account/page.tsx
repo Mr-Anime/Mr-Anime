@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { ProfileForm } from "@/components/account/profile-form";
 import { ApiTokenManager } from "@/components/account/api-token-manager";
+import { OAuthAppsManager } from "@/components/account/oauth-apps-manager";
 import { UserBadges } from "@/components/user-badges";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { getApiTokens } from "@/lib/api-tokens";
+import { getOAuthApps } from "@/lib/oauth-apps";
 import { tryCreateClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -61,6 +63,7 @@ export default async function AccountPage({
 
   const profile = data as unknown as Profile;
   const apiTokens = await getApiTokens();
+  const oauthApps = await getOAuthApps();
   const email =
     typeof (authData.claims as Record<string, unknown>).email === "string"
       ? ((authData.claims as Record<string, unknown>).email as string)
@@ -167,6 +170,22 @@ export default async function AccountPage({
         </CardHeader>
         <CardContent>
           <ApiTokenManager tokens={apiTokens} />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>OAuth applications</CardTitle>
+          <CardDescription>
+            Apps that use Sign in with Mr.Anime or server-to-server API access.{" "}
+            <a href="/docs/api" className="text-sky-500 underline-offset-4 hover:underline">
+              Read the OAuth docs
+            </a>
+            .
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OAuthAppsManager apps={oauthApps} />
         </CardContent>
       </Card>
     </div>

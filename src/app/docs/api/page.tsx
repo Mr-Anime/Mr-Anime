@@ -48,12 +48,19 @@ const endpoints = [
     "/anime/{id}/episodes/{episode}",
     "Player payload: metadata + episode + embed URLs + dub availability.",
   ],
+  [
+    "GET",
+    "/me",
+    "Identity of the token's user (requires the `profile` scope or a personal token).",
+  ],
 ] as const;
 
 const errors = [
   ["missing_token", "401", "No bearer token supplied."],
   ["invalid_token", "401", "Token does not exist."],
-  ["token_revoked", "401", "Token was revoked."],
+  ["token_revoked", "401", "Token (or its application) was revoked."],
+  ["token_expired", "401", "OAuth access token expired (30 days). Get a new one."],
+  ["insufficient_scope", "403", "OAuth token lacks the scope this endpoint needs."],
   ["rate_limited", "429", "More than 60 requests/minute. Retry after the `Retry-After` header."],
   ["invalid_params", "400", "Query parameter failed validation."],
   ["not_found", "404", "No anime exists with that id."],
@@ -136,6 +143,108 @@ const { data, pageInfo } = await res.json();`}</Code>
             CORS is enabled (<code className="font-mono text-foreground">Access-Control-Allow-Origin: *</code>
             ), so the API can be called directly from browser apps.
           </p>
+        </Section>
+
+        <Section id="oauth" title="OAuth 2.0 (third-party apps)">
+          <p>
+            Mr.Anime is also an OAuth 2.0 provider — register an app on your{" "}
+            <Link href="/account" className="text-sky-500 underline-offset-4 hover:underline">
+              account page
+            </Link>{" "}
+            (OAuth applications card) to get a{" "}
+            <code className="font-mono text-foreground">client_id</code> and a one-time{" "}
+            <code className="font-mono text-foreground">client_secret</code>. Two grant types are
+            supported:
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong className="text-foreground">authorization_code</strong> — “Sign in with
+              Mr.Anime”: users approve your app, you receive a single-use 5-minute code, then
+              exchange it for a 30-day access token.
+            </li>
+            <li>
+              <strong className="text-foreground">client_credentials</strong> — server-to-server
+              API access with no user (read scope only).
+            </li>
+          </ul>
+
+          <div className="space-y-2">
+            <h3 className="font-medium text-foreground">Scopes</h3>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                <code className="font-mono text-foreground">read</code> (default) — all{" "}
+                <code className="font-mono text-foreground">/api/v1</code> anime endpoints.
+              </li>
+              <li>
+                <code className="font-mono text-foreground">profile</code> — additionally{" "}
+                <code className="font-mono text-foreground">/api/v1/me</code> (the user&rsquo;s
+                id, username, avatar, badges). Always requested alongside{" "}
+                <code className="font-mono text-foreground">read</code> by sign-in buttons.
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-medium text-foreground">1. Redirect the user</h3>
+            <Code>{`https://mr-anime.vercel.app/oauth/authorize
+  ?client_id=CLIENT_ID
+  &redirect_uri=YOUR_CALLBACK
+  &response_type=code
+  &scope=read%20profile
+  &state=RANDOM_UNGUESSABLE_STRING`}</Code>
+            <p>
+              The user signs in and clicks Approve; we redirect back to{" "}
+              <code className="font-mono text-foreground">redirect_uri</code> with{" "}
+              <code className="font-mono text-foreground">code</code> and{" "}
+              <code className="font-mono text-foreground">state</code> (or{" "}
+              <code className="font-mono text-foreground">error=access_denied</code> if they
+              decline). Verify <code className="font-mono text-foreground">state</code> matches
+              what you sent.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-medium text-foreground">2. Exchange the code</h3>
+            <Code>{`curl -X POST https://mr-anime.vercel.app/oauth/token \\
+  -H "Content-Type: application/x-www-form-urlencoded" \\
+  -d grant_type=authorization_code \\
+  -d code=CODE \\
+  -d redirect_uri=YOUR_CALLBACK \\
+  -d client_id=CLIENT_ID \\
+  -d client_secret=CLIENT_SECRET
+
+# → { "access_token": "ma_at_…", "token_type": "Bearer",
+#     "expires_in": 2592000, "scope": "read profile" }`}</Code>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-medium text-foreground">Server-to-server (no user)</h3>
+            <Code>{`curl -X POST https://mr-anime.vercel.app/oauth/token \\
+  -H "Content-Type: application/x-www-form-urlencoded" \\
+  -d grant_type=client_credentials \\
+  -d client_id=CLIENT_ID \\
+  -d client_secret=CLIENT_SECRET
+
+# → { "access_token": "ma_at_…", "expires_in": 2592000, "scope": "read" }`}</Code>
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="font-medium text-foreground">3. Use the access token</h3>
+            <Code>{`curl -H "Authorization: Bearer ma_at_YOUR_TOKEN" \\
+  "${BASE}/me"   # or any anime endpoint
+
+# → { "data": { "id": "…", "username": "…", "avatarUrl": null,
+#               "role": "user", "isVerified": false, "badges": [] } }`}</Code>
+            <p>
+              Tokens live 30 days and are revocable from your account page (revoking the app
+              kills its tokens instantly). Errors from{" "}
+              <code className="font-mono text-foreground">/oauth/token</code> follow RFC 6749:{" "}
+              <code className="font-mono text-foreground">invalid_client</code>,{" "}
+              <code className="font-mono text-foreground">invalid_grant</code>,{" "}
+              <code className="font-mono text-foreground">unsupported_grant_type</code>,{" "}
+              <code className="font-mono text-foreground">invalid_scope</code>.
+            </p>
+          </div>
         </Section>
 
         <Section id="endpoints" title="Endpoints">

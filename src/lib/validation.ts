@@ -1,5 +1,6 @@
 import * as z from "zod";
 import { LIST_STATUSES } from "@/lib/list-shared";
+import { isAllowedRedirectUri } from "@/lib/redirect";
 
 export const usernameSchema = z
   .string()
@@ -59,6 +60,20 @@ export const apiTokenNameSchema = z
   .trim()
   .min(1, { error: "Token name is required." })
   .max(60, { error: "Token name must be at most 60 characters." });
+
+export const appNameSchema = z
+  .string()
+  .trim()
+  .min(1, { error: "App name is required." })
+  .max(80, { error: "App name must be at most 80 characters." });
+
+export const redirectUriSchema = z
+  .string()
+  .trim()
+  .max(500, { error: "Redirect URI is too long." })
+  .refine((uri) => isAllowedRedirectUri(uri), {
+    error: "Use an https:// URL (or http://localhost for development), without a #fragment.",
+  });
 
 export const reportSchema = z.object({
   anilistId: z.coerce.number().int().positive(),

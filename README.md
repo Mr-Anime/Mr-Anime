@@ -42,6 +42,9 @@ through our own Next.js route handlers (with layered caching). Supabase stores
   ban handling (`/suspended`), account management (username/avatar/password).
 - **Public REST API** — token-authenticated `/api/v1` endpoints (search,
   trending, seasonal, details) with docs at `/docs/api`.
+- **OAuth 2.0 provider** — third-party apps get `client_id`/`client_secret` on
+  `/account`; authorization_code (“Sign in with Mr.Anime”) + client_credentials
+  grants, scopes, consent screen at `/oauth/authorize`.
 - **Admin** — dashboard, user management (ban, promote/demote, verify, delete) with
   last-admin and self-action guards, append-only audit log (`admin_actions`).
 - **SEO** — sitemap (trending titles), robots, manifest, canonicals, per-page metadata.
@@ -60,7 +63,7 @@ npm run dev                   # http://localhost:3000
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Apply `supabase/migrations/0001_init.sql`, then `0002_comments.sql`, `0003_user_list.sql`,
-   `0004_api_tokens.sql`
+   `0004_api_tokens.sql`, `0005_oauth.sql`
    (SQL editor, or `supabase db push` with the CLI).
 3. Copy **Project URL**, **anon/publishable key** and **service role key** into `.env.local`.
 4. Sign up through the app, then promote yourself (commented SQL at the bottom
@@ -105,10 +108,16 @@ Base URL: `https://mr-anime.vercel.app/api/v1` — docs at [`/docs/api`](/docs/a
 | `GET /anime/{id}` | single-title details |
 | `GET /anime/{id}/episodes?season=` | episode list (titles + thumbnails) |
 | `GET /anime/{id}/episodes/{ep}?lang=&season=` | player payload: metadata, episode meta, embed URLs, dub flags |
+| `GET /me` | token's user id/username/avatar/badges (`profile` scope or personal token) |
 
 - **Auth:** create a token on `/account` (API tokens card), then send
   `Authorization: Bearer ma_live_…` (`X-API-Key` also accepted). Only a
   SHA-256 hash is stored (`api_tokens` table, migration `0004`).
+- **OAuth apps:** register on `/account` (OAuth applications card, migration
+  `0005`), then `GET /oauth/authorize?client_id=…&redirect_uri=…&response_type=code&scope=read%20profile&state=…`
+  → `POST /oauth/token` (grants `authorization_code` | `client_credentials`)
+  → use the returned `ma_at_…` token as a normal bearer. Full flow in
+  [`/docs/api`](/docs/api#oauth).
 - **Rate limit:** 60 requests/minute per token; `429` + `Retry-After` beyond.
 - Responses are CDN-cached; CORS is open for browser clients.
 
