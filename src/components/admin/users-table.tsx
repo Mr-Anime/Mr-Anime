@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -221,9 +222,11 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           <MoreHorizontalIcon />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel className="truncate">
-                            {user.username}
-                          </DropdownMenuLabel>
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="truncate">
+                              {user.username}
+                            </DropdownMenuLabel>
+                          </DropdownMenuGroup>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}

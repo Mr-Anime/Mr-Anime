@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -127,16 +128,18 @@ export function UserMenu() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="flex items-center gap-2 font-normal">
-          <span className="truncate font-medium text-foreground">
-            {profile.username}
-          </span>
-          <UserBadges
-            role={profile.role}
-            isVerified={profile.is_verified}
-            badges={profile.badges}
-          />
-        </DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center gap-2 font-normal">
+            <span className="truncate font-medium text-foreground">
+              {profile.username}
+            </span>
+            <UserBadges
+              role={profile.role}
+              isVerified={profile.is_verified}
+              badges={profile.badges}
+            />
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/account")}>
           <UserRoundIcon />
