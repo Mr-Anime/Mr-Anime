@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { ADMIN_GRANTABLE_BADGES } from "@/lib/badges";
 import { adminGate } from "@/lib/admin-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -46,7 +47,7 @@ async function loadTargetProfile(targetId: string) {
   const admin = createAdminClient();
   const { data } = await admin
     .from("profiles")
-    .select("id, username, role, is_banned, is_verified")
+    .select("id, username, role, is_banned, is_verified, badges")
     .eq("id", targetId)
     .single();
   return data as {
@@ -55,6 +56,7 @@ async function loadTargetProfile(targetId: string) {
     role: string;
     is_banned: boolean;
     is_verified: boolean;
+    badges: string[];
   } | null;
 }
 
@@ -199,11 +201,72 @@ export async function setUserVerified(
     return {
       ok: true,
       message: verified
-        ? `${target.username} verified.`
-        : `${target.username} unverified.`,
+        ? `${target.username} is now Owner verified.`
+        : `Owner verification removed from ${target.username}.`,
     };
   } catch (error) {
     console.error("[admin] setUserVerified failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
+/** Grant or revoke an admin-grantable badge (e.g. the verified icon for
+ *  normal users). Only keys in ADMIN_GRANTABLE_BADGES are accepted. */
+export async function setUserBadge(
+  targetId: string,
+  badge: string,
+  enabled: boolean,
+): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
+  const idParsed = targetIdSchema.safeParse(targetId);
+  const badgeParsed = z.enum(ADMIN_GRANTABLE_BADGES).safeParse(badge);
+  if (!idParsed.success || !badgeParsed.success) {
+    return { ok: false, error: "Invalid input." };
+  }
+  if (idParsed.data === auth.adminId) {
+    return { ok: false, error: "You cannot change your own badges." };
+  }
+
+  try {
+    const target = await loadTargetProfile(idParsed.data);
+    if (!target) return { ok: false, error: "User not found." };
+
+    const current = Array.isArray(target.badges) ? target.badges : [];
+    const has = current.includes(badgeParsed.data);
+    if (has === enabled) {
+      return {
+        ok: false,
+        error: enabled
+          ? "That badge is already granted."
+          : "That badge is not granted.",
+      };
+    }
+    const badges = enabled
+      ? [...current, badgeParsed.data]
+      : current.filter((key) => key !== badgeParsed.data);
+
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("profiles")
+      .update({ badges })
+      .eq("id", targetId);
+    if (error) return { ok: false, error: error.message };
+
+    await audit(auth.adminId, targetId, enabled ? "grant_badge" : "revoke_badge", {
+      username: target.username,
+      badge: badgeParsed.data,
+    });
+    revalidatePath("/admin/users");
+    return {
+      ok: true,
+      message: enabled
+        ? `Badge granted to ${target.username}.`
+        : `Badge removed from ${target.username}.`,
+    };
+  } catch (error) {
+    console.error("[admin] setUserBadge failed", error);
     return { ok: false, error: "Supabase is not configured." };
   }
 }

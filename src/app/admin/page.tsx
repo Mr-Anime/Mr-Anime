@@ -89,7 +89,7 @@ export default async function AdminDashboardPage() {
     { label: "Total users", value: stats.total, icon: UsersIcon },
     { label: "Admins", value: stats.admins, icon: ShieldCheckIcon },
     { label: "Banned", value: stats.banned, icon: UserMinusIcon },
-    { label: "Verified", value: stats.verified, icon: BadgeCheckIcon },
+    { label: "Owner verified", value: stats.verified, icon: BadgeCheckIcon },
   ];
 
   return (

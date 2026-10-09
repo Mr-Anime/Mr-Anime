@@ -3,9 +3,11 @@ import { ShieldIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
-
-export const VERIFIED_BADGE_IMAGE =
-  "https://cdn-icons-png.flaticon.com/512/18295/18295118.png";
+import {
+  MEMBER_VERIFIED_BADGE,
+  MEMBER_VERIFIED_IMAGE,
+  OWNER_VERIFIED_IMAGE,
+} from "@/lib/badges";
 
 const BADGE_LABELS: Record<string, string> = {
   supporter: "Supporter",
@@ -27,9 +29,13 @@ function customLabel(key: string) {
 }
 
 export function UserBadges({ role, isVerified, badges, className }: Props) {
-  const custom = (badges ?? []).filter(Boolean);
+  const all = (badges ?? []).filter(Boolean);
+  const hasMemberVerified = all.includes(MEMBER_VERIFIED_BADGE);
+  const custom = all.filter((key) => key !== MEMBER_VERIFIED_BADGE);
 
-  if (!isVerified && role !== "admin" && custom.length === 0) return null;
+  if (!isVerified && role !== "admin" && !hasMemberVerified && custom.length === 0) {
+    return null;
+  }
 
   return (
     <span
@@ -41,8 +47,25 @@ export function UserBadges({ role, isVerified, badges, className }: Props) {
           <TooltipTrigger
             render={
               <Image
-                src={VERIFIED_BADGE_IMAGE}
-                alt="Verified account"
+                src={OWNER_VERIFIED_IMAGE}
+                alt="Owner verified"
+                width={16}
+                height={16}
+                className="size-4 shrink-0"
+              />
+            }
+          />
+          <TooltipContent>Owner verified</TooltipContent>
+        </Tooltip>
+      ) : null}
+
+      {hasMemberVerified ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Image
+                src={MEMBER_VERIFIED_IMAGE}
+                alt="Verified"
                 width={16}
                 height={16}
                 className="size-4 shrink-0"

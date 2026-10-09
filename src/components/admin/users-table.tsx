@@ -1,16 +1,19 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { MoreHorizontalIcon, ShieldCheckIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteAccount,
+  setUserBadge,
   setUserBan,
   setUserRole,
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
+import { MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,11 +51,12 @@ export type AdminUser = {
   is_verified: boolean;
   is_banned: boolean;
   ban_reason: string | null;
+  badges: string[];
   created_at: string;
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "delete";
+  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "delete";
   user: AdminUser;
 } | null;
 
@@ -96,6 +100,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
       run(() => setUserVerified(user.id, true));
     } else if (kind === "unverify") {
       run(() => setUserVerified(user.id, false));
+    } else if (kind === "badge") {
+      const has = user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
+      run(() => setUserBadge(user.id, MEMBER_VERIFIED_BADGE, !has));
     } else if (kind === "delete") {
       run(() => deleteAccount(user.id));
     }
@@ -157,6 +164,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
             ) : (
               users.map((user) => {
                 const isSelf = user.id === selfId;
+                const hasVerifiedBadge =
+                  user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
@@ -166,7 +175,19 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           <Badge variant="secondary">you</Badge>
                         ) : null}
                         {user.is_verified ? (
-                          <ShieldCheckIcon className="size-4 text-sky-500" aria-label="Verified" />
+                          <ShieldCheckIcon
+                            className="size-4 text-sky-500"
+                            aria-label="Owner verified"
+                          />
+                        ) : null}
+                        {hasVerifiedBadge ? (
+                          <Image
+                            src={MEMBER_VERIFIED_IMAGE}
+                            alt="Verified"
+                            width={14}
+                            height={14}
+                            className="size-3.5"
+                          />
                         ) : null}
                       </div>
                       {user.is_banned && user.ban_reason ? (
@@ -225,7 +246,22 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                               setDialog({ kind: user.is_verified ? "unverify" : "verify", user })
                             }
                           >
-                            {user.is_verified ? "Remove verification" : "Verify user"}
+                            {user.is_verified
+                              ? "Remove Owner verification"
+                              : "Grant Owner verification"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
+                            onClick={() => setDialog({ kind: "badge", user })}
+                          >
+                            <Image
+                              src={MEMBER_VERIFIED_IMAGE}
+                              alt=""
+                              width={14}
+                              height={14}
+                              className="size-3.5"
+                            />
+                            {hasVerifiedBadge ? "Remove verified badge" : "Give verified badge"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -269,9 +305,13 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                       ? dialog.user.role === "admin"
                         ? "Demote admin"
                         : "Promote to admin"
-                      : dialog?.kind === "verify"
-                        ? "Verify user"
-                        : "Remove verification"}
+                      : dialog?.kind === "badge"
+                        ? dialog.user.badges?.includes(MEMBER_VERIFIED_BADGE)
+                          ? "Remove verified badge"
+                          : "Grant verified badge"
+                        : dialog?.kind === "verify"
+                          ? "Grant Owner verification"
+                          : "Remove Owner verification"}
             </DialogTitle>
             <DialogDescription>
               {dialog?.kind === "delete" ? (
@@ -286,6 +326,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 dialog.user.role === "admin"
                   ? "They will lose access to the admin panel immediately."
                   : "They will gain full access to the admin panel."
+              ) : dialog?.kind === "badge" ? (
+                "The verified badge appears next to their name on profiles and comments. It is recorded in the audit log."
               ) : (
                 "Confirm this change. It is recorded in the audit log."
               )}

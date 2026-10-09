@@ -35,7 +35,7 @@ export default async function AdminUsersPage({
 
   let query = admin
     .from("profiles")
-    .select("id, username, role, is_verified, is_banned, ban_reason, created_at", {
+    .select("id, username, role, is_verified, is_banned, ban_reason, badges, created_at", {
       count: "exact",
     });
   if (safeQ) query = query.ilike("username", `%${safeQ}%`);
