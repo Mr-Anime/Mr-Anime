@@ -1,5 +1,6 @@
 import "server-only";
 import { tryCreateClient } from "@/lib/supabase/server";
+import { getLoadouts } from "@/lib/loadouts";
 import type { CommentView, CommentViewer } from "@/lib/comments-shared";
 
 export type { CommentAuthor, CommentView, CommentViewer } from "@/lib/comments-shared";
@@ -29,7 +30,18 @@ export async function getComments(
       console.error("[comments] query failed", error.message);
       return [];
     }
-    return (data ?? []) as unknown as CommentView[];
+    const rows = (data ?? []) as unknown as CommentView[];
+
+    // Attach equipped shop cosmetics for each author (frames, name styles,
+    // name animations) — loadouts are public, fetched in one batch.
+    const userIds = [...new Set(rows.map((r) => r.user_id))];
+    const loadouts = await getLoadouts(userIds);
+    return rows.map((row) => ({
+      ...row,
+      author: row.author
+        ? { ...row.author, cosmetics: loadouts.get(row.user_id) ?? null }
+        : null,
+    }));
   } catch (error) {
     console.error("[comments] query failed", error);
     return [];

@@ -7,8 +7,11 @@ import { timeAgo } from "@/lib/comments-shared";
 import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getProfileByUsername, getRecentComments } from "@/lib/profiles";
+import { getLoadout } from "@/lib/loadouts";
+import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserBadges } from "@/components/user-badges";
+import { cn } from "cn";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +39,7 @@ export default async function ProfilePage({ params }: Params) {
   if (!profile) notFound();
 
   const comments = await getRecentComments(profile.id);
+  const cosmetics = await getLoadout(profile.id);
 
   let media: Awaited<ReturnType<typeof getMediaByIds>> = [];
   if (comments.length > 0) {
@@ -56,13 +60,17 @@ export default async function ProfilePage({ params }: Params) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
       <header className="flex flex-wrap items-center gap-4 rounded-xl border border-border/60 bg-card p-5">
-        <Avatar size="lg">
-          {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
-          <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <span
+          className={cn("inline-flex rounded-full", cosmeticClass(cosmetics?.frame))}
+        >
+          <Avatar size="lg">
+            {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
+            <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
+        </span>
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-xl font-bold tracking-tight">
+            <h1 className={cn("truncate text-xl font-bold tracking-tight", nameClasses(cosmetics))}>
               {profile.username}
             </h1>
             <UserBadges

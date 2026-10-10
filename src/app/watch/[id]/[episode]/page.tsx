@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, PlayIcon, TvIcon } from "lucide-react";
+import { ArrowLeftIcon, CoinsIcon, PlayIcon, TvIcon } from "lucide-react";
 import {
   anyProviderSupportsLang,
   getProviders,
@@ -17,6 +17,7 @@ import type { Media } from "@/lib/anilist/types";
 import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getComments, getCommentViewer } from "@/lib/comments";
+import { tryClaimCoinDrop } from "@/lib/coins";
 import { getListEntry } from "@/lib/list";
 import { MarkWatchedButton } from "@/components/list/mark-watched-button";
 
@@ -70,6 +71,9 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
     getCommentViewer(),
     getListEntry(media.id),
   ]);
+
+  // Random Mr.Coin drop for signed-in viewers (10-min cooldown, RPC-gated).
+  const coinDrop = viewer ? await tryClaimCoinDrop() : 0;
 
   const title = mediaTitle(media);
   const total = media.episodes ?? 0;
@@ -188,6 +192,24 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
           next={`/watch/${media.id}/${episode}${navQuery ? `?${navQuery}` : ""}`}
         />
       </div>
+
+      {coinDrop > 0 ? (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3"
+        >
+          <p className="flex items-center gap-2 text-sm font-medium text-amber-400">
+            <CoinsIcon className="size-4" />
+            +{coinDrop} Mr.Coin earned — keep watching for more!
+          </p>
+          <Link
+            href="/shop"
+            className="text-sm font-medium text-amber-300 hover:underline"
+          >
+            Spend in the shop →
+          </Link>
+        </div>
+      ) : null}
 
       <section className="space-y-4" aria-label="Episodes">
         <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">

@@ -6,12 +6,15 @@ import { useState, useTransition } from "react";
 import { Loader2Icon, MessageSquareIcon, SendIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { deleteComment, postComment } from "@/app/actions/comments";
+import { ProfileHoverCard } from "@/components/profile-hover-card";
 import { UserBadges } from "@/components/user-badges";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { CommentView, CommentViewer } from "@/lib/comments-shared";
 import { timeAgo } from "@/lib/comments-shared";
+import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
+import { cn } from "cn";
 
 type Props = {
   anilistId: number;
@@ -136,12 +139,21 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                     className="mt-0.5 shrink-0"
                     aria-label={`View ${author.username}'s profile`}
                   >
-                    <Avatar size="sm">
-                      {author.avatar_url ? <AvatarImage src={author.avatar_url} alt="" /> : null}
-                      <AvatarFallback>
-                        {author.username.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full",
+                        cosmeticClass(author.cosmetics?.frame),
+                      )}
+                    >
+                      <Avatar size="sm">
+                        {author.avatar_url ? (
+                          <AvatarImage src={author.avatar_url} alt="" />
+                        ) : null}
+                        <AvatarFallback>
+                          {author.username.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </span>
                   </Link>
                 ) : (
                   <Avatar size="sm" className="mt-0.5">
@@ -151,12 +163,17 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                 <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     {author?.username ? (
-                      <Link
-                        href={`/profile/${author.username}`}
-                        className="text-sm font-medium hover:text-sky-400 hover:underline"
-                      >
-                        {author.username}
-                      </Link>
+                      <ProfileHoverCard username={author.username}>
+                        <Link
+                          href={`/profile/${author.username}`}
+                          className={cn(
+                            "text-sm font-medium hover:text-sky-400 hover:underline",
+                            nameClasses(author.cosmetics),
+                          )}
+                        >
+                          {author.username}
+                        </Link>
+                      </ProfileHoverCard>
                     ) : (
                       <span className="text-sm font-medium">deleted user</span>
                     )}

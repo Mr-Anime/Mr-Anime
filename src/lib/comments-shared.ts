@@ -1,11 +1,15 @@
 /** Shared comment types + helpers (safe to import from client and server). */
 
+import type { Cosmetics } from "@/lib/cosmetics";
+
 export type CommentAuthor = {
   username: string;
   avatar_url: string | null;
   role: string;
   is_verified: boolean;
   badges: string[];
+  /** Equipped shop cosmetics (frame / name style / name animation). */
+  cosmetics?: Cosmetics | null;
 };
 
 export type CommentView = {
