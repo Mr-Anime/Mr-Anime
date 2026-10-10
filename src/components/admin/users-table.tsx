@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MoreHorizontalIcon, ShieldCheckIcon, Trash2Icon, UserXIcon } from "lucide-react";
+import { MoreHorizontalIcon, FlameIcon, ShieldCheckIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteAccount,
@@ -13,7 +13,7 @@ import {
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
-import { MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
+import { MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +57,7 @@ export type AdminUser = {
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "delete";
+  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "nitro" | "delete";
   user: AdminUser;
 } | null;
 
@@ -104,6 +104,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
     } else if (kind === "badge") {
       const has = user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
       run(() => setUserBadge(user.id, MEMBER_VERIFIED_BADGE, !has));
+    } else if (kind === "nitro") {
+      const has = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
+      run(() => setUserBadge(user.id, MEMBER_NITRO_BADGE, !has));
     } else if (kind === "delete") {
       run(() => deleteAccount(user.id));
     }
@@ -167,6 +170,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 const isSelf = user.id === selfId;
                 const hasVerifiedBadge =
                   user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
+                const hasNitroBadge = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
@@ -188,6 +192,12 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             width={14}
                             height={14}
                             className="size-3.5"
+                          />
+                        ) : null}
+                        {hasNitroBadge ? (
+                          <FlameIcon
+                            className="size-4 text-cyan-400"
+                            aria-label="Mr. Anime Nitro"
                           />
                         ) : null}
                       </div>
@@ -266,6 +276,13 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             />
                             {hasVerifiedBadge ? "Remove verified badge" : "Give verified badge"}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
+                            onClick={() => setDialog({ kind: "nitro", user })}
+                          >
+                            <FlameIcon className="text-cyan-400" />
+                            {hasNitroBadge ? "Remove Nitro" : "Give Mr. Anime Nitro"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -312,7 +329,11 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                         ? dialog.user.badges?.includes(MEMBER_VERIFIED_BADGE)
                           ? "Remove verified badge"
                           : "Grant verified badge"
-                        : dialog?.kind === "verify"
+                        : dialog?.kind === "nitro"
+                          ? dialog.user.badges?.includes(MEMBER_NITRO_BADGE)
+                            ? "Remove Mr. Anime Nitro"
+                            : "Grant Mr. Anime Nitro"
+                          : dialog?.kind === "verify"
                           ? "Grant Owner verification"
                           : "Remove Owner verification"}
             </DialogTitle>
@@ -331,6 +352,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                   : "They will gain full access to the admin panel."
               ) : dialog?.kind === "badge" ? (
                 "The verified badge appears next to their name on profiles and comments. It is recorded in the audit log."
+              ) : dialog?.kind === "nitro" ? (
+                "Mr. Anime Nitro gives blue flame effects on their profile and hover card, a blue avatar aura and the NITRO badge. It is recorded in the audit log."
               ) : (
                 "Confirm this change. It is recorded in the audit log."
               )}

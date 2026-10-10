@@ -8,6 +8,8 @@ export type CommentAuthor = {
   role: string;
   is_verified: boolean;
   badges: string[];
+  /** Paid Mr. Anime Nitro expiry (badge-based Nitro lives in badges). */
+  nitro_until?: string | null;
   /** Equipped shop cosmetics (frame / name style / name animation). */
   cosmetics?: Cosmetics | null;
 };

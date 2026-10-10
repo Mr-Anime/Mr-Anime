@@ -8,6 +8,10 @@ export type ShopActionResult =
   | { ok: true; message: string; coins: number }
   | { ok: false; error: string };
 
+export type NitroActionResult =
+  | { ok: true; message: string; coins: number; nitroUntil: string | null }
+  | { ok: false; error: string };
+
 const itemIdSchema = z.string().min(1).max(60);
 const slotSchema = z.enum(["frame", "name_style", "name_animation"]);
 
@@ -109,6 +113,49 @@ export async function equipShopItem(
     };
   } catch (error) {
     console.error("[shop] equip failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
+/** Buy (or renew) Mr. Anime Nitro for 30 days with Mr.Coin. */
+export async function buyNitro(): Promise<NitroActionResult> {
+  try {
+    const supabase = await createClient();
+    const { data: authData } = await supabase.auth.getClaims();
+    if (!authData?.claims?.sub) {
+      return { ok: false, error: "Sign in to buy Nitro." };
+    }
+
+    const { data, error } = await supabase.rpc("buy_nitro");
+    if (error) {
+      console.error("[shop] nitro purchase failed", error.message);
+      return { ok: false, error: "Could not purchase Nitro. Try again." };
+    }
+
+    const result = data as { ok?: boolean; coins?: number; nitro_until?: string; error?: string };
+    if (!result?.ok) {
+      switch (result?.error) {
+        case "insufficient":
+          return {
+            ok: false,
+            error: "Not enough Mr.Coin for Nitro — keep watching to earn more.",
+          };
+        case "auth":
+          return { ok: false, error: "Sign in to buy Nitro." };
+        default:
+          return { ok: false, error: "Could not purchase Nitro. Try again." };
+      }
+    }
+
+    revalidatePath("/shop");
+    return {
+      ok: true,
+      message: "Welcome to Mr. Anime Nitro!",
+      coins: result.coins ?? 0,
+      nitroUntil: result.nitro_until ?? null,
+    };
+  } catch (error) {
+    console.error("[shop] nitro purchase failed", error);
     return { ok: false, error: "Supabase is not configured." };
   }
 }

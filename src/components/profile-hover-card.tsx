@@ -16,6 +16,7 @@ export type ProfileCardData = {
   isVerified: boolean;
   badges: string[];
   joinedAt: string;
+  nitro: boolean;
   cosmetics: Cosmetics;
 };
 
@@ -138,7 +139,10 @@ export function ProfileHoverCard({ username, children }: Props) {
         <div
           role="dialog"
           aria-label={`${username}'s profile card`}
-          className="fixed z-50 overflow-hidden rounded-xl border border-border/60 bg-popover/95 shadow-2xl backdrop-blur-md"
+          className={cn(
+            "fixed z-50 overflow-hidden rounded-xl border border-border/60 bg-popover/95 shadow-2xl backdrop-blur-md",
+            data?.nitro && "nitro-flame border-transparent",
+          )}
           style={{ top: pos.top, left: pos.left, width: CARD_WIDTH }}
           onPointerEnter={clearCloseTimer}
           onPointerLeave={scheduleClose}
@@ -157,6 +161,7 @@ export function ProfileHoverCard({ username, children }: Props) {
                 className={cn(
                   "inline-flex rounded-full",
                   data && cosmeticClass(data.cosmetics?.frame),
+                  data?.nitro && "nitro-avatar-glow",
                 )}
               >
                 <Avatar size="lg">
@@ -181,6 +186,7 @@ export function ProfileHoverCard({ username, children }: Props) {
                       role={data.role}
                       isVerified={data.isVerified}
                       badges={data.badges}
+                      nitro={data.nitro}
                     />
                   </div>
                   <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

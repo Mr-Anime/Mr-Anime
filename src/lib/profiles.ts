@@ -8,6 +8,7 @@ export type PublicProfile = {
   role: string;
   is_verified: boolean;
   badges: string[];
+  nitro_until: string | null;
   created_at: string;
 };
 
@@ -19,7 +20,7 @@ export type ProfileComment = {
   episode: number | null;
 };
 
-const PROFILE_COLUMNS = "id, username, avatar_url, role, is_verified, badges, created_at";
+const PROFILE_COLUMNS = "id, username, avatar_url, role, is_verified, badges, nitro_until, created_at";
 
 /** Public profile by username (profiles are column-readable by anon). */
 export async function getProfileByUsername(

@@ -1,0 +1,16 @@
+
+> mr-anime@0.1.0 dev
+> next dev -p 3100
+
+▲ Next.js 16.4.0 (Turbopack)
+- Local:         http://localhost:3100
+- Network:       http://192.168.56.1:3100
+- Environments: .env.local
+✓ Ready in 1789ms
+✓ Running next.config.ts took 136ms
+
+[proxy] NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY are not set — skipping session refresh and route protection entirely.
+○ Compiling / ...
+ GET / 200 in 9.5s (next.js: 3.7s, proxy.ts: 780ms, application-code: 5.0s)
+ GET /globals.css 404 in 2.6s (next.js: 2.4s, proxy.ts: 16ms, application-code: 174ms)
+ GET / 200 in 1410ms (next.js: 155ms, proxy.ts: 16ms, application-code: 1240ms)

@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { ShieldIcon } from "lucide-react";
+import { FlameIcon, ShieldIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import {
+  MEMBER_NITRO_BADGE,
   MEMBER_VERIFIED_BADGE,
   MEMBER_VERIFIED_IMAGE,
   OWNER_VERIFIED_IMAGE,
@@ -21,6 +22,8 @@ type Props = {
   role?: string | null;
   isVerified?: boolean | null;
   badges?: string[] | null;
+  /** Mr. Anime Nitro (badge or active paid period). */
+  nitro?: boolean;
   className?: string;
 };
 
@@ -28,12 +31,15 @@ function customLabel(key: string) {
   return BADGE_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
 }
 
-export function UserBadges({ role, isVerified, badges, className }: Props) {
+export function UserBadges({ role, isVerified, badges, nitro, className }: Props) {
   const all = (badges ?? []).filter(Boolean);
   const hasMemberVerified = all.includes(MEMBER_VERIFIED_BADGE);
-  const custom = all.filter((key) => key !== MEMBER_VERIFIED_BADGE);
+  const hasNitro = nitro === true || all.includes(MEMBER_NITRO_BADGE);
+  const custom = all.filter(
+    (key) => key !== MEMBER_VERIFIED_BADGE && key !== MEMBER_NITRO_BADGE,
+  );
 
-  if (!isVerified && role !== "admin" && !hasMemberVerified && custom.length === 0) {
+  if (!isVerified && role !== "admin" && !hasMemberVerified && !hasNitro && custom.length === 0) {
     return null;
   }
 
@@ -73,6 +79,22 @@ export function UserBadges({ role, isVerified, badges, className }: Props) {
             }
           />
           <TooltipContent>Verified</TooltipContent>
+        </Tooltip>
+      ) : null}
+
+      {hasNitro ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Badge
+                className="nitro-pill h-4 gap-0.5 rounded-sm px-1 text-[10px] font-bold tracking-wide border-0"
+              />
+            }
+          >
+            <FlameIcon className="size-2.5" />
+            NITRO
+          </TooltipTrigger>
+          <TooltipContent>Mr. Anime Nitro</TooltipContent>
         </Tooltip>
       ) : null}
 

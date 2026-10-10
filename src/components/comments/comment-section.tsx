@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { CommentView, CommentViewer } from "@/lib/comments-shared";
 import { timeAgo } from "@/lib/comments-shared";
 import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
+import { isNitroActive } from "@/lib/nitro";
 import { cn } from "cn";
 
 type Props = {
@@ -130,6 +131,7 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
         <ul className="space-y-4">
           {comments.map((comment) => {
             const author = comment.author;
+            const authorNitro = isNitroActive(author);
             const canDelete = viewer !== null && (viewer.id === comment.user_id || viewer.role === "admin");
             return (
               <li key={comment.id} className="flex gap-3">
@@ -143,6 +145,7 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                       className={cn(
                         "inline-flex rounded-full",
                         cosmeticClass(author.cosmetics?.frame),
+                        authorNitro && "nitro-avatar-glow",
                       )}
                     >
                       <Avatar size="sm">
@@ -181,6 +184,7 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                       role={author?.role}
                       isVerified={author?.is_verified}
                       badges={author?.badges}
+                      nitro={authorNitro}
                     />
                     <time
                       className="text-xs text-muted-foreground"

@@ -4,6 +4,7 @@ import { CoinsIcon } from "lucide-react";
 import { getCommentViewer } from "@/lib/comments";
 import { createClient } from "@/lib/supabase/server";
 import { EMPTY_COSMETICS, type Cosmetics, type ShopKind } from "@/lib/cosmetics";
+import { NitroCard } from "@/components/shop/nitro-card";
 import { ShopClient, type ShopItemView } from "@/components/shop/shop-client";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,12 @@ export default async function ShopPage() {
   let items: ShopItemView[] = [];
   let owned: string[] = [];
   let loadout: Cosmetics = EMPTY_COSMETICS;
+  let nitroUntil: string | null = null;
+  let badges: string[] = [];
 
   try {
     const supabase = await createClient();
-    const [walletRes, itemsRes, ownedRes, loadoutRes] = await Promise.all([
+    const [walletRes, itemsRes, ownedRes, loadoutRes, profileRes] = await Promise.all([
       supabase.from("wallets").select("coins").maybeSingle(),
       supabase
         .from("shop_items")
@@ -37,12 +40,14 @@ export default async function ShopPage() {
         .from("user_loadout")
         .select("frame, name_style, name_animation")
         .maybeSingle(),
+      supabase.from("profiles").select("nitro_until, badges").eq("id", viewer.id).maybeSingle(),
     ]);
 
     if (walletRes.error) console.error("[shop] wallet failed", walletRes.error.message);
     if (itemsRes.error) console.error("[shop] items failed", itemsRes.error.message);
     if (ownedRes.error) console.error("[shop] owned failed", ownedRes.error.message);
     if (loadoutRes.error) console.error("[shop] loadout failed", loadoutRes.error.message);
+    if (profileRes.error) console.error("[shop] profile failed", profileRes.error.message);
 
     coins = (walletRes.data?.coins as number | undefined) ?? 0;
     items = (itemsRes.data ?? []) as unknown as ShopItemView[];
@@ -53,6 +58,10 @@ export default async function ShopPage() {
         nameStyle: loadoutRes.data.name_style,
         nameAnimation: loadoutRes.data.name_animation,
       };
+    }
+    if (profileRes.data) {
+      nitroUntil = profileRes.data.nitro_until;
+      badges = (profileRes.data.badges as string[] | undefined) ?? [];
     }
   } catch (error) {
     console.error("[shop] load failed", error);
@@ -78,6 +87,8 @@ export default async function ShopPage() {
           <p className="text-xs text-amber-500/80">Mr.Coin balance</p>
         </div>
       </header>
+
+      <NitroCard badges={badges} nitroUntil={nitroUntil} coins={coins} />
 
       {items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border/60 px-4 py-10 text-center text-sm text-muted-foreground">

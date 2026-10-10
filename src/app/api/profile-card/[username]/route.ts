@@ -1,4 +1,5 @@
 import { cacheHeader, jsonError } from "@/lib/api";
+import { isNitroActive } from "@/lib/nitro";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -20,6 +21,7 @@ type ProfileRow = {
   role: string;
   is_verified: boolean;
   badges: string[];
+  nitro_until: string | null;
   created_at: string;
   loadout: LoadoutRow[] | LoadoutRow | null;
 };
@@ -38,7 +40,7 @@ export async function GET(_request: Request, { params }: Params): Promise<Respon
     const { data, error } = await admin
       .from("profiles")
       .select(
-        "id, username, avatar_url, role, is_verified, badges, created_at, " +
+        "id, username, avatar_url, role, is_verified, badges, nitro_until, created_at, " +
           "loadout:user_loadout(frame, name_style, name_animation)",
       )
       .eq("username", name)
@@ -65,6 +67,7 @@ export async function GET(_request: Request, { params }: Params): Promise<Respon
         isVerified: row.is_verified,
         badges: row.badges ?? [],
         joinedAt: row.created_at,
+        nitro: isNitroActive({ badges: row.badges, nitro_until: row.nitro_until }),
         cosmetics: {
           frame: loadout?.frame ?? null,
           nameStyle: loadout?.name_style ?? null,
