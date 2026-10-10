@@ -198,26 +198,42 @@
   }
 }
 
-/* Name styles (static color or gradient) */
+/* Name styles — each style uses its own typeface + color/gradient */
 .shop-style-sky {
+  font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   color: #38bdf8;
 }
 .shop-style-emerald {
+  font-family: var(--font-shop-quicksand), ui-sans-serif, sans-serif;
+  font-weight: 700;
   color: #34d399;
 }
 .shop-style-gold {
+  font-family: var(--font-shop-playfair), Georgia, serif;
+  font-weight: 700;
   color: #fbbf24;
 }
 .shop-style-rose {
+  font-family: var(--font-shop-dancing), cursive;
+  font-weight: 700;
+  font-size: 1.15em;
+  line-height: 1.1;
   color: #fb7185;
 }
 .shop-style-sunset {
+  font-family: var(--font-shop-lobster), cursive;
+  font-size: 1.1em;
+  line-height: 1.1;
   background: linear-gradient(90deg, #fb923c, #f472b6);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 .shop-style-aurora {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 700;
   background: linear-gradient(90deg, #34d399, #38bdf8, #a78bfa);
   -webkit-background-clip: text;
   background-clip: text;
