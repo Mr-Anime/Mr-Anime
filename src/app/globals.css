@@ -198,6 +198,20 @@
   }
 }
 
+/* Image-based frame: cosmic koi ring (transparent webp overlay) */
+.shop-frame-koi {
+  position: relative;
+}
+.shop-frame-koi::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/frame-koi.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Themed frames (0008) — animated borders with peeking decor */
 .shop-frame-eyes {
   position: relative;
