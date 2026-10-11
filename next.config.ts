@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
       `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      `worker-src 'self'`,
       `frame-src 'self'${providerOrigins
         .map((o) => ` ${o}`)
         .join("")} https://www.youtube.com https://www.youtube-nocookie.com`,

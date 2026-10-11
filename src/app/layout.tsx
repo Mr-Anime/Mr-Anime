@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { PwaRegister } from "@/components/pwa-register";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -54,6 +55,18 @@ export const metadata: Metadata = {
   verification: {
     google: "SkUzXiwjmOq_XkrZi2-lFq52AakVg0PRESVYrGEkQW4",
   },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Mr.Anime",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -76,6 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <main className="flex-1">{children}</main>
               <SiteFooter />
               <Toaster position="bottom-right" closeButton richColors />
+              <PwaRegister />
             </QueryProvider>
           </TooltipProvider>
         </ThemeProvider>

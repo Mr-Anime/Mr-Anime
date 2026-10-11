@@ -55,6 +55,8 @@ through our own Next.js route handlers (with layered caching). Supabase stores
 - **Admin** — dashboard, user management (ban, promote/demote, verify, delete) with
   last-admin and self-action guards, append-only audit log (`admin_actions`).
 - **SEO** — sitemap (trending titles), robots, manifest, canonicals, per-page metadata.
+- **PWA** — installable (manifest + service worker): offline fallback page,
+  cached app icons/static assets and anime images (AniList/TMDB).
 - **Security** — CSP with env-driven `frame-src`, RLS + column-level grants, rate limits
   (report endpoint, auth actions), HTML sanitization, server-only secrets.
 
