@@ -136,28 +136,30 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
             return (
               <li key={comment.id} className="flex gap-3">
                 {author?.username ? (
-                  <Link
-                    href={`/profile/${author.username}`}
-                    className="mt-0.5 shrink-0"
-                    aria-label={`View ${author.username}'s profile`}
-                  >
-                    <span
-                      className={cn(
-                        "inline-flex rounded-full",
-                        cosmeticClass(author.cosmetics?.frame),
-                        authorNitro && "nitro-avatar-glow",
-                      )}
+                  <ProfileHoverCard username={author.username}>
+                    <Link
+                      href={`/profile/${author.username}`}
+                      className="mt-0.5 shrink-0"
+                      aria-label={`View ${author.username}'s profile`}
                     >
-                      <Avatar size="sm">
-                        {author.avatar_url ? (
-                          <AvatarImage src={author.avatar_url} alt="" />
-                        ) : null}
-                        <AvatarFallback>
-                          {author.username.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </span>
-                  </Link>
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full",
+                          cosmeticClass(author.cosmetics?.frame),
+                          authorNitro && "nitro-avatar-glow",
+                        )}
+                      >
+                        <Avatar size="sm">
+                          {author.avatar_url ? (
+                            <AvatarImage src={author.avatar_url} alt="" />
+                          ) : null}
+                          <AvatarFallback>
+                            {author.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </span>
+                    </Link>
+                  </ProfileHoverCard>
                 ) : (
                   <Avatar size="sm" className="mt-0.5">
                     <AvatarFallback>?</AvatarFallback>

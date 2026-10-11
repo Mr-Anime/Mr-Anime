@@ -45,8 +45,8 @@ type Props = {
 
 /**
  * Discord-style hover card: hover (or focus) the trigger for a moment and a
- * fixed-position profile card appears with banner, framed avatar, styled
- * name, badges and a link to the full profile.
+ * fixed-position profile card appears. Always shows at least the username +
+ * profile link — badges/cosmetics fill in when the card API responds.
  */
 export function ProfileHoverCard({ username, children }: Props) {
   const triggerRef = useRef<HTMLSpanElement>(null);
@@ -54,6 +54,7 @@ export function ProfileHoverCard({ username, children }: Props) {
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<ProfileCardData | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "failed">("loading");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   function clearOpenTimer() {
@@ -78,8 +79,21 @@ export function ProfileHoverCard({ username, children }: Props) {
     );
     setPos({ top, left });
     setOpen(true);
+
+    if (data) {
+      setStatus("ready");
+      return;
+    }
+    setStatus("loading");
     void fetchProfileCard(username).then((result) => {
-      setData((current) => current ?? result);
+      if (result) {
+        setData(result);
+        setStatus("ready");
+      } else {
+        // Don't cache failures — retry on the next hover.
+        cardCache.delete(username);
+        setStatus("failed");
+      }
     });
   }
 
@@ -173,43 +187,48 @@ export function ProfileHoverCard({ username, children }: Props) {
               </span>
             </div>
 
-            {data ? (
-              <>
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span
-                      className={cn("text-sm font-semibold", nameClasses(data.cosmetics))}
-                    >
-                      {data.username}
-                    </span>
-                    <UserBadges
-                      role={data.role}
-                      isVerified={data.isVerified}
-                      badges={data.badges}
-                      nitro={data.nitro}
-                    />
-                  </div>
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <CalendarIcon className="size-3" />
-                    Joined {joined}
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full"
-                  render={<Link href={`/profile/${data.username}`} />}
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                  className={cn(
+                    "text-sm font-semibold",
+                    data && nameClasses(data.cosmetics),
+                  )}
                 >
-                  View profile
-                  <ArrowUpRightIcon className="size-3.5" />
-                </Button>
-              </>
-            ) : (
-              <div className="space-y-2">
-                <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-                <div className="h-3 w-32 animate-pulse rounded bg-muted" />
-                <div className="h-8 w-full animate-pulse rounded bg-muted" />
+                  {data?.username ?? username}
+                </span>
+                {data ? (
+                  <UserBadges
+                    role={data.role}
+                    isVerified={data.isVerified}
+                    badges={data.badges}
+                    nitro={data.nitro}
+                  />
+                ) : null}
               </div>
-            )}
+
+              {status === "loading" ? (
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="h-3 w-28 animate-pulse rounded bg-muted" />
+                </div>
+              ) : status === "failed" ? (
+                <p className="text-xs text-muted-foreground">Couldn&apos;t load details.</p>
+              ) : (
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarIcon className="size-3" />
+                  Joined {joined}
+                </p>
+              )}
+            </div>
+
+            <Button
+              size="sm"
+              className="w-full"
+              render={<Link href={`/profile/${data?.username ?? username}`} />}
+            >
+              View profile
+              <ArrowUpRightIcon className="size-3.5" />
+            </Button>
           </div>
         </div>
       ) : null}
