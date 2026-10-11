@@ -198,6 +198,139 @@
   }
 }
 
+/* Themed frames (0008) — animated borders with peeking decor */
+.shop-frame-eyes {
+  position: relative;
+  border: 2px solid #d4d4d8;
+  box-shadow: 0 0 8px #ffffff33;
+}
+.shop-frame-eyes::after {
+  content: "👀";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 2.4s ease-in-out infinite;
+}
+.shop-frame-dust {
+  position: relative;
+  border: 2px solid #e879f9;
+  animation: shop-frame-dust 3s linear infinite;
+}
+.shop-frame-candles {
+  position: relative;
+  border: 2px solid #22d3ee;
+  box-shadow: 0 0 10px #22d3ee88;
+}
+.shop-frame-candles::after {
+  content: "🕯️";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 2.8s ease-in-out infinite;
+}
+.shop-frame-leaves {
+  position: relative;
+  border: 2px solid #f97316;
+  box-shadow: 0 0 10px #f9731677;
+  animation: shop-frame-leaves 3.4s ease-in-out infinite;
+}
+.shop-frame-leaves::after {
+  content: "🍁";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+.shop-frame-thorns {
+  position: relative;
+  border: 2px solid #7f1d1d;
+  animation: shop-frame-thorns 1.8s ease-in-out infinite;
+}
+.shop-frame-haunted {
+  position: relative;
+  border: 2px solid #9ca3af;
+  animation: shop-frame-haunted 2.6s ease-in-out infinite;
+}
+.shop-frame-haunted::after {
+  content: "💀";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 3s ease-in-out infinite;
+}
+.shop-frame-crystal {
+  position: relative;
+  border: 2px solid #a5f3fc;
+  animation: shop-frame-crystal 2.2s ease-in-out infinite;
+}
+.shop-frame-eclipse {
+  position: relative;
+  border: 2px solid #1c1917;
+  animation: shop-frame-eclipse 3s ease-in-out infinite;
+}
+.shop-frame-holo {
+  position: relative;
+  border: 2px solid #f0abfc;
+  animation: shop-frame-holo 4s linear infinite;
+}
+.shop-frame-symbiote {
+  position: relative;
+  border: 2px solid #0a0a0a;
+  animation: shop-frame-symbiote 2s ease-in-out infinite;
+}
+@keyframes shop-frame-bob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-2px); }
+}
+@keyframes shop-frame-dust {
+  0% { border-color: #e879f9; box-shadow: 0 0 10px #e879f9aa; }
+  33% { border-color: #a78bfa; box-shadow: 0 0 10px #a78bfaaa; }
+  66% { border-color: #22d3ee; box-shadow: 0 0 10px #22d3eeaa; }
+  100% { border-color: #e879f9; box-shadow: 0 0 10px #e879f9aa; }
+}
+@keyframes shop-frame-leaves {
+  0%, 100% { box-shadow: 0 0 8px #f9731655; }
+  50% { box-shadow: 0 0 14px #fbbf24aa; }
+}
+@keyframes shop-frame-thorns {
+  0%, 100% { box-shadow: 0 0 8px #dc262666; }
+  50% { box-shadow: 0 0 16px #ef4444cc; }
+}
+@keyframes shop-frame-haunted {
+  0%, 100% { box-shadow: 0 0 8px #9ca3af55; border-color: #9ca3af; }
+  50% { box-shadow: 0 0 16px #d1d5db99; border-color: #d1d5db; }
+}
+@keyframes shop-frame-crystal {
+  0%, 100% { box-shadow: 0 0 8px #a5f3fc88; border-color: #a5f3fc; }
+  50% { box-shadow: 0 0 18px #ecfeffff; border-color: #ecfeff; }
+}
+@keyframes shop-frame-eclipse {
+  0%, 100% { box-shadow: 0 0 12px #f97316aa, 0 0 26px #ea580c55; border-color: #1c1917; }
+  50% { box-shadow: 0 0 20px #fb923ccc, 0 0 40px #f9731666; border-color: #292524; }
+}
+@keyframes shop-frame-holo {
+  0% { border-color: #f0abfc; box-shadow: 0 0 10px #f0abfc99; }
+  25% { border-color: #a5b4fc; box-shadow: 0 0 10px #a5b4fc99; }
+  50% { border-color: #67e8f9; box-shadow: 0 0 10px #67e8f999; }
+  75% { border-color: #fde68a; box-shadow: 0 0 10px #fde68a99; }
+  100% { border-color: #f0abfc; box-shadow: 0 0 10px #f0abfc99; }
+}
+@keyframes shop-frame-symbiote {
+  0%, 100% { box-shadow: 0 0 8px #7c3aed66, inset 0 0 6px #00000088; border-color: #0a0a0a; }
+  50% { box-shadow: 0 0 18px #a855f7cc, inset 0 0 8px #000000aa; border-color: #1e1b4b; }
+}
+
 /* Name styles — each style uses its own typeface + color/gradient */
 .shop-style-sky {
   font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
@@ -239,6 +372,165 @@
   background-clip: text;
   color: transparent;
   background-size: 200% 100%;
+}
+
+/* Text styles pack (0008) — 20 more looks for your name */
+.shop-style-crimson {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  color: #ef4444;
+}
+.shop-style-violet {
+  font-family: var(--font-shop-quicksand), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  color: #a78bfa;
+}
+.shop-style-mono {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+.shop-style-icy {
+  font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(90deg, #e0f2fe, #7dd3fc, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.shop-style-hand {
+  font-family: var(--font-shop-caveat), cursive;
+  font-weight: 700;
+  font-size: 1.2em;
+  line-height: 1.05;
+  color: #f8fafc;
+}
+.shop-style-candy {
+  font-family: var(--font-shop-quicksand), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #f472b6, #fde68a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.shop-style-ocean {
+  font-family: var(--font-shop-quicksand), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #60a5fa, #2dd4bf);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.shop-style-toxic {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  color: #bef264;
+  text-shadow: 0 0 8px #84cc16aa;
+}
+.shop-style-flame {
+  font-family: var(--font-shop-lobster), cursive;
+  font-size: 1.1em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #f97316, #ef4444);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 12px #f9731655;
+}
+.shop-style-poster {
+  font-family: var(--font-shop-bebas), ui-sans-serif, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #fbbf24;
+}
+.shop-style-cyber {
+  font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fef08a;
+  text-shadow: 2px 0 #f0f, -2px 0 #0ff;
+}
+.shop-style-arcade {
+  font-family: var(--font-shop-bangers), cursive;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #bef264;
+  text-shadow: 2px 2px 0 #166534;
+}
+.shop-style-outline {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  color: transparent;
+  -webkit-text-stroke: 1px #e2e8f0;
+}
+.shop-style-lava {
+  font-family: var(--font-shop-lobster), cursive;
+  font-size: 1.1em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #7f1d1d, #f97316, #fbbf24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: shop-grad-loop 3.2s linear infinite;
+}
+.shop-style-horror {
+  font-family: var(--font-shop-creepster), cursive;
+  font-weight: 400;
+  font-size: 1.15em;
+  line-height: 1.05;
+  color: #dc2626;
+  text-shadow: 0 0 10px #7f1d1daa;
+}
+.shop-style-neon {
+  font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #67e8f9;
+  text-shadow: 0 0 6px #22d3ee, 0 0 18px #06b6d4aa;
+}
+.shop-style-vaporwave {
+  font-family: var(--font-shop-rajdhani), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: linear-gradient(90deg, #f472b6, #818cf8, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.shop-style-galaxy {
+  font-family: var(--font-shop-quicksand), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #312e81, #d946ef, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: shop-grad-loop 4s linear infinite;
+}
+.shop-style-holo {
+  font-family: var(--font-shop-space-grotesk), ui-sans-serif, sans-serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #22d3ee, #f472b6, #a78bfa, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 300% 100%;
+  animation: shop-grad-loop 3s linear infinite;
+}
+.shop-style-goldshine {
+  font-family: var(--font-shop-playfair), Georgia, serif;
+  font-weight: 700;
+  background: linear-gradient(90deg, #fde68a, #f59e0b, #fde68a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 200% 100%;
+  animation: shop-grad-loop 2.6s linear infinite;
+}
+@keyframes shop-grad-loop {
+  to { background-position: -200% 0; }
 }
 
 /* Name animations (may override static style colors via background-clip) */
@@ -284,10 +576,24 @@
 @media (prefers-reduced-motion: reduce) {
   .shop-frame-rainbow,
   .shop-frame-flame,
+  .shop-frame-eyes,
+  .shop-frame-dust,
+  .shop-frame-candles,
+  .shop-frame-leaves,
+  .shop-frame-thorns,
+  .shop-frame-haunted,
+  .shop-frame-crystal,
+  .shop-frame-eclipse,
+  .shop-frame-holo,
+  .shop-frame-symbiote,
   .shop-anim-glow,
   .shop-anim-shimmer,
   .shop-anim-rainbow,
-  .shop-anim-glitch {
+  .shop-anim-glitch,
+  .shop-style-lava,
+  .shop-style-galaxy,
+  .shop-style-holo,
+  .shop-style-goldshine {
     animation: none;
   }
 }
