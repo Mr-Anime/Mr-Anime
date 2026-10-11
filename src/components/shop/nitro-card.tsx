@@ -2,9 +2,10 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckIcon, CoinsIcon, FlameIcon } from "lucide-react";
+import { CheckIcon, FlameIcon } from "lucide-react";
 import { toast } from "sonner";
 import { buyNitro } from "@/app/actions/shop";
+import { CoinIcon } from "@/components/coin-icon";
 import { Button } from "@/components/ui/button";
 import { NITRO_DAYS, NITRO_PRICE, isNitroActive } from "@/lib/nitro";
 import { cn } from "cn";
@@ -84,7 +85,7 @@ export function NitroCard({ badges, nitroUntil, coins }: Props) {
             </p>
           ) : null}
           <p className="flex items-center gap-1.5 text-lg font-bold text-amber-400">
-            <CoinsIcon className="size-5" />
+            <CoinIcon className="size-5" />
             {NITRO_PRICE.toLocaleString()}
             <span className="text-xs font-normal text-muted-foreground">
               / {NITRO_DAYS} days

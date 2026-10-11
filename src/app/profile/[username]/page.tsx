@@ -10,7 +10,7 @@ import { getProfileByUsername, getRecentComments } from "@/lib/profiles";
 import { getLoadout } from "@/lib/loadouts";
 import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { NebulaCore } from "@/components/avatar/nebula-core";
 import { UserBadges } from "@/components/user-badges";
 import { cn } from "cn";
 
@@ -74,10 +74,11 @@ export default async function ProfilePage({ params }: Params) {
             nitro && "nitro-avatar-glow",
           )}
         >
-          <Avatar size="lg">
-            {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
-            <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <NebulaCore
+            src={profile.avatar_url}
+            username={profile.username}
+            size={48}
+          />
         </span>
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">

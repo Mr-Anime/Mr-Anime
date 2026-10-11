@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckIcon, CoinsIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { toast } from "sonner";
 import { equipShopItem, purchaseShopItem } from "@/app/actions/shop";
+import { CoinIcon } from "@/components/coin-icon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -155,7 +156,7 @@ export function ShopClient({ items, owned, loadout, coins, kinds }: Props) {
                               affordable ? "text-amber-400" : "text-muted-foreground",
                             )}
                           >
-                            <CoinsIcon className="size-4" />
+                            <CoinIcon />
                             {item.price}
                           </span>
                         )}

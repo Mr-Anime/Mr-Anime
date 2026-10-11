@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { CoinsIcon } from "lucide-react";
 import { getCommentViewer } from "@/lib/comments";
 import { createClient } from "@/lib/supabase/server";
 import { EMPTY_COSMETICS, type Cosmetics, type ShopKind } from "@/lib/cosmetics";
+import { CoinIcon } from "@/components/coin-icon";
 import { NitroCard } from "@/components/shop/nitro-card";
 import { ShopClient, type ShopItemView } from "@/components/shop/shop-client";
 
@@ -74,7 +74,7 @@ export default async function ShopPage() {
       <header className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border/60 bg-card p-5">
         <div className="space-y-1">
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <CoinsIcon className="size-6 text-amber-400" />
+            <CoinIcon className="size-6" />
             Mr. Coin Shop
           </h1>
           <p className="text-sm text-muted-foreground">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, CoinsIcon, PlayIcon, TvIcon } from "lucide-react";
+import { ArrowLeftIcon, PlayIcon, TvIcon } from "lucide-react";
 import {
   anyProviderSupportsLang,
   getProviders,
@@ -18,6 +18,7 @@ import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getComments, getCommentViewer } from "@/lib/comments";
 import { tryClaimCoinDrop } from "@/lib/coins";
+import { CoinIcon } from "@/components/coin-icon";
 import { getListEntry } from "@/lib/list";
 import { MarkWatchedButton } from "@/components/list/mark-watched-button";
 
@@ -199,7 +200,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
           className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3"
         >
           <p className="flex items-center gap-2 text-sm font-medium text-amber-400">
-            <CoinsIcon className="size-4" />
+            <CoinIcon />
             +{coinDrop} Mr.Coin earned — keep watching for more!
           </p>
           <Link
