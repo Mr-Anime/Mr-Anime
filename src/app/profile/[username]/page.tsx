@@ -11,6 +11,8 @@ import { getLoadout } from "@/lib/loadouts";
 import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { NebulaCore } from "@/components/avatar/nebula-core";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MEMBER_NEBULA_BADGE } from "@/lib/badges";
 import { UserBadges } from "@/components/user-badges";
 import { cn } from "cn";
 
@@ -42,6 +44,7 @@ export default async function ProfilePage({ params }: Params) {
   const comments = await getRecentComments(profile.id);
   const cosmetics = await getLoadout(profile.id);
   const nitro = isNitroActive(profile);
+  const showNebula = profile.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
 
   let media: Awaited<ReturnType<typeof getMediaByIds>> = [];
   if (comments.length > 0) {
@@ -74,11 +77,18 @@ export default async function ProfilePage({ params }: Params) {
             nitro && "nitro-avatar-glow",
           )}
         >
-          <NebulaCore
-            src={profile.avatar_url}
-            username={profile.username}
-            size={48}
-          />
+          {showNebula ? (
+            <NebulaCore
+              src={profile.avatar_url}
+              username={profile.username}
+              size={48}
+            />
+          ) : (
+            <Avatar size="lg">
+              {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
+              <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+          )}
         </span>
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">

@@ -665,6 +665,12 @@
   color: #041016;
 }
 
+/* Nebula Core pill gradient (badge) */
+.nebula-pill {
+  background: linear-gradient(90deg, #22d3ee, #a855f7);
+  color: #041016;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .nitro-flame::before,
   .nitro-flame::after {

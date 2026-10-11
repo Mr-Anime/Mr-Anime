@@ -1,9 +1,10 @@
 import Image from "next/image";
-import { FlameIcon, ShieldIcon } from "lucide-react";
+import { FlameIcon, ShieldIcon, SparklesIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import {
+  MEMBER_NEBULA_BADGE,
   MEMBER_NITRO_BADGE,
   MEMBER_VERIFIED_BADGE,
   MEMBER_VERIFIED_IMAGE,
@@ -35,11 +36,22 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
   const all = (badges ?? []).filter(Boolean);
   const hasMemberVerified = all.includes(MEMBER_VERIFIED_BADGE);
   const hasNitro = nitro === true || all.includes(MEMBER_NITRO_BADGE);
+  const hasNebula = all.includes(MEMBER_NEBULA_BADGE);
   const custom = all.filter(
-    (key) => key !== MEMBER_VERIFIED_BADGE && key !== MEMBER_NITRO_BADGE,
+    (key) =>
+      key !== MEMBER_VERIFIED_BADGE &&
+      key !== MEMBER_NITRO_BADGE &&
+      key !== MEMBER_NEBULA_BADGE,
   );
 
-  if (!isVerified && role !== "admin" && !hasMemberVerified && !hasNitro && custom.length === 0) {
+  if (
+    !isVerified &&
+    role !== "admin" &&
+    !hasMemberVerified &&
+    !hasNitro &&
+    !hasNebula &&
+    custom.length === 0
+  ) {
     return null;
   }
 
@@ -95,6 +107,22 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
             NITRO
           </TooltipTrigger>
           <TooltipContent>Mr. Anime Nitro</TooltipContent>
+        </Tooltip>
+      ) : null}
+
+      {hasNebula ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Badge
+                className="nebula-pill h-4 gap-0.5 rounded-sm px-1 text-[10px] font-bold tracking-wide border-0"
+              />
+            }
+          >
+            <SparklesIcon className="size-2.5" />
+            NEBULA
+          </TooltipTrigger>
+          <TooltipContent>Nebula Core avatar</TooltipContent>
         </Tooltip>
       ) : null}
 

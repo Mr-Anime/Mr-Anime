@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MoreHorizontalIcon, FlameIcon, ShieldCheckIcon, Trash2Icon, UserXIcon } from "lucide-react";
+import { MoreHorizontalIcon, FlameIcon, ShieldCheckIcon, SparklesIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteAccount,
@@ -13,7 +13,7 @@ import {
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
-import { MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
+import { MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +57,7 @@ export type AdminUser = {
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "nitro" | "delete";
+  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "nitro" | "nebula" | "delete";
   user: AdminUser;
 } | null;
 
@@ -107,6 +107,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
     } else if (kind === "nitro") {
       const has = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
       run(() => setUserBadge(user.id, MEMBER_NITRO_BADGE, !has));
+    } else if (kind === "nebula") {
+      const has = user.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
+      run(() => setUserBadge(user.id, MEMBER_NEBULA_BADGE, !has));
     } else if (kind === "delete") {
       run(() => deleteAccount(user.id));
     }
@@ -171,6 +174,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 const hasVerifiedBadge =
                   user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
                 const hasNitroBadge = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
+                const hasNebulaBadge = user.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
@@ -283,6 +287,13 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             <FlameIcon className="text-cyan-400" />
                             {hasNitroBadge ? "Remove Nitro" : "Give Mr. Anime Nitro"}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
+                            onClick={() => setDialog({ kind: "nebula", user })}
+                          >
+                            <SparklesIcon className="text-purple-400" />
+                            {hasNebulaBadge ? "Remove Nebula avatar" : "Give Nebula avatar"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -333,6 +344,10 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           ? dialog.user.badges?.includes(MEMBER_NITRO_BADGE)
                             ? "Remove Mr. Anime Nitro"
                             : "Grant Mr. Anime Nitro"
+                          : dialog?.kind === "nebula"
+                            ? dialog.user.badges?.includes(MEMBER_NEBULA_BADGE)
+                              ? "Remove Nebula avatar"
+                              : "Grant Nebula avatar"
                           : dialog?.kind === "verify"
                           ? "Grant Owner verification"
                           : "Remove Owner verification"}
@@ -354,6 +369,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 "The verified badge appears next to their name on profiles and comments. It is recorded in the audit log."
               ) : dialog?.kind === "nitro" ? (
                 "Mr. Anime Nitro gives blue flame effects on their profile and hover card, a blue avatar aura and the NITRO badge. It is recorded in the audit log."
+              ) : dialog?.kind === "nebula" ? (
+                "The exclusive Nebula Core animated avatar (energy ring, shards, particles and mascot sprite) shows on their profile page. It is recorded in the audit log."
               ) : (
                 "Confirm this change. It is recorded in the audit log."
               )}
