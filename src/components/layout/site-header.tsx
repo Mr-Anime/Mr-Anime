@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchIcon } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "./user-menu";
 
 const navLinks = [
@@ -42,6 +43,7 @@ export function SiteHeader() {
           <ButtonLink href="/search" label="Search">
             <SearchIcon className="size-4" />
           </ButtonLink>
+          <NotificationBell />
           <UserMenu />
         </div>
       </div>

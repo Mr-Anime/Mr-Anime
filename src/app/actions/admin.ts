@@ -306,3 +306,76 @@ export async function deleteAccount(targetId: string): Promise<AdminActionResult
     return { ok: false, error: "Supabase is not configured." };
   }
 }
+
+const sendNotificationSchema = z.object({
+  title: z.string().trim().min(1).max(80),
+  body: z.string().trim().max(300).default(""),
+  target: z.enum(["all", "user"]),
+  username: z.string().trim().min(3).max(20).optional(),
+});
+
+/** Broadcast an admin notification to every user, or send it to one user. */
+export async function sendNotification(input: {
+  title: string;
+  body?: string;
+  target: "all" | "user";
+  username?: string;
+}): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
+  const parsed = sendNotificationSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: "Title must be 1–80 chars, message at most 300." };
+  }
+  const { title, body, target, username } = parsed.data;
+  if (target === "user" && !username) {
+    return { ok: false, error: "Enter a username." };
+  }
+
+  try {
+    const admin = createAdminClient();
+    let userIds: string[];
+
+    if (target === "all") {
+      const { data, error } = await admin.from("profiles").select("id");
+      if (error) throw error;
+      userIds = (data ?? []).map((p) => p.id);
+    } else {
+      const { data, error } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("username", username!.toLowerCase())
+        .limit(1);
+      if (error) throw error;
+      if (!data || data.length === 0) {
+        return { ok: false, error: `User "${username}" not found.` };
+      }
+      userIds = [data[0].id];
+    }
+
+    if (userIds.length === 0) {
+      return { ok: false, error: "No users to notify." };
+    }
+
+    const rows = userIds.map((user_id) => ({ user_id, title, body }));
+    for (let i = 0; i < rows.length; i += 500) {
+      const { error } = await admin.from("notifications").insert(rows.slice(i, i + 500));
+      if (error) throw error;
+    }
+
+    await audit(auth.adminId, null, "notify", {
+      audience: target,
+      count: userIds.length,
+      title,
+    });
+    revalidatePath("/admin/notifications");
+    return {
+      ok: true,
+      message: `Sent to ${userIds.length} user${userIds.length === 1 ? "" : "s"}.`,
+    };
+  } catch (error) {
+    console.error("[admin] sendNotification failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
