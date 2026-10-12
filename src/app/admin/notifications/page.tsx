@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BellRingIcon } from "lucide-react";
 import { NotificationSendForm } from "@/components/admin/notification-send-form";
+import { NotificationText } from "@/components/notifications/notification-text";
 import { timeAgo } from "@/lib/comments-shared";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -61,7 +62,9 @@ export default async function AdminNotificationsPage() {
                     </span>
                   </div>
                   {row.body ? (
-                    <p className="line-clamp-2 text-xs text-muted-foreground">{row.body}</p>
+                    <p className="line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">
+                      <NotificationText text={row.body} />
+                    </p>
                   ) : null}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">

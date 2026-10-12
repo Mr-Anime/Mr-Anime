@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BellIcon, CheckCheckIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BellIcon, CheckCheckIcon, EyeIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { timeAgo } from "@/lib/comments-shared";
+import { NotificationText } from "@/components/notifications/notification-text";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,6 +35,7 @@ const LIST_LIMIT = 15;
  * Reads/marks the signed-in user's own rows via Supabase RLS — no API routes.
  */
 export function NotificationBell() {
+  const router = useRouter();
   const [status, setStatus] = useState<"loading" | "anon" | "auth">("loading");
   const [items, setItems] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -90,22 +93,6 @@ export function NotificationBell() {
       window.removeEventListener("focus", refresh);
     };
   }, [load]);
-
-  async function markRead(id: string) {
-    const supa = supaRef.current;
-    if (!supa) return;
-    const now = new Date().toISOString();
-    const { error } = await supa
-      .from("notifications")
-      .update({ read_at: now })
-      .eq("id", id)
-      .is("read_at", null);
-    if (error) return;
-    setItems((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read_at: now } : n)),
-    );
-    setUnread((prev) => Math.max(0, prev - 1));
-  }
 
   async function markAllRead() {
     const supa = supaRef.current;
@@ -167,7 +154,11 @@ export function NotificationBell() {
             <DropdownMenuItem
               key={n.id}
               className="flex-col items-start gap-0.5 py-2"
-              onClick={() => void markRead(n.id)}
+              onClick={(e) => {
+                // Nested links (URLs / @mentions) handle themselves.
+                if ((e.target as HTMLElement).closest("a")) return;
+                router.push(`/notifications?open=${n.id}`);
+              }}
             >
               <span className="flex w-full items-center gap-1.5">
                 {!n.read_at ? (
@@ -179,17 +170,22 @@ export function NotificationBell() {
                 </span>
               </span>
               {n.body ? (
-                <span className="line-clamp-2 text-xs text-muted-foreground">
-                  {n.body}
+                <span className="line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">
+                  <NotificationText text={n.body} />
                 </span>
               ) : null}
             </DropdownMenuItem>
           ))
         )}
 
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push("/notifications")}>
+          <EyeIcon />
+          View all notifications
+        </DropdownMenuItem>
+
         {unread > 0 ? (
           <>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => void markAllRead()}>
               <CheckCheckIcon />
               Mark all as read
