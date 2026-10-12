@@ -587,6 +587,111 @@
   92% { transform: none; text-shadow: none; filter: none; }
 }
 
+/* Batch 2 (0011) — themed frames */
+.shop-frame-sakura {
+  position: relative;
+  border: 2px solid #f9a8d4;
+  box-shadow: 0 0 10px #ec4899aa, inset 0 0 6px #f9a8d455;
+}
+.shop-frame-sakura::after {
+  content: "🌸";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 2.6s ease-in-out infinite;
+}
+.shop-frame-moon {
+  position: relative;
+  border: 2px solid #cbd5f5;
+  box-shadow: 0 0 12px #94a3ebbb, inset 0 0 6px #cbd5f555;
+}
+.shop-frame-moon::after {
+  content: "🌙";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 3.2s ease-in-out infinite;
+}
+.shop-frame-star {
+  position: relative;
+  border: 2px solid #c084fc;
+  box-shadow: 0 0 12px #a855f7bb, inset 0 0 6px #c084fc55;
+}
+.shop-frame-star::after {
+  content: "✨";
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  font-size: 13px;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: shop-frame-bob 2.2s ease-in-out infinite;
+}
+.shop-frame-lightning {
+  position: relative;
+  border: 2px solid #fde047;
+  animation: shop-frame-lightning 3.4s ease-in-out infinite;
+}
+.shop-frame-lightning::after {
+  content: "⚡";
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  font-size: 14px;
+  line-height: 1;
+  transform: translateX(-50%);
+}
+@keyframes shop-frame-lightning {
+  0%, 86%, 100% { border-color: #fde047; box-shadow: 0 0 8px #fde04788; }
+  89% { border-color: #ffffff; box-shadow: 0 0 18px #fef08a, 0 0 32px #fde04799; }
+  92% { border-color: #737373; box-shadow: none; }
+  95% { border-color: #ffffff; box-shadow: 0 0 14px #fef08a; }
+}
+
+/* Batch 2 (0011) — name animations */
+.shop-anim-frost {
+  background: linear-gradient(90deg, #bae6fd, #f0f9ff, #67e8f9, #bae6fd);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shop-anim-frost 5s linear infinite;
+}
+.shop-anim-sparkle {
+  animation: shop-anim-sparkle 2.4s ease-in-out infinite;
+}
+.shop-anim-neon {
+  animation: shop-anim-neon 2.8s ease-in-out infinite;
+}
+.shop-anim-aurora-wave {
+  background: linear-gradient(90deg, #34d399, #22d3ee, #a78bfa, #34d399);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shop-anim-aurora-wave 6s linear infinite;
+}
+@keyframes shop-anim-frost {
+  to { background-position: -300% 0; }
+}
+@keyframes shop-anim-sparkle {
+  0%, 100% { text-shadow: 0 0 4px rgba(253, 224, 71, 0.35); }
+  50% { text-shadow: 0 0 12px #fde047, 0 0 26px rgba(253, 224, 71, 0.65); }
+}
+@keyframes shop-anim-neon {
+  0%, 100% { color: #67e8f9; text-shadow: 0 0 6px rgba(34, 211, 238, 0.8); }
+  50% { color: #f0abfc; text-shadow: 0 0 14px rgba(232, 121, 249, 0.9), 0 0 30px rgba(232, 121, 249, 0.5); }
+}
+@keyframes shop-anim-aurora-wave {
+  to { background-position: -300% 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shop-frame-rainbow,
   .shop-frame-flame,
@@ -604,6 +709,14 @@
   .shop-anim-shimmer,
   .shop-anim-rainbow,
   .shop-anim-glitch,
+  .shop-frame-sakura::after,
+  .shop-frame-moon::after,
+  .shop-frame-star::after,
+  .shop-frame-lightning,
+  .shop-anim-frost,
+  .shop-anim-sparkle,
+  .shop-anim-neon,
+  .shop-anim-aurora-wave,
   .shop-style-lava,
   .shop-style-galaxy,
   .shop-style-holo,
