@@ -8,6 +8,7 @@ import {
   ListTodoIcon,
   LogOutIcon,
   SettingsIcon,
+  ShieldCheckIcon,
   ShieldIcon,
   UserRoundIcon,
 } from "lucide-react";
@@ -101,6 +102,7 @@ export function UserMenu() {
   if (!profile) return null;
 
   const isAdmin = profile.role === "admin";
+  const canModerate = isAdmin || profile.role === "moderator";
 
   return (
     <DropdownMenu>
@@ -157,6 +159,12 @@ export function UserMenu() {
           <SettingsIcon />
           Settings
         </DropdownMenuItem>
+        {canModerate ? (
+          <DropdownMenuItem onClick={() => router.push("/moderator")}>
+            <ShieldCheckIcon />
+            Moderator panel
+          </DropdownMenuItem>
+        ) : null}
         {isAdmin ? (
           <DropdownMenuItem onClick={() => router.push("/admin")}>
             <ShieldIcon />

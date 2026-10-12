@@ -11,7 +11,7 @@ export type AdminActionResult =
   | { ok: false; error: string };
 
 const targetIdSchema = z.uuid();
-const roleSchema = z.enum(["user", "admin"]);
+const roleSchema = z.enum(["user", "moderator", "admin"]);
 
 async function audit(
   adminId: string,
@@ -119,7 +119,7 @@ export async function setUserBan(
 
 export async function setUserRole(
   targetId: string,
-  role: "user" | "admin",
+  role: "user" | "moderator" | "admin",
 ): Promise<AdminActionResult> {
   const auth = await requireAdmin();
   if ("error" in auth) return auth.error;
@@ -137,7 +137,7 @@ export async function setUserRole(
     const target = await loadTargetProfile(idParsed.data);
     if (!target) return { ok: false, error: "User not found." };
 
-    if (roleParsed.data === "user" && target.role === "admin") {
+    if (roleParsed.data !== "admin" && target.role === "admin") {
       const others = await countAdmins(targetId);
       if (others === 0) {
         return { ok: false, error: "This is the last admin — promotion required first." };
@@ -151,7 +151,10 @@ export async function setUserRole(
       .eq("id", targetId);
     if (error) return { ok: false, error: error.message };
 
-    await audit(auth.adminId, targetId, roleParsed.data === "admin" ? "promote" : "demote", {
+    const isPromotion =
+      roleParsed.data === "admin" ||
+      (roleParsed.data === "moderator" && target.role === "user");
+    await audit(auth.adminId, targetId, isPromotion ? "promote" : "demote", {
       username: target.username,
       from: target.role,
       to: roleParsed.data,
@@ -162,7 +165,9 @@ export async function setUserRole(
       message:
         roleParsed.data === "admin"
           ? `${target.username} is now an admin.`
-          : `${target.username} is now a regular user.`,
+          : roleParsed.data === "moderator"
+            ? `${target.username} is now a moderator.`
+            : `${target.username} is now a regular user.`,
     };
   } catch (error) {
     console.error("[admin] setUserRole failed", error);

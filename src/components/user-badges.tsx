@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FlameIcon, ShieldIcon, SparklesIcon } from "lucide-react";
+import { FlameIcon, ShieldCheckIcon, ShieldIcon, SparklesIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
@@ -8,6 +8,8 @@ import {
   MEMBER_NITRO_BADGE,
   MEMBER_VERIFIED_BADGE,
   MEMBER_VERIFIED_IMAGE,
+  MOD_VERIFIED_BADGE,
+  MOD_VERIFIED_IMAGE,
   OWNER_VERIFIED_IMAGE,
 } from "@/lib/badges";
 
@@ -35,11 +37,13 @@ function customLabel(key: string) {
 export function UserBadges({ role, isVerified, badges, nitro, className }: Props) {
   const all = (badges ?? []).filter(Boolean);
   const hasMemberVerified = all.includes(MEMBER_VERIFIED_BADGE);
+  const hasModVerified = all.includes(MOD_VERIFIED_BADGE);
   const hasNitro = nitro === true || all.includes(MEMBER_NITRO_BADGE);
   const hasNebula = all.includes(MEMBER_NEBULA_BADGE);
   const custom = all.filter(
     (key) =>
       key !== MEMBER_VERIFIED_BADGE &&
+      key !== MOD_VERIFIED_BADGE &&
       key !== MEMBER_NITRO_BADGE &&
       key !== MEMBER_NEBULA_BADGE,
   );
@@ -47,7 +51,9 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
   if (
     !isVerified &&
     role !== "admin" &&
+    role !== "moderator" &&
     !hasMemberVerified &&
+    !hasModVerified &&
     !hasNitro &&
     !hasNebula &&
     custom.length === 0
@@ -94,6 +100,23 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
         </Tooltip>
       ) : null}
 
+      {hasModVerified ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Image
+                src={MOD_VERIFIED_IMAGE}
+                alt="Moderator verified"
+                width={16}
+                height={16}
+                className="size-4 shrink-0"
+              />
+            }
+          />
+          <TooltipContent>Moderator verified</TooltipContent>
+        </Tooltip>
+      ) : null}
+
       {hasNitro ? (
         <Tooltip>
           <TooltipTrigger
@@ -123,6 +146,20 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
             NEBULA
           </TooltipTrigger>
           <TooltipContent>Nebula Core avatar</TooltipContent>
+        </Tooltip>
+      ) : null}
+
+      {role === "moderator" ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Badge className="h-4 gap-1 rounded-sm border-0 bg-sky-500/15 px-1.5 text-[10px] font-bold tracking-wide text-sky-400 ring-1 ring-sky-500/40 ring-inset" />
+            }
+          >
+            <ShieldCheckIcon className="size-2.5" />
+            MODERATOR
+          </TooltipTrigger>
+          <TooltipContent>Moderator</TooltipContent>
         </Tooltip>
       ) : null}
 

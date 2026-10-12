@@ -97,6 +97,14 @@ export async function proxy(request: NextRequest) {
       return redirectTo("/account");
     }
 
+    if (
+      pathname.startsWith("/moderator") &&
+      profile.role !== "admin" &&
+      profile.role !== "moderator"
+    ) {
+      return redirectTo("/account");
+    }
+
     if (isAuthPage) {
       return redirectTo("/");
     }
@@ -108,6 +116,7 @@ export async function proxy(request: NextRequest) {
   const needsAuth =
     pathname.startsWith("/account") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/moderator") ||
     (requireLoginToWatch && pathname.startsWith("/watch/"));
 
   if (needsAuth) {

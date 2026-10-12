@@ -13,7 +13,7 @@ import {
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
-import { MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE } from "@/lib/badges";
+import { MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE, MOD_VERIFIED_BADGE, MOD_VERIFIED_IMAGE } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +57,7 @@ export type AdminUser = {
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "verify" | "unverify" | "badge" | "nitro" | "nebula" | "delete";
+  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "delete";
   user: AdminUser;
 } | null;
 
@@ -97,6 +97,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
       run(() => setUserBan(user.id, false));
     } else if (kind === "role") {
       run(() => setUserRole(user.id, user.role === "admin" ? "user" : "admin"));
+    } else if (kind === "modrole") {
+      run(() => setUserRole(user.id, user.role === "moderator" ? "user" : "moderator"));
     } else if (kind === "verify") {
       run(() => setUserVerified(user.id, true));
     } else if (kind === "unverify") {
@@ -104,6 +106,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
     } else if (kind === "badge") {
       const has = user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
       run(() => setUserBadge(user.id, MEMBER_VERIFIED_BADGE, !has));
+    } else if (kind === "modbadge") {
+      const has = user.badges?.includes(MOD_VERIFIED_BADGE) ?? false;
+      run(() => setUserBadge(user.id, MOD_VERIFIED_BADGE, !has));
     } else if (kind === "nitro") {
       const has = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
       run(() => setUserBadge(user.id, MEMBER_NITRO_BADGE, !has));
@@ -133,6 +138,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
         >
           <option value="">All roles</option>
           <option value="user">User</option>
+          <option value="moderator">Moderator</option>
           <option value="admin">Admin</option>
         </select>
         <select
@@ -173,6 +179,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 const isSelf = user.id === selfId;
                 const hasVerifiedBadge =
                   user.badges?.includes(MEMBER_VERIFIED_BADGE) ?? false;
+                const hasModBadge =
+                  user.badges?.includes(MOD_VERIFIED_BADGE) ?? false;
                 const hasNitroBadge = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
                 const hasNebulaBadge = user.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
                 return (
@@ -193,6 +201,15 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           <Image
                             src={MEMBER_VERIFIED_IMAGE}
                             alt="Verified"
+                            width={14}
+                            height={14}
+                            className="size-3.5"
+                          />
+                        ) : null}
+                        {hasModBadge ? (
+                          <Image
+                            src={MOD_VERIFIED_IMAGE}
+                            alt="Moderator verified"
                             width={14}
                             height={14}
                             className="size-3.5"
@@ -259,6 +276,15 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={isSelf}
+                            onClick={() => setDialog({ kind: "modrole", user })}
+                          >
+                            <ShieldCheckIcon className="text-sky-400" />
+                            {user.role === "moderator"
+                              ? "Remove moderator"
+                              : "Make moderator"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
                             onClick={() =>
                               setDialog({ kind: user.is_verified ? "unverify" : "verify", user })
                             }
@@ -279,6 +305,21 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                               className="size-3.5"
                             />
                             {hasVerifiedBadge ? "Remove verified badge" : "Give verified badge"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
+                            onClick={() => setDialog({ kind: "modbadge", user })}
+                          >
+                            <Image
+                              src={MOD_VERIFIED_IMAGE}
+                              alt=""
+                              width={14}
+                              height={14}
+                              className="size-3.5"
+                            />
+                            {hasModBadge
+                              ? "Remove moderator verified"
+                              : "Give moderator verified"}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -332,14 +373,22 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                   ? `Ban ${dialog.user.username}`
                   : dialog?.kind === "unban"
                     ? `Unban ${dialog.user.username}`
-                    : dialog?.kind === "role"
-                      ? dialog.user.role === "admin"
-                        ? "Demote admin"
-                        : "Promote to admin"
-                      : dialog?.kind === "badge"
-                        ? dialog.user.badges?.includes(MEMBER_VERIFIED_BADGE)
-                          ? "Remove verified badge"
-                          : "Grant verified badge"
+                      : dialog?.kind === "role"
+                        ? dialog.user.role === "admin"
+                          ? "Demote admin"
+                          : "Promote to admin"
+                        : dialog?.kind === "modrole"
+                          ? dialog.user.role === "moderator"
+                            ? "Remove moderator"
+                            : "Make moderator"
+                        : dialog?.kind === "badge"
+                          ? dialog.user.badges?.includes(MEMBER_VERIFIED_BADGE)
+                            ? "Remove verified badge"
+                            : "Grant verified badge"
+                          : dialog?.kind === "modbadge"
+                            ? dialog.user.badges?.includes(MOD_VERIFIED_BADGE)
+                              ? "Remove moderator verified"
+                              : "Grant moderator verified"
                         : dialog?.kind === "nitro"
                           ? dialog.user.badges?.includes(MEMBER_NITRO_BADGE)
                             ? "Remove Mr. Anime Nitro"
@@ -365,8 +414,14 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 dialog.user.role === "admin"
                   ? "They will lose access to the admin panel immediately."
                   : "They will gain full access to the admin panel."
+              ) : dialog?.kind === "modrole" ? (
+                dialog.user.role === "moderator"
+                  ? "They will lose access to the moderator panel immediately."
+                  : "They will gain access to the moderator panel to grant the Moderator Verified badge."
               ) : dialog?.kind === "badge" ? (
                 "The verified badge appears next to their name on profiles and comments. It is recorded in the audit log."
+              ) : dialog?.kind === "modbadge" ? (
+                "The Moderator Verified badge appears next to their name on profiles and comments. It is recorded in the audit log."
               ) : dialog?.kind === "nitro" ? (
                 "Mr. Anime Nitro gives blue flame effects on their profile and hover card, a blue avatar aura and the NITRO badge. It is recorded in the audit log."
               ) : dialog?.kind === "nebula" ? (

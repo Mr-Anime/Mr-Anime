@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ScrollTextIcon, LayoutDashboardIcon, UsersIcon, BellRingIcon } from "lucide-react";
+import { ScrollTextIcon, LayoutDashboardIcon, UsersIcon, BellRingIcon, ShieldCheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/admin/users", label: "Users", icon: UsersIcon, exact: false },
   { href: "/admin/notifications", label: "Notifications", icon: BellRingIcon, exact: false },
   { href: "/admin/audit", label: "Audit log", icon: ScrollTextIcon, exact: false },
+  { href: "/moderator", label: "Moderator", icon: ShieldCheckIcon, exact: false },
 ];
 
 export function AdminNav() {

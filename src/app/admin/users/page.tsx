@@ -23,7 +23,8 @@ export default async function AdminUsersPage({
 
   const sp = await searchParams;
   const q = (sp.q ?? "").slice(0, 60);
-  const role = sp.role === "admin" || sp.role === "user" ? sp.role : "";
+  const role =
+    sp.role === "admin" || sp.role === "moderator" || sp.role === "user" ? sp.role : "";
   const status = sp.status === "banned" || sp.status === "active" ? sp.status : "";
   const page = Math.max(1, Number(sp.page) || 1);
   const offset = (page - 1) * PER_PAGE;
