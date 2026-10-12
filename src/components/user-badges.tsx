@@ -131,8 +131,7 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
           <TooltipTrigger
             render={
               <Badge
-                variant="secondary"
-                className="h-4 gap-0.5 rounded-sm px-1 text-[10px] font-semibold tracking-wide"
+                className="admin-pill h-4 gap-1 rounded-sm border-0 px-1.5 text-[10px] font-bold tracking-wide"
               />
             }
           >
