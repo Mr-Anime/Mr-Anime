@@ -358,7 +358,7 @@ export async function setAdsSettings(input: {
 
 const sendNotificationSchema = z.object({
   title: z.string().trim().min(1).max(80),
-  body: z.string().trim().max(300).default(""),
+  body: z.string().trim().max(500).default(""),
   target: z.enum(["all", "user"]),
   username: z.string().trim().min(3).max(20).optional(),
 });
@@ -375,7 +375,7 @@ export async function sendNotification(input: {
 
   const parsed = sendNotificationSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "Title must be 1–80 chars, message at most 300." };
+    return { ok: false, error: "Title must be 1–80 chars, message at most 500." };
   }
   const { title, body, target, username } = parsed.data;
   if (target === "user" && !username) {

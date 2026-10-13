@@ -62,7 +62,7 @@ export default async function AdminNotificationsPage() {
                     </span>
                   </div>
                   {row.body ? (
-                    <p className="line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">
+                    <p className="whitespace-pre-wrap text-xs text-muted-foreground">
                       <NotificationText text={row.body} />
                     </p>
                   ) : null}

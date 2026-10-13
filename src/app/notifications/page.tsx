@@ -227,7 +227,7 @@ export default function NotificationsPage() {
                   </span>
                 </span>
                 {n.body ? (
-                  <span className="line-clamp-2 block whitespace-pre-wrap text-xs text-muted-foreground">
+                  <span className="block whitespace-pre-wrap text-xs text-muted-foreground">
                     <NotificationText text={n.body} />
                   </span>
                 ) : null}
