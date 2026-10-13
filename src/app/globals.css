@@ -212,6 +212,32 @@
   z-index: 1;
 }
 
+/* Image-based frames (0013): caution ring + violet enchant ring */
+.shop-frame-caution {
+  position: relative;
+}
+.shop-frame-caution::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/frame-caution.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+.shop-frame-violet {
+  position: relative;
+}
+.shop-frame-violet::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/frame-violet.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Themed frames (0008) — animated borders with peeking decor */
 .shop-frame-eyes {
   position: relative;
