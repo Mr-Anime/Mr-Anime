@@ -1,5 +1,13 @@
 import type { NextConfig } from "next";
 
+/** Third-party ad networks (banner iframe + social bar / popunder). */
+const AD_ORIGINS = [
+  "https://www.highrevenueformat.com",
+  "https://highrevenueformat.com",
+  "https://*.highrevenueformat.com",
+  "https://*.profitableratecpmnetwork.com",
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: false,
   poweredByHeader: false,
@@ -29,16 +37,16 @@ const nextConfig: NextConfig = {
 
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval'${AD_ORIGINS.map((o) => ` ${o}`).join("")}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
-      `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}`,
+      `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}${AD_ORIGINS.map((o) => ` ${o}`).join("")}`,
       `worker-src 'self'`,
       `frame-src 'self'${providerOrigins
         .map((o) => ` ${o}`)
-        .join("")} https://www.youtube.com https://www.youtube-nocookie.com`,
+        .join("")} https://www.youtube.com https://www.youtube-nocookie.com${AD_ORIGINS.map((o) => ` ${o}`).join("")}`,
       "frame-ancestors 'self'",
       "base-uri 'self'",
       "form-action 'self'",

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AdManager } from "@/components/ads/ad-manager";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { PwaRegister } from "@/components/pwa-register";
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <QueryProvider>
               <SiteHeader />
               <main className="flex-1">{children}</main>
+              <AdManager />
               <SiteFooter />
               <Toaster position="bottom-right" closeButton richColors />
               <PwaRegister />

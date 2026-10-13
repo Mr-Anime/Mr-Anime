@@ -312,6 +312,50 @@ export async function deleteAccount(targetId: string): Promise<AdminActionResult
   }
 }
 
+const adsSettingsSchema = z.object({
+  banner: z.boolean(),
+  social: z.boolean(),
+});
+
+/** Enable/disable site-wide ad placements (banner + social/popunder). */
+export async function setAdsSettings(input: {
+  banner: boolean;
+  social: boolean;
+}): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
+  const parsed = adsSettingsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid input." };
+
+  try {
+    const admin = createAdminClient();
+    const rows = [
+      { key: "ads.banner", value: { enabled: parsed.data.banner }, updated_at: new Date().toISOString() },
+      { key: "ads.social", value: { enabled: parsed.data.social }, updated_at: new Date().toISOString() },
+    ];
+    for (const row of rows) {
+      const { error } = await admin.from("site_settings").upsert(row);
+      if (error) return { ok: false, error: error.message };
+    }
+
+    await audit(auth.adminId, null, "ads_settings", {
+      banner: parsed.data.banner,
+      social: parsed.data.social,
+    });
+    revalidatePath("/", "layout");
+    return {
+      ok: true,
+      message: parsed.data.banner || parsed.data.social
+        ? "Ad settings saved — placements are live."
+        : "Ad settings saved — all ads disabled.",
+    };
+  } catch (error) {
+    console.error("[admin] setAdsSettings failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
 const sendNotificationSchema = z.object({
   title: z.string().trim().min(1).max(80),
   body: z.string().trim().max(300).default(""),
