@@ -9,6 +9,7 @@ const navLinks = [
   { href: "/search?sort=TRENDING_DESC", label: "Trending" },
   { href: "/list", label: "My List" },
   { href: "/shop", label: "Shop" },
+  { href: "/forum", label: "Forum" },
   { href: "/about", label: "About" },
 ];
 
