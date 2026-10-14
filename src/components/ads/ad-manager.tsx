@@ -31,7 +31,7 @@ export async function AdManager() {
         </div>
       ) : null}
       {social ? (
-        <script src="https://pl31804834.profitableratecpmnetwork.com/41/79/0e/41790ed493533586eed08ea60de12ea3.js" />
+        <script src="https://pl31804835.profitableratecpmnetwork.com/d2/b3/17/d2b31738c9a5be09f1cc8b402b46b947.js" />
       ) : null}
     </>
   );
