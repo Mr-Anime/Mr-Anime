@@ -11,6 +11,8 @@ import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { getApiTokens } from "@/lib/api-tokens";
 import { getOAuthApps } from "@/lib/oauth-apps";
+import { getCommentActivity } from "@/lib/activity";
+import { ActivityHistory } from "@/components/profile/activity-history";
 import { tryCreateClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -64,6 +66,7 @@ export default async function AccountPage({
   const profile = data as unknown as Profile;
   const apiTokens = await getApiTokens();
   const oauthApps = await getOAuthApps();
+  const activity = await getCommentActivity(profile.id);
   const email =
     typeof (authData.claims as Record<string, unknown>).email === "string"
       ? ((authData.claims as Record<string, unknown>).email as string)
@@ -115,6 +118,8 @@ export default async function AccountPage({
           </div>
         </CardHeader>
       </Card>
+
+      <ActivityHistory counts={activity} className="mb-6" />
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Card>
