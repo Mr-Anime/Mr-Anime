@@ -1,9 +1,16 @@
 import Image from "next/image";
-import { FlameIcon, ShieldCheckIcon, ShieldIcon, SparklesIcon } from "lucide-react";
+import {
+  FlameIcon,
+  HeartHandshakeIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  SparklesIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import {
+  DONOR_BADGE,
   MEMBER_NEBULA_BADGE,
   MEMBER_NITRO_BADGE,
   MEMBER_VERIFIED_BADGE,
@@ -40,12 +47,14 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
   const hasModVerified = all.includes(MOD_VERIFIED_BADGE);
   const hasNitro = nitro === true || all.includes(MEMBER_NITRO_BADGE);
   const hasNebula = all.includes(MEMBER_NEBULA_BADGE);
+  const hasDonor = all.includes(DONOR_BADGE);
   const custom = all.filter(
     (key) =>
       key !== MEMBER_VERIFIED_BADGE &&
       key !== MOD_VERIFIED_BADGE &&
       key !== MEMBER_NITRO_BADGE &&
-      key !== MEMBER_NEBULA_BADGE,
+      key !== MEMBER_NEBULA_BADGE &&
+      key !== DONOR_BADGE,
   );
 
   if (
@@ -56,6 +65,7 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
     !hasModVerified &&
     !hasNitro &&
     !hasNebula &&
+    !hasDonor &&
     custom.length === 0
   ) {
     return null;
@@ -146,6 +156,20 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
             NEBULA
           </TooltipTrigger>
           <TooltipContent>Nebula Core avatar</TooltipContent>
+        </Tooltip>
+      ) : null}
+
+      {hasDonor ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Badge className="donor-pill h-4 gap-0.5 rounded-sm border-0 px-1 text-[10px] font-bold tracking-wide" />
+            }
+          >
+            <HeartHandshakeIcon className="size-2.5" />
+            SUPPORTER
+          </TooltipTrigger>
+          <TooltipContent>Donation supporter</TooltipContent>
         </Tooltip>
       ) : null}
 

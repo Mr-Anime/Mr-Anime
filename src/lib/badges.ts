@@ -12,6 +12,9 @@ export const MEMBER_NEBULA_BADGE = "nebula";
 /** Moderator-granted verification — renders as an image check icon. */
 export const MOD_VERIFIED_BADGE = "mod-verified";
 
+/** Auto-granted on the first paid donation — permanent gold heart pill. */
+export const DONOR_BADGE = "supporter";
+
 /** Badges admins may grant/revoke from /admin/users. */
 export const ADMIN_GRANTABLE_BADGES = [
   MEMBER_VERIFIED_BADGE,

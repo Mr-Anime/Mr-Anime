@@ -18,6 +18,10 @@ export default function DonatePage() {
           Donations keep the site fast and ad-light. Pay securely with crypto
           via OxaPay.
         </p>
+        <p className="text-sm font-medium text-amber-400">
+          Sign in before donating — every $1 earns 200 Mr.Coins + a permanent
+          Supporter badge!
+        </p>
       </div>
 
       <Card>

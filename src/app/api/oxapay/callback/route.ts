@@ -47,17 +47,13 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const admin = createAdminClient();
-    const isPaid = status === "Paid";
-    const { error } = await admin
-      .from("donations")
-      .update({
-        status: status || "Unknown",
-        raw: data,
-        ...(isPaid ? { paid_at: new Date().toISOString() } : {}),
-      })
-      .eq("track_id", trackId);
+    const { error } = await admin.rpc("apply_donation_ipn", {
+      p_track_id: trackId,
+      p_status: status || "Unknown",
+      p_raw: data,
+    });
     if (error) {
-      console.error("[oxapay:callback] update failed", error.message);
+      console.error("[oxapay:callback] apply_donation_ipn failed", error.message);
     }
   } catch (error) {
     console.error("[oxapay:callback] failed", error);
