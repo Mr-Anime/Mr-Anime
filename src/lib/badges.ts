@@ -21,6 +21,7 @@ export const ADMIN_GRANTABLE_BADGES = [
   MEMBER_NITRO_BADGE,
   MEMBER_NEBULA_BADGE,
   MOD_VERIFIED_BADGE,
+  DONOR_BADGE,
 ] as const;
 
 /** Site-owner verification icon (profiles.is_verified). */

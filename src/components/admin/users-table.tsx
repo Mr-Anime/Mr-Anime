@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MoreHorizontalIcon, FlameIcon, ShieldCheckIcon, SparklesIcon, Trash2Icon, UserXIcon } from "lucide-react";
+import { MoreHorizontalIcon, FlameIcon, HeartHandshakeIcon, ShieldCheckIcon, SparklesIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteAccount,
@@ -13,7 +13,7 @@ import {
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
-import { MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE, MOD_VERIFIED_BADGE, MOD_VERIFIED_IMAGE } from "@/lib/badges";
+import { DONOR_BADGE, MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE, MOD_VERIFIED_BADGE, MOD_VERIFIED_IMAGE } from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +57,7 @@ export type AdminUser = {
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "delete";
+  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "donorbadge" | "delete";
   user: AdminUser;
 } | null;
 
@@ -115,6 +115,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
     } else if (kind === "nebula") {
       const has = user.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
       run(() => setUserBadge(user.id, MEMBER_NEBULA_BADGE, !has));
+    } else if (kind === "donorbadge") {
+      const has = user.badges?.includes(DONOR_BADGE) ?? false;
+      run(() => setUserBadge(user.id, DONOR_BADGE, !has));
     } else if (kind === "delete") {
       run(() => deleteAccount(user.id));
     }
@@ -183,6 +186,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                   user.badges?.includes(MOD_VERIFIED_BADGE) ?? false;
                 const hasNitroBadge = user.badges?.includes(MEMBER_NITRO_BADGE) ?? false;
                 const hasNebulaBadge = user.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
+                const hasDonorBadge = user.badges?.includes(DONOR_BADGE) ?? false;
                 return (
                   <TableRow key={user.id}>
                     <TableCell>
@@ -335,6 +339,15 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             <SparklesIcon className="text-purple-400" />
                             {hasNebulaBadge ? "Remove Nebula avatar" : "Give Nebula avatar"}
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isSelf}
+                            onClick={() => setDialog({ kind: "donorbadge", user })}
+                          >
+                            <HeartHandshakeIcon className="text-rose-400" />
+                            {hasDonorBadge
+                              ? "Remove Supporter badge"
+                              : "Give Supporter badge"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -397,6 +410,10 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             ? dialog.user.badges?.includes(MEMBER_NEBULA_BADGE)
                               ? "Remove Nebula avatar"
                               : "Grant Nebula avatar"
+                          : dialog?.kind === "donorbadge"
+                            ? dialog.user.badges?.includes(DONOR_BADGE)
+                              ? "Remove Supporter badge"
+                              : "Grant Supporter badge"
                           : dialog?.kind === "verify"
                           ? "Grant Owner verification"
                           : "Remove Owner verification"}
@@ -426,6 +443,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 "Mr. Anime Nitro gives blue flame effects on their profile and hover card, a blue avatar aura and the NITRO badge. It is recorded in the audit log."
               ) : dialog?.kind === "nebula" ? (
                 "The exclusive Nebula Core animated avatar (energy ring, shards, particles and mascot sprite) shows on their profile page. It is recorded in the audit log."
+              ) : dialog?.kind === "donorbadge" ? (
+                "The Supporter badge (gold heart pill) appears next to their name — usually auto-granted on donations. It is recorded in the audit log."
               ) : (
                 "Confirm this change. It is recorded in the audit log."
               )}
