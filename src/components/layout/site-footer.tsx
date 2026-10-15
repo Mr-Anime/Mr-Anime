@@ -7,6 +7,7 @@ const footerLinks = [
   { href: "/search", label: "Browse" },
   { href: "/docs/api", label: "API" },
   { href: "/account", label: "Account" },
+  { href: "/donate", label: "Donate" },
 ];
 
 export function SiteFooter() {
