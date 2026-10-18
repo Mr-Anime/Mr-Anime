@@ -37,11 +37,12 @@ function addDay(
 /** Consecutive active days ending today (or yesterday when today is empty). */
 function computeStreak(counts: Record<string, number>): number {
   const now = new Date();
-  let day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  if ((counts[activityDayKey(day)] ?? 0) === 0) {
-    day.setUTCDate(day.getUTCDate() - 1);
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  if ((counts[activityDayKey(start)] ?? 0) === 0) {
+    start.setUTCDate(start.getUTCDate() - 1);
   }
   let streak = 0;
+  const day = new Date(start);
   while ((counts[activityDayKey(day)] ?? 0) > 0) {
     streak += 1;
     day.setUTCDate(day.getUTCDate() - 1);
