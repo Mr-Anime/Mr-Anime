@@ -238,6 +238,32 @@
   z-index: 1;
 }
 
+/* Seasonal event frames (0018): halloween night + summer solstice */
+.shop-frame-halloween {
+  position: relative;
+}
+.shop-frame-halloween::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/frame-halloween.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+.shop-frame-summer {
+  position: relative;
+}
+.shop-frame-summer::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/frame-summer.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Themed frames (0008) — animated borders with peeking decor */
 .shop-frame-eyes {
   position: relative;

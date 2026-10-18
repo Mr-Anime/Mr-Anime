@@ -11,6 +11,7 @@ import { getPlayerData } from "@/lib/player-data";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
 import { CommentSection } from "@/components/comments/comment-section";
 import { PlayerHost } from "@/components/watch/player-host";
+import { WatchProgressRecorder } from "@/components/watch/watch-progress-recorder";
 import { Badge } from "@/components/ui/badge";
 import { getAnimeDetails } from "@/lib/anilist/anime";
 import type { Media } from "@/lib/anilist/types";
@@ -175,6 +176,12 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
         langSupported={langSupported}
         dubAvailable={dubAvailable}
         query={navQuery}
+      />
+
+      <WatchProgressRecorder
+        anilistId={media.id}
+        episode={episode}
+        enabled={Boolean(viewer)}
       />
 
       {dubMissing ? (

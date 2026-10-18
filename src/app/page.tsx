@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AnimeRow } from "@/components/anime/anime-row";
+import { ContinueWatchingRow } from "@/components/anime/continue-watching-row";
 import { GenreChips } from "@/components/anime/genre-chips";
 import { HeroBanner } from "@/components/anime/hero-banner";
 import { RowSkeleton } from "@/components/anime/media-skeletons";
@@ -110,6 +111,10 @@ export default function HomePage() {
 
       <Suspense fallback={<div className="h-[58vh] min-h-[400px] w-full bg-muted/30" />}>
         <Hero />
+      </Suspense>
+
+      <Suspense fallback={<RowSkeleton />}>
+        <ContinueWatchingRow />
       </Suspense>
 
       <Suspense fallback={<RowSkeleton />}>

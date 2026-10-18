@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { AnimeCard } from "@/components/anime/anime-card";
 import { EpisodeGrid } from "@/components/anime/episode-grid";
+import { StarRating } from "@/components/anime/star-rating";
 import { TrailerDialog } from "@/components/anime/trailer-dialog";
 import { CommentSection } from "@/components/comments/comment-section";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import { getComments, getCommentViewer } from "@/lib/comments";
 import { getListEntry } from "@/lib/list";
 import { ListEntryControls } from "@/components/list/list-entry-controls";
 import { sanitizeRichText, stripHtml } from "@/lib/sanitize";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isTmdbConfigured, getTmdbVideos, matchTmdbForTitle } from "@/lib/tmdb/client";
 
 type Params = { params: Promise<{ id: string }> };
@@ -112,6 +114,29 @@ export default async function AnimeDetailsPage({ params }: Params) {
     getCommentViewer(),
     getListEntry(media.id),
   ]);
+
+  // Community rating (1–5 stars) — computed from the ratings table.
+  let ratingAvg = 0;
+  let ratingCount = 0;
+  let userScore = 0;
+  try {
+    const admin = createAdminClient();
+    const { data: ratingRows } = await admin
+      .from("ratings")
+      .select("score, user_id")
+      .eq("anilist_id", media.id);
+    const all = ((ratingRows ?? []) as { score: number; user_id: string }[]).map(
+      (r) => ({ score: Number(r.score), user_id: String(r.user_id) }),
+    );
+    ratingCount = all.length;
+    ratingAvg =
+      ratingCount > 0 ? all.reduce((sum, r) => sum + r.score, 0) / ratingCount : 0;
+    if (viewer) {
+      userScore = all.find((r) => r.user_id === viewer.id)?.score ?? 0;
+    }
+  } catch {
+    // Ratings are optional — the card degrades to an empty state.
+  }
 
   const title = mediaTitle(media);
   const descriptionHtml = sanitizeRichText(media.description);
@@ -404,6 +429,19 @@ export default async function AnimeDetailsPage({ params }: Params) {
                 </InfoRow>
               ) : null}
             </div>
+          </div>
+
+          <div className="rounded-xl border border-border/60 bg-card p-4">
+            <h2 className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+              Community rating
+            </h2>
+            <StarRating
+              anilistId={media.id}
+              userScore={userScore}
+              avg={ratingAvg}
+              count={ratingCount}
+              canRate={viewer !== null}
+            />
           </div>
 
           <div className="rounded-xl border border-border/60 bg-card p-4">

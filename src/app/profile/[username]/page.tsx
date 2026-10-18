@@ -11,7 +11,10 @@ import { getLoadout } from "@/lib/loadouts";
 import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { getCommentActivity } from "@/lib/activity";
+import { getProfileStats } from "@/lib/achievements";
 import { ActivityHistory } from "@/components/profile/activity-history";
+import { AchievementsGrid, ProfileStatsRow } from "@/components/profile/profile-stats";
+import { SpoilerText } from "@/components/comments/spoiler-text";
 import { NebulaCore } from "@/components/avatar/nebula-core";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MEMBER_NEBULA_BADGE } from "@/lib/badges";
@@ -46,6 +49,7 @@ export default async function ProfilePage({ params }: Params) {
   const comments = await getRecentComments(profile.id);
   const cosmetics = await getLoadout(profile.id);
   const activity = await getCommentActivity(profile.id);
+  const stats = await getProfileStats(profile.id);
   const nitro = isNitroActive(profile);
   const showNebula = profile.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
 
@@ -113,6 +117,7 @@ export default async function ProfilePage({ params }: Params) {
       </header>
 
       <ActivityHistory counts={activity} />
+      <ProfileStatsRow stats={stats} />
 
       <section aria-label="Recent comments" className="space-y-4">
         <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
@@ -162,15 +167,18 @@ export default async function ProfilePage({ params }: Params) {
                       {timeAgo(comment.created_at)}
                     </time>
                   </div>
-                  <p className="whitespace-pre-wrap break-words text-sm text-muted-foreground">
-                    {comment.content}
-                  </p>
+                  <SpoilerText
+                    text={comment.content}
+                    className="text-muted-foreground"
+                  />
                 </li>
               );
             })}
           </ul>
         )}
       </section>
+
+      <AchievementsGrid stats={stats} />
     </div>
   );
 }

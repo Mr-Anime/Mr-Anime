@@ -13,6 +13,8 @@ import { getApiTokens } from "@/lib/api-tokens";
 import { getOAuthApps } from "@/lib/oauth-apps";
 import { getCommentActivity } from "@/lib/activity";
 import { ActivityHistory } from "@/components/profile/activity-history";
+import { DailyRewardCard } from "@/components/account/daily-reward-card";
+import { GiftCoinsForm } from "@/components/account/gift-coins-form";
 import { tryCreateClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -67,6 +69,17 @@ export default async function AccountPage({
   const apiTokens = await getApiTokens();
   const oauthApps = await getOAuthApps();
   const activity = await getCommentActivity(profile.id);
+
+  const { data: streakRow } = await supabase
+    .from("streaks")
+    .select("current_streak, longest_streak, last_claim_date")
+    .eq("user_id", profile.id)
+    .maybeSingle();
+  const currentStreak = Number(streakRow?.current_streak ?? 0);
+  const longestStreak = Number(streakRow?.longest_streak ?? 0);
+  const claimedToday =
+    (streakRow?.last_claim_date as string | null) ===
+    new Date().toISOString().slice(0, 10);
   const email =
     typeof (authData.claims as Record<string, unknown>).email === "string"
       ? ((authData.claims as Record<string, unknown>).email as string)
@@ -120,6 +133,34 @@ export default async function AccountPage({
       </Card>
 
       <ActivityHistory counts={activity} className="mb-6" />
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Daily reward</CardTitle>
+          <CardDescription>
+            Claim every day to grow your streak — up to 250 coins.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DailyRewardCard
+            streak={currentStreak}
+            longest={longestStreak}
+            claimedToday={claimedToday}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Gift coins</CardTitle>
+          <CardDescription>
+            Send Mr.Coins to another member by username.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GiftCoinsForm />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 sm:grid-cols-2">
         <Card>

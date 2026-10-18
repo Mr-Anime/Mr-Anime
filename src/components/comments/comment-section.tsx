@@ -7,6 +7,7 @@ import { Loader2Icon, MessageSquareIcon, SendIcon, Trash2Icon } from "lucide-rea
 import { toast } from "sonner";
 import { deleteComment, postComment } from "@/app/actions/comments";
 import { ProfileHoverCard } from "@/components/profile-hover-card";
+import { SpoilerText } from "@/components/comments/spoiler-text";
 import { UserBadges } from "@/components/user-badges";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -212,9 +213,10 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                       </Button>
                     ) : null}
                   </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words text-muted-foreground">
-                    {comment.content}
-                  </p>
+                  <SpoilerText
+                    text={comment.content}
+                    className="text-muted-foreground"
+                  />
                 </div>
               </li>
             );
