@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { logActivityEvent } from "@/lib/activity-shared";
 
 /** Fire-and-forget watch progress (continue watching + profile stats). */
 export async function recordWatch(
@@ -13,11 +14,12 @@ export async function recordWatch(
   try {
     const supabase = await createClient();
     const { data: authData } = await supabase.auth.getClaims();
-    if (!authData?.claims?.sub) return;
+    const userId = authData?.claims?.sub;
+    if (!userId) return;
 
     const { error } = await supabase.from("watch_progress").upsert(
       {
-        user_id: authData.claims.sub,
+        user_id: userId,
         anilist_id: anilistId,
         episode,
         updated_at: new Date().toISOString(),
@@ -27,6 +29,8 @@ export async function recordWatch(
     if (error) {
       console.error("[progress] record failed", error.message);
     }
+
+    await logActivityEvent(supabase, userId, "watch", `${anilistId}:${episode}`);
   } catch {
     // Signed out or unconfigured — ignore.
   }

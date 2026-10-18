@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { logActivityEvent } from "@/lib/activity-shared";
 import type { ListStatus } from "@/lib/list-shared";
 import {
   listAnilistIdSchema,
@@ -79,6 +80,7 @@ export async function setListStatus(
       console.error("[list] set status failed", error.message);
       return { ok: false, error: "Could not update your list. Try again." };
     }
+    await logActivityEvent(g.supabase, g.userId, "list_add", String(id.data));
     revalidateFor(id.data);
     return { ok: true, message: "List updated." };
   } catch (error) {
