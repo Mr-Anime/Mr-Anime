@@ -37,9 +37,10 @@ type Profile = {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reset?: string }>;
+  searchParams: Promise<{ reset?: string; range?: string }>;
 }) {
-  const { reset } = await searchParams;
+  const { reset, range: rangeParam } = await searchParams;
+  const range = rangeParam === "year" ? "1y" : "6m";
 
   const supabase = await tryCreateClient();
   if (!supabase) {
@@ -68,7 +69,7 @@ export default async function AccountPage({
   const profile = data as unknown as Profile;
   const apiTokens = await getApiTokens();
   const oauthApps = await getOAuthApps();
-  const activity = await getCommentActivity(profile.id);
+  const activity = await getCommentActivity(profile.id, range === "1y" ? 365 : 182);
 
   const { data: streakRow } = await supabase
     .from("streaks")
@@ -132,7 +133,7 @@ export default async function AccountPage({
         </CardHeader>
       </Card>
 
-      <ActivityHistory counts={activity} className="mb-6" />
+      <ActivityHistory data={activity} range={range} className="mb-6" />
 
       <Card className="mt-6">
         <CardHeader>

@@ -25,7 +25,10 @@ export const dynamic = "force-dynamic";
 
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
-type Params = { params: Promise<{ username: string }> };
+type Params = {
+  params: Promise<{ username: string }>;
+  searchParams: Promise<{ range?: string }>;
+};
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username } = await params;
@@ -40,15 +43,17 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function ProfilePage({ params }: Params) {
+export default async function ProfilePage({ params, searchParams }: Params) {
   const { username } = await params;
+  const sp = await searchParams;
+  const range = sp.range === "year" ? "1y" : "6m";
   const name = username.toLowerCase();
   const profile = USERNAME_RE.test(name) ? await getProfileByUsername(name) : null;
   if (!profile) notFound();
 
   const comments = await getRecentComments(profile.id);
   const cosmetics = await getLoadout(profile.id);
-  const activity = await getCommentActivity(profile.id);
+  const activity = await getCommentActivity(profile.id, range === "1y" ? 365 : 182);
   const stats = await getProfileStats(profile.id);
   const nitro = isNitroActive(profile);
   const showNebula = profile.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
@@ -116,7 +121,7 @@ export default async function ProfilePage({ params }: Params) {
         </div>
       </header>
 
-      <ActivityHistory counts={activity} />
+      <ActivityHistory data={activity} range={range} />
       <ProfileStatsRow stats={stats} />
 
       <section aria-label="Recent comments" className="space-y-4">
