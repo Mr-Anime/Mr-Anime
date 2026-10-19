@@ -9,6 +9,7 @@ const footerLinks = [
   { href: "/account", label: "Account" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/donate", label: "Donate" },
+  { href: "/redeem", label: "Redeem" },
 ];
 
 export function SiteFooter() {
