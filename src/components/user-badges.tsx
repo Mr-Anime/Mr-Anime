@@ -1,16 +1,27 @@
 import Image from "next/image";
 import {
+  ClockIcon,
+  CrownIcon,
+  FlaskConicalIcon,
   FlameIcon,
   HeartHandshakeIcon,
+  PopcornIcon,
   ShieldCheckIcon,
   ShieldIcon,
   SparklesIcon,
+  TrophyIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "cn";
 import {
+  BADGE_LABELS,
+  BETA_TESTER_BADGE,
+  BINGE_BADGE,
+  DEDICATED_BADGE,
   DONOR_BADGE,
+  EARLY_MEMBER_BADGE,
+  FOUNDER_BADGE,
   MEMBER_NEBULA_BADGE,
   MEMBER_NITRO_BADGE,
   MEMBER_VERIFIED_BADGE,
@@ -18,15 +29,8 @@ import {
   MOD_VERIFIED_BADGE,
   MOD_VERIFIED_IMAGE,
   OWNER_VERIFIED_IMAGE,
+  TOP_FAN_BADGE,
 } from "@/lib/badges";
-
-const BADGE_LABELS: Record<string, string> = {
-  supporter: "Supporter",
-  early: "Early Member",
-  beta: "Beta Tester",
-  founder: "Founder",
-  moderator: "Moderator",
-};
 
 type Props = {
   role?: string | null;
@@ -36,6 +40,53 @@ type Props = {
   nitro?: boolean;
   className?: string;
 };
+
+/** Special pill styling for milestone/staff badges (key, text, icon, classes). */
+const SPECIAL_PILLS: {
+  key: string;
+  text: string;
+  icon: React.ReactNode;
+  cls: string;
+}[] = [
+  {
+    key: FOUNDER_BADGE,
+    text: "FOUNDER",
+    icon: <CrownIcon className="size-2.5" />,
+    cls: "bg-amber-400/15 text-amber-400 ring-1 ring-amber-400/50 ring-inset",
+  },
+  {
+    key: EARLY_MEMBER_BADGE,
+    text: "EARLY",
+    icon: <ClockIcon className="size-2.5" />,
+    cls: "bg-zinc-300/15 text-zinc-200 ring-1 ring-zinc-400/50 ring-inset",
+  },
+  {
+    key: BETA_TESTER_BADGE,
+    text: "BETA",
+    icon: <FlaskConicalIcon className="size-2.5" />,
+    cls: "bg-cyan-400/15 text-cyan-400 ring-1 ring-cyan-400/50 ring-inset",
+  },
+  {
+    key: TOP_FAN_BADGE,
+    text: "TOP FAN",
+    icon: <TrophyIcon className="size-2.5" />,
+    cls: "bg-yellow-400/15 text-yellow-400 ring-1 ring-yellow-400/50 ring-inset",
+  },
+  {
+    key: BINGE_BADGE,
+    text: "BINGE",
+    icon: <PopcornIcon className="size-2.5" />,
+    cls: "bg-orange-400/15 text-orange-400 ring-1 ring-orange-400/50 ring-inset",
+  },
+  {
+    key: DEDICATED_BADGE,
+    text: "DEDICATED",
+    icon: <FlameIcon className="size-2.5" />,
+    cls: "bg-red-400/15 text-red-400 ring-1 ring-red-400/50 ring-inset",
+  },
+];
+
+const SPECIAL_KEYS = new Set(SPECIAL_PILLS.map((p) => p.key));
 
 function customLabel(key: string) {
   return BADGE_LABELS[key] ?? key.charAt(0).toUpperCase() + key.slice(1);
@@ -54,8 +105,10 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
       key !== MOD_VERIFIED_BADGE &&
       key !== MEMBER_NITRO_BADGE &&
       key !== MEMBER_NEBULA_BADGE &&
-      key !== DONOR_BADGE,
+      key !== DONOR_BADGE &&
+      !SPECIAL_KEYS.has(key),
   );
+  const specials = SPECIAL_PILLS.filter((p) => all.includes(p.key));
 
   if (
     !isVerified &&
@@ -66,7 +119,8 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
     !hasNitro &&
     !hasNebula &&
     !hasDonor &&
-    custom.length === 0
+    custom.length === 0 &&
+    specials.length === 0
   ) {
     return null;
   }
@@ -202,6 +256,25 @@ export function UserBadges({ role, isVerified, badges, nitro, className }: Props
           <TooltipContent>Site administrator</TooltipContent>
         </Tooltip>
       ) : null}
+
+      {specials.map((p) => (
+        <Tooltip key={p.key}>
+          <TooltipTrigger
+            render={
+              <Badge
+                className={cn(
+                  "h-4 gap-0.5 rounded-sm border-0 px-1 text-[10px] font-bold tracking-wide",
+                  p.cls,
+                )}
+              />
+            }
+          >
+            {p.icon}
+            {p.text}
+          </TooltipTrigger>
+          <TooltipContent>{BADGE_LABELS[p.key] ?? p.text}</TooltipContent>
+        </Tooltip>
+      ))}
 
       {custom.map((key) => (
         <Tooltip key={key}>

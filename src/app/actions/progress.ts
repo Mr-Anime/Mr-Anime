@@ -31,6 +31,19 @@ export async function recordWatch(
     }
 
     await logActivityEvent(supabase, userId, "watch", `${anilistId}:${episode}`);
+
+    try {
+      const { count } = await supabase
+        .from("watch_progress")
+        .select("anilist_id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (count !== null && count >= 10) {
+        const { tryGrantBadge } = await import("@/lib/badge-grants");
+        await tryGrantBadge(supabase, userId, "binge");
+      }
+    } catch (badgeError) {
+      console.error("[progress] badge check failed", badgeError);
+    }
   } catch {
     // Signed out or unconfigured — ignore.
   }

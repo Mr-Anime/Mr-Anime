@@ -55,6 +55,19 @@ export async function postComment(
       return { ok: false, error: "Could not post your comment. Try again." };
     }
 
+    try {
+      const { count } = await supabase
+        .from("comments")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      if (count !== null && count >= 100) {
+        const { tryGrantBadge } = await import("@/lib/badge-grants");
+        await tryGrantBadge(supabase, userId, "top-fan");
+      }
+    } catch (countError) {
+      console.error("[comments] badge check failed", countError);
+    }
+
     revalidatePath(`/anime/${parsed.data.anilistId}`);
     if (parsed.data.episode !== null) {
       revalidatePath(`/watch/${parsed.data.anilistId}/${parsed.data.episode}`);

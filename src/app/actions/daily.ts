@@ -14,6 +14,7 @@ export async function claimDailyReward(): Promise<DailyRewardResult> {
     if (!authData?.claims?.sub) {
       return { ok: false, error: "Sign in to claim your daily reward." };
     }
+    const userId = authData.claims.sub;
 
     const { data, error } = await supabase.rpc("claim_daily_reward");
     if (error) {
@@ -27,6 +28,15 @@ export async function claimDailyReward(): Promise<DailyRewardResult> {
         return { ok: false, error: "Already claimed today — come back tomorrow!" };
       }
       return { ok: false, error: "Could not claim your reward. Try again." };
+    }
+
+    if ((result.streak ?? 0) >= 7) {
+      try {
+        const { tryGrantBadge } = await import("@/lib/badge-grants");
+        await tryGrantBadge(supabase, userId, "dedicated");
+      } catch (badgeError) {
+        console.error("[daily] badge grant failed", badgeError);
+      }
     }
 
     revalidatePath("/account");

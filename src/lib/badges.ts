@@ -15,6 +15,16 @@ export const MOD_VERIFIED_BADGE = "mod-verified";
 /** Auto-granted on the first paid donation — permanent gold heart pill. */
 export const DONOR_BADGE = "supporter";
 
+/** Manual staff badges — admin-grantable from /admin/users. */
+export const FOUNDER_BADGE = "founder";
+export const EARLY_MEMBER_BADGE = "early";
+export const BETA_TESTER_BADGE = "beta";
+
+/** Auto-granted milestone badges. */
+export const TOP_FAN_BADGE = "top-fan";
+export const BINGE_BADGE = "binge";
+export const DEDICATED_BADGE = "dedicated";
+
 /** Badges admins may grant/revoke from /admin/users. */
 export const ADMIN_GRANTABLE_BADGES = [
   MEMBER_VERIFIED_BADGE,
@@ -22,7 +32,29 @@ export const ADMIN_GRANTABLE_BADGES = [
   MEMBER_NEBULA_BADGE,
   MOD_VERIFIED_BADGE,
   DONOR_BADGE,
+  FOUNDER_BADGE,
+  EARLY_MEMBER_BADGE,
+  BETA_TESTER_BADGE,
+  TOP_FAN_BADGE,
+  BINGE_BADGE,
+  DEDICATED_BADGE,
 ] as const;
+
+/** Human labels for pill rendering + the admin badge manager. */
+export const BADGE_LABELS: Record<string, string> = {
+  supporter: "Supporter",
+  early: "Early Member",
+  beta: "Beta Tester",
+  founder: "Founder",
+  moderator: "Moderator",
+  "top-fan": "Top Fan",
+  binge: "Binge Watcher",
+  dedicated: "Dedicated",
+  verified: "Verified",
+  "mod-verified": "Mod Verified",
+  nitro: "Mr. Anime Nitro",
+  nebula: "Nebula Core",
+};
 
 /** Site-owner verification icon (profiles.is_verified). */
 export const OWNER_VERIFIED_IMAGE =

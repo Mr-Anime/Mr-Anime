@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MoreHorizontalIcon, FlameIcon, HeartHandshakeIcon, ShieldCheckIcon, SparklesIcon, Trash2Icon, UserXIcon } from "lucide-react";
+import { AwardIcon, MoreHorizontalIcon, FlameIcon, HeartHandshakeIcon, ShieldCheckIcon, SparklesIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteAccount,
@@ -13,7 +13,17 @@ import {
   setUserVerified,
   type AdminActionResult,
 } from "@/app/actions/admin";
-import { DONOR_BADGE, MEMBER_NEBULA_BADGE, MEMBER_NITRO_BADGE, MEMBER_VERIFIED_BADGE, MEMBER_VERIFIED_IMAGE, MOD_VERIFIED_BADGE, MOD_VERIFIED_IMAGE } from "@/lib/badges";
+import {
+  ADMIN_GRANTABLE_BADGES,
+  BADGE_LABELS,
+  DONOR_BADGE,
+  MEMBER_NEBULA_BADGE,
+  MEMBER_NITRO_BADGE,
+  MEMBER_VERIFIED_BADGE,
+  MEMBER_VERIFIED_IMAGE,
+  MOD_VERIFIED_BADGE,
+  MOD_VERIFIED_IMAGE,
+} from "@/lib/badges";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +67,7 @@ export type AdminUser = {
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "donorbadge" | "delete";
+  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "donorbadge" | "badges" | "delete";
   user: AdminUser;
 } | null;
 
@@ -76,6 +86,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
   const [isPending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [reason, setReason] = useState("");
+  const [badgeSel, setBadgeSel] = useState<string[]>([]);
 
   function run(action: () => Promise<AdminActionResult>) {
     startTransition(async () => {
@@ -84,6 +95,48 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
       else toast.error(res.error);
       setDialog(null);
       setReason("");
+      setBadgeSel([]);
+      router.refresh();
+    });
+  }
+
+  function openBadges(user: AdminUser) {
+    setBadgeSel((user.badges ?? []).filter((b) => ADMIN_GRANTABLE_BADGES.includes(b as never)));
+    setDialog({ kind: "badges", user });
+  }
+
+  function applyBadges() {
+    if (!dialog || dialog.kind !== "badges") return;
+    const { user } = dialog;
+    const orig = new Set(
+      (user.badges ?? []).filter((b) => ADMIN_GRANTABLE_BADGES.includes(b as never)),
+    );
+    const next = new Set(badgeSel);
+    const added = [...next].filter((b) => !orig.has(b));
+    const removed = [...orig].filter((b) => !next.has(b));
+    if (added.length === 0 && removed.length === 0) {
+      setDialog(null);
+      setBadgeSel([]);
+      return;
+    }
+    startTransition(async () => {
+      let changed = 0;
+      let failed = false;
+      for (const b of added) {
+        const res = await setUserBadge(user.id, b, true);
+        if (!res.ok) { toast.error(res.error); failed = true; break; }
+        changed += 1;
+      }
+      if (!failed) {
+        for (const b of removed) {
+          const res = await setUserBadge(user.id, b, false);
+          if (!res.ok) { toast.error(res.error); failed = true; break; }
+          changed += 1;
+        }
+      }
+      if (!failed) toast.success(`Updated ${changed} badge${changed === 1 ? "" : "s"}.`);
+      setDialog(null);
+      setBadgeSel([]);
       router.refresh();
     });
   }
@@ -91,6 +144,10 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
   function confirmDialog() {
     if (!dialog) return;
     const { kind, user } = dialog;
+    if (kind === "badges") {
+      applyBadges();
+      return;
+    }
     if (kind === "ban") {
       run(() => setUserBan(user.id, true, reason));
     } else if (kind === "unban") {
@@ -348,6 +405,10 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                               ? "Remove Supporter badge"
                               : "Give Supporter badge"}
                           </DropdownMenuItem>
+                          <DropdownMenuItem disabled={isSelf} onClick={() => openBadges(user)}>
+                            <AwardIcon className="text-amber-400" />
+                            Manage badges…
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -382,7 +443,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
             <DialogTitle>
               {dialog?.kind === "delete"
                 ? "Delete account"
-                : dialog?.kind === "ban"
+                : dialog?.kind === "badges"
+                  ? `Manage ${dialog.user.username}'s badges`
+                  : dialog?.kind === "ban"
                   ? `Ban ${dialog.user.username}`
                   : dialog?.kind === "unban"
                     ? `Unban ${dialog.user.username}`
@@ -425,6 +488,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                   <span className="font-medium text-foreground">{dialog.user.username}</span> and
                   everything tied to the account. This cannot be undone.
                 </>
+              ) : dialog?.kind === "badges" ? (
+                "Tick badges to grant, untick to revoke. Only staff/milestone badges are listed — every change is recorded in the audit log."
               ) : dialog?.kind === "ban" ? (
                 "Banned users are redirected to a suspension page on every request."
               ) : dialog?.kind === "role" ? (
@@ -465,8 +530,31 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
             </div>
           ) : null}
 
+          {dialog?.kind === "badges" ? (
+            <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+              {ADMIN_GRANTABLE_BADGES.map((b) => (
+                <label
+                  key={b}
+                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 px-2 py-1.5 text-sm transition-colors hover:bg-muted/40"
+                >
+                  <input
+                    type="checkbox"
+                    checked={badgeSel.includes(b)}
+                    onChange={(e) =>
+                      setBadgeSel((prev) =>
+                        e.target.checked ? [...prev, b] : prev.filter((x) => x !== b),
+                      )
+                    }
+                    className="accent-sky-500"
+                  />
+                  {BADGE_LABELS[b] ?? b}
+                </label>
+              ))}
+            </div>
+          ) : null}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialog(null); setReason(""); }}>
+            <Button variant="outline" onClick={() => { setDialog(null); setReason(""); setBadgeSel([]); }}>
               Cancel
             </Button>
             <Button
@@ -474,7 +562,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
               disabled={isPending}
               onClick={confirmDialog}
             >
-              {isPending ? "Working…" : "Confirm"}
+              {isPending ? "Working…" : dialog?.kind === "badges" ? "Apply" : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
