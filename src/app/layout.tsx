@@ -83,6 +83,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col">
+        {/* Display fonts for shop name styles (link-loaded, CSP: fonts.googleapis.com) */}
+        {/* eslint-disable @next/next/no-page-custom-font -- root layout = sitewide, app router */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Eagle+Lake&family=Isometra&family=New+Rocker&family=Rubik+Storm&family=Sancreek&display=swap"
+          rel="stylesheet"
+          precedence="shop-fonts"
+        />
+        {/* eslint-enable @next/next/no-page-custom-font */}
         <ThemeProvider>
           <TooltipProvider delay={300}>
             <QueryProvider>

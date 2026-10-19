@@ -595,6 +595,51 @@
   background-size: 200% 100%;
   animation: shop-grad-loop 2.6s linear infinite;
 }
+
+/* —— Link-loaded Google display fonts (see root layout <link> tags) —— */
+.shop-style-blackops {
+  font-family: "Black Ops One", system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #d9ead3;
+  text-shadow: 0 1px 0 #000, 0 0 12px #4ade8055;
+}
+.shop-style-eagle {
+  font-family: "Eagle Lake", Georgia, serif;
+  font-weight: 400;
+  color: #cbd5e1;
+  text-shadow: 0 0 14px #38bdf855;
+}
+.shop-style-isometra {
+  font-family: "Isometra", system-ui, sans-serif;
+  font-weight: 400;
+  background: linear-gradient(90deg, #22d3ee, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.shop-style-rocker {
+  font-family: "New Rocker", Georgia, serif;
+  font-weight: 400;
+  color: #f87171;
+  text-shadow: 0 0 12px #dc262666, 1px 1px 0 #7f1d1d;
+}
+.shop-style-storm {
+  font-family: "Rubik Storm", system-ui, sans-serif;
+  font-weight: 400;
+  background: linear-gradient(90deg, #93c5fd, #f0f9ff, #60a5fa, #93c5fd);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 300% 100%;
+  animation: shop-grad-loop 3.4s linear infinite;
+}
+.shop-style-creek {
+  font-family: "Sancreek", Georgia, serif;
+  font-weight: 400;
+  color: #e7c590;
+  text-shadow: 0 1px 0 #78350f, 0 0 10px #f59e0b33;
+}
 @keyframes shop-grad-loop {
   to { background-position: -200% 0; }
 }
@@ -772,7 +817,8 @@
   .shop-style-lava,
   .shop-style-galaxy,
   .shop-style-holo,
-  .shop-style-goldshine {
+  .shop-style-goldshine,
+  .shop-style-storm {
     animation: none;
   }
 }
