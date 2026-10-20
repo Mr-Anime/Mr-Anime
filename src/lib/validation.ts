@@ -1,6 +1,10 @@
 import * as z from "zod";
 import { LIST_STATUSES } from "@/lib/list-shared";
+import { AVATAR_SRC } from "@/lib/avatar-catalog";
 import { isAllowedRedirectUri } from "@/lib/redirect";
+
+/** Catalog-only avatars (public/avatars) — custom URLs are rejected. */
+const CATALOG_AVATAR_SRCS = new Set(Object.values(AVATAR_SRC));
 
 export const usernameSchema = z
   .string()
@@ -42,9 +46,9 @@ export const updateProfileSchema = z.object({
   avatar_url: z
     .string()
     .trim()
-    .max(500, { error: "Avatar URL is too long." })
-    .refine((v) => v === "" || /^https?:\/\/\S+$/.test(v), {
-      error: "Avatar URL must be a valid http(s) URL.",
+    .max(200, { error: "Avatar is too long." })
+    .refine((v) => v === "" || CATALOG_AVATAR_SRCS.has(v), {
+      error: "Only site-catalog avatars are allowed — pick one in Customize profile.",
     }),
 });
 

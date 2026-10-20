@@ -7,6 +7,7 @@ import {
   IdCardIcon,
   ListTodoIcon,
   LogOutIcon,
+  PaletteIcon,
   SettingsIcon,
   ShieldCheckIcon,
   ShieldIcon,
@@ -150,6 +151,10 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => router.push(`/profile/${profile.username}`)}>
           <IdCardIcon />
           View profile
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/customize")}>
+          <PaletteIcon />
+          Customize profile
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/list")}>
           <ListTodoIcon />

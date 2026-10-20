@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarIcon, MessageSquareIcon } from "lucide-react";
+import { CalendarIcon, BookmarkIcon, MessageSquareIcon } from "lucide-react";
 import { getMediaByIds } from "@/lib/anilist/anime";
 import { timeAgo } from "@/lib/comments-shared";
 import { mediaTitle } from "@/lib/anime-format";
@@ -18,6 +18,15 @@ import { SpoilerText } from "@/components/comments/spoiler-text";
 import { NebulaCore } from "@/components/avatar/nebula-core";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MEMBER_NEBULA_BADGE } from "@/lib/badges";
+import { getProfilePrefs } from "@/lib/prefs-server";
+import {
+  BADGE_HIDE_ALL,
+  FLAIR,
+  PROFILE_THEMES,
+  TITLES,
+  bannerCss,
+} from "@/lib/profile-prefs";
+import { AVATAR_SRC } from "@/lib/avatar-catalog";
 import { UserBadges } from "@/components/user-badges";
 import { cn } from "cn";
 
@@ -58,6 +67,21 @@ export default async function ProfilePage({ params, searchParams }: Params) {
   const nitro = isNitroActive(profile);
   const showNebula = profile.badges?.includes(MEMBER_NEBULA_BADGE) ?? false;
 
+  const prefs = await getProfilePrefs(profile.id);
+  const themeDef = PROFILE_THEMES[prefs.theme] ?? PROFILE_THEMES.classic;
+  const titleDef = prefs.title ? TITLES.find((t) => t.key === prefs.title) ?? null : null;
+  const favorites = prefs.characters.filter((c) => c in AVATAR_SRC);
+  const visibleBadges =
+    prefs.displayBadges.length === 0
+      ? profile.badges
+      : prefs.displayBadges.includes(BADGE_HIDE_ALL)
+        ? []
+        : profile.badges.filter((b) => prefs.displayBadges.includes(b));
+  const themeStyle =
+    prefs.theme === "classic"
+      ? undefined
+      : { borderColor: `${themeDef.accent}66`, boxShadow: themeDef.glow };
+
   let media: Awaited<ReturnType<typeof getMediaByIds>> = [];
   if (comments.length > 0) {
     try {
@@ -77,49 +101,105 @@ export default async function ProfilePage({ params, searchParams }: Params) {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
       <header
+        style={themeStyle}
         className={cn(
-          "flex flex-wrap items-center gap-4 rounded-xl border border-border/60 bg-card p-5",
+          "overflow-hidden rounded-xl border border-border/60 bg-card",
           nitro && "nitro-flame border-transparent",
         )}
       >
-        <span
-          className={cn(
-            "inline-flex rounded-full",
-            cosmeticClass(cosmetics?.frame),
-            nitro && "nitro-avatar-glow",
-          )}
-        >
-          {showNebula ? (
-            <NebulaCore
-              src={profile.avatar_url}
-              username={profile.username}
-              size={48}
-            />
-          ) : (
-            <Avatar size="lg">
-              {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
-              <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          )}
-        </span>
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className={cn("truncate text-xl font-bold tracking-tight", nameClasses(cosmetics))}>
-              {profile.username}
-            </h1>
-            <UserBadges
-              role={profile.role}
-              isVerified={profile.is_verified}
-              badges={profile.badges}
-              nitro={nitro}
-            />
+        <div className="h-16" style={{ background: bannerCss(prefs.bannerId) }} />
+        <div className="flex flex-wrap items-center gap-4 p-5">
+          <span
+            className={cn(
+              "inline-flex rounded-full",
+              cosmeticClass(cosmetics?.frame),
+              nitro && "nitro-avatar-glow",
+            )}
+          >
+            {showNebula ? (
+              <NebulaCore
+                src={profile.avatar_url}
+                username={profile.username}
+                size={48}
+              />
+            ) : (
+              <Avatar size="lg">
+                {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
+                <AvatarFallback>{profile.username.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            )}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className={cn("truncate text-xl font-bold tracking-tight", nameClasses(cosmetics))}>
+                {profile.username}
+              </h1>
+              <UserBadges
+                role={profile.role}
+                isVerified={profile.is_verified}
+                badges={visibleBadges}
+                nitro={nitro}
+              />
+            </div>
+            {titleDef ? (
+              <p className={cn("text-sm font-medium", themeDef.text)}>「{titleDef.label}」</p>
+            ) : null}
+            {prefs.flair.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {prefs.flair.map((key) => {
+                  const f = FLAIR.find((x) => x.key === key);
+                  if (!f) return null;
+                  return (
+                    <span
+                      key={key}
+                      className={cn(
+                        "rounded-sm px-1.5 py-0.5 text-[10px] font-bold ring-1 ring-inset",
+                        f.cls,
+                      )}
+                    >
+                      {f.label.toUpperCase()}
+                    </span>
+                  );
+                })}
+              </div>
+            ) : null}
+            <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <CalendarIcon className="size-3.5" />
+              Joined {joined}
+            </p>
           </div>
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CalendarIcon className="size-3.5" />
-            Joined {joined}
-          </p>
         </div>
       </header>
+
+      {favorites.length > 0 ? (
+        <section
+          aria-label="Favorite characters"
+          className="rounded-xl border border-border/60 bg-card p-4"
+        >
+          <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-tight">
+            <BookmarkIcon className="size-4 text-sky-400" />
+            Favorite characters
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            {favorites.map((id) => (
+              <figure
+                key={id}
+                className="w-24 overflow-hidden rounded-lg border border-border/60 text-center"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- catalog avatar */}
+                <img
+                  src={AVATAR_SRC[id]}
+                  alt={id.split("/")[1]?.replace(/\.[a-z0-9]+$/i, "") ?? "Character"}
+                  className="aspect-square w-full object-cover"
+                />
+                <figcaption className="truncate px-1 py-1 text-[10px] text-muted-foreground">
+                  {id.split("/")[0].replace(/_/g, " ")}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <ActivityHistory data={activity} range={range} />
       <ProfileStatsRow stats={stats} />
