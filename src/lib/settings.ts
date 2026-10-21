@@ -6,6 +6,23 @@ export type AdSettings = {
   social: boolean;
 };
 
+/** Master switch for the Mr.Coin shop. Defaults to enabled if unset. */
+export async function getShopEnabled(): Promise<boolean> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("site_settings")
+      .select("value")
+      .eq("key", "shop.enabled")
+      .maybeSingle();
+    if (!data) return true;
+    return (data.value as { enabled?: boolean } | null)?.enabled !== false;
+  } catch {
+    // Env not configured — keep the shop available rather than hiding it.
+    return true;
+  }
+}
+
 /** Read ad toggles from site_settings (service role; RLS blocks public reads). */
 export async function getAdSettings(): Promise<AdSettings> {
   try {

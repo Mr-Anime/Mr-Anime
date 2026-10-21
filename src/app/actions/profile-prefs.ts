@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTitleUnlocks } from "@/lib/prefs-server";
 import { AVATAR_SRC } from "@/lib/avatar-catalog";
 import {
+  BADGE_HIDE_ALL,
   BANNER_IDS,
   FLAIR_KEYS,
   TITLES,
@@ -84,7 +85,9 @@ export async function saveProfilePrefs(
       .eq("id", userId)
       .single();
     const owned = (me?.badges as string[] | null) ?? [];
-    const displayBadges = prefs.displayBadges.filter((b) => owned.includes(b));
+    const displayBadges = prefs.displayBadges.includes(BADGE_HIDE_ALL)
+      ? [BADGE_HIDE_ALL]
+      : prefs.displayBadges.filter((b) => owned.includes(b));
 
     const { error } = await supabase.from("profile_prefs").upsert(
       {
@@ -101,7 +104,16 @@ export async function saveProfilePrefs(
       { onConflict: "user_id" },
     );
     if (error) {
-      console.error("[prefs] save failed", error.message);
+      console.error("[prefs] save failed", error.code, error.message);
+      if (error.code === "42P01" || error.message.includes("profile_prefs")) {
+        return {
+          ok: false,
+          error: "Customization is not set up in Supabase. Apply migration 0022_profile_prefs.sql.",
+        };
+      }
+      if (error.code === "42501") {
+        return { ok: false, error: "You do not have permission to save this customization." };
+      }
       return { ok: false, error: "Could not save your customization. Try again." };
     }
 

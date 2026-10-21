@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { UsersTable, type AdminUser } from "@/components/admin/users-table";
+import {
+  UsersTable,
+  type AdminFrame,
+  type AdminUser,
+} from "@/components/admin/users-table";
 import { Button } from "@/components/ui/button";
 import { adminGate } from "@/lib/admin-auth";
-import { EXCLUSIVE_FRAME_IDS } from "@/lib/cosmetics";
+import { EXCLUSIVE_FRAMES } from "@/lib/cosmetics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Users" };
@@ -53,25 +57,56 @@ export default async function AdminUsersPage({
   }
 
   const users = (data ?? []) as AdminUser[];
-  const exclusiveByUser = new Map<string, string[]>();
-  if (users.length > 0) {
-    const { data: grants, error: grantsError } = await admin
-      .from("user_items")
-      .select("user_id, item_id")
-      .in("user_id", users.map((u) => u.id))
-      .in("item_id", EXCLUSIVE_FRAME_IDS);
-    if (grantsError) {
-      console.error("[admin/users] exclusive frames failed", grantsError.message);
+  const [framesRes, grantsRes] = await Promise.all([
+    admin
+      .from("shop_items")
+      .select("id, name, description")
+      .eq("kind", "frame")
+      .order("name", { ascending: true }),
+    users.length > 0
+      ? admin
+          .from("user_items")
+          .select("user_id, item_id")
+          .in("user_id", users.map((u) => u.id))
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (framesRes.error) {
+    console.error("[admin/users] frames failed", framesRes.error.message);
+  }
+
+  const frameMap = new Map<string, AdminFrame>();
+  for (const frame of (framesRes.data ?? []) as { id: string; name: string; description: string }[]) {
+    frameMap.set(frame.id, {
+      ...frame,
+      src: EXCLUSIVE_FRAMES.find((f) => f.id === frame.id)?.src ?? null,
+    });
+  }
+  for (const frame of EXCLUSIVE_FRAMES) {
+    if (!frameMap.has(frame.id)) {
+      frameMap.set(frame.id, {
+        id: frame.id,
+        name: frame.label,
+        description: frame.description,
+        src: frame.src,
+      });
     }
-    for (const grant of (grants ?? []) as { user_id: string; item_id: string }[]) {
-      const list = exclusiveByUser.get(grant.user_id) ?? [];
-      list.push(grant.item_id);
-      exclusiveByUser.set(grant.user_id, list);
-    }
+  }
+  const frames = [...frameMap.values()];
+  const frameIds = new Set(frames.map((frame) => frame.id));
+
+  const ownedByUser = new Map<string, string[]>();
+  if (grantsRes.error) {
+    console.error("[admin/users] owned frames failed", grantsRes.error.message);
+  }
+  for (const grant of (grantsRes.data ?? []) as { user_id: string; item_id: string }[]) {
+    if (!frameIds.has(grant.item_id)) continue;
+    const list = ownedByUser.get(grant.user_id) ?? [];
+    list.push(grant.item_id);
+    ownedByUser.set(grant.user_id, list);
   }
   const usersWithFrames = users.map((user) => ({
     ...user,
-    exclusiveFrames: exclusiveByUser.get(user.id) ?? [],
+    ownedFrames: ownedByUser.get(user.id) ?? [],
   }));
   const total = count ?? users.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
@@ -125,6 +160,7 @@ export default async function AdminUsersPage({
 
       <UsersTable
         users={usersWithFrames}
+        frames={frames}
         selfId={gate.adminId}
         query={q}
         role={role}

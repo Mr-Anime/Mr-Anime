@@ -9,7 +9,7 @@ import {
   deleteAccount,
   setUserBadge,
   setUserBan,
-  setUserExclusiveFrame,
+  setUserFrame,
   setUserRole,
   setUserVerified,
   type AdminActionResult,
@@ -25,7 +25,8 @@ import {
   MOD_VERIFIED_BADGE,
   MOD_VERIFIED_IMAGE,
 } from "@/lib/badges";
-import { EXCLUSIVE_FRAMES } from "@/lib/cosmetics";
+import { cosmeticClass } from "@/lib/cosmetics";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,6 +57,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "cn";
+
+export type AdminFrame = {
+  id: string;
+  name: string;
+  description: string;
+  src: string | null;
+};
 
 export type AdminUser = {
   id: string;
@@ -66,7 +75,7 @@ export type AdminUser = {
   ban_reason: string | null;
   badges: string[];
   created_at: string;
-  exclusiveFrames?: string[];
+  ownedFrames?: string[];
 };
 
 type DialogState = {
@@ -76,6 +85,7 @@ type DialogState = {
 
 type Props = {
   users: AdminUser[];
+  frames: AdminFrame[];
   selfId: string;
   query: string;
   role: string;
@@ -84,7 +94,7 @@ type Props = {
   totalPages: number;
 };
 
-export function UsersTable({ users, selfId, query, role, status }: Props) {
+export function UsersTable({ users, frames, selfId, query, role, status }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [dialog, setDialog] = useState<DialogState>(null);
@@ -147,14 +157,14 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
   }
 
   function openFrames(user: AdminUser) {
-    setFrameSel(user.exclusiveFrames ?? []);
+    setFrameSel(user.ownedFrames ?? []);
     setDialog({ kind: "frames", user });
   }
 
   function applyFrames() {
     if (!dialog || dialog.kind !== "frames") return;
     const { user } = dialog;
-    const orig = new Set(user.exclusiveFrames ?? []);
+    const orig = new Set(user.ownedFrames ?? []);
     const next = new Set(frameSel);
     const added = [...next].filter((f) => !orig.has(f));
     const removed = [...orig].filter((f) => !next.has(f));
@@ -167,19 +177,19 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
       let changed = 0;
       let failed = false;
       for (const f of added) {
-        const res = await setUserExclusiveFrame(user.id, f, true);
+        const res = await setUserFrame(user.id, f, true);
         if (!res.ok) { toast.error(res.error); failed = true; break; }
         changed += 1;
       }
       if (!failed) {
         for (const f of removed) {
-          const res = await setUserExclusiveFrame(user.id, f, false);
+          const res = await setUserFrame(user.id, f, false);
           if (!res.ok) { toast.error(res.error); failed = true; break; }
           changed += 1;
         }
       }
       if (!failed) {
-        toast.success(`Updated ${changed} exclusive frame${changed === 1 ? "" : "s"}.`);
+        toast.success(`Updated ${changed} frame${changed === 1 ? "" : "s"}.`);
       }
       setDialog(null);
       setFrameSel([]);
@@ -461,7 +471,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                           </DropdownMenuItem>
                           <DropdownMenuItem disabled={isSelf} onClick={() => openFrames(user)}>
                             <SparklesIcon className="text-rose-400" />
-                            Exclusive frames…
+                            Frames…
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -502,7 +512,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 : dialog?.kind === "badges"
                   ? `Manage ${dialog.user.username}'s badges`
                   : dialog?.kind === "frames"
-                    ? `Manage ${dialog.user.username}'s exclusive frames`
+                    ? `Manage ${dialog.user.username}'s frames`
                     : dialog?.kind === "ban"
                   ? `Ban ${dialog.user.username}`
                   : dialog?.kind === "unban"
@@ -549,7 +559,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
               ) : dialog?.kind === "badges" ? (
                 "Tick badges to grant, untick to revoke. Only staff/milestone badges are listed — every change is recorded in the audit log."
               ) : dialog?.kind === "frames" ? (
-                "Tick a frame to give it to this user — it is equipped immediately and cannot be bought in the shop. Untick to remove it. Every change is recorded in the audit log."
+                "Tick a frame to give it to this user — it is equipped immediately. Untick to remove ownership as well as the equipped frame. Shop and exclusive frames are listed here. Every change is recorded in the audit log."
               ) : dialog?.kind === "ban" ? (
                 "Banned users are redirected to a suspension page on every request."
               ) : dialog?.kind === "role" ? (
@@ -614,38 +624,56 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
           ) : null}
 
           {dialog?.kind === "frames" ? (
-            <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
-              {EXCLUSIVE_FRAMES.map((frame) => (
-                <label
-                  key={frame.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 px-2 py-1.5 text-sm transition-colors hover:bg-muted/40"
-                >
-                  <input
-                    type="checkbox"
-                    checked={frameSel.includes(frame.id)}
-                    onChange={(e) =>
-                      setFrameSel((prev) =>
-                        e.target.checked ? [...prev, frame.id] : prev.filter((x) => x !== frame.id),
-                      )
-                    }
-                    className="accent-sky-500"
-                  />
-                  <Image
-                    src={frame.src}
-                    alt=""
-                    width={28}
-                    height={28}
-                    className="size-7 rounded-full object-contain"
-                  />
-                  <span className="min-w-0">
-                    <span className="block truncate font-medium">{frame.label}</span>
-                    <span className="block truncate text-[11px] text-muted-foreground">
-                      {frame.description}
+            frames.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No frames found. Apply the shop migrations first.
+              </p>
+            ) : (
+              <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+                {frames.map((frame) => (
+                  <label
+                    key={frame.id}
+                    className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 px-2 py-1.5 text-sm transition-colors hover:bg-muted/40"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={frameSel.includes(frame.id)}
+                      onChange={(e) =>
+                        setFrameSel((prev) =>
+                          e.target.checked ? [...prev, frame.id] : prev.filter((x) => x !== frame.id),
+                        )
+                      }
+                      className="accent-sky-500"
+                    />
+                    {frame.src ? (
+                      <Image
+                        src={frame.src}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="size-7 shrink-0 rounded-full object-contain"
+                      />
+                    ) : (
+                      <span className="flex size-7 shrink-0 items-center justify-center">
+                        <span className={cn("inline-flex rounded-full", cosmeticClass(frame.id))}>
+                          <Avatar className="size-6">
+                            <AvatarFallback className="bg-sky-500/20 text-[8px] font-semibold text-sky-300">
+                              M
+                            </AvatarFallback>
+                          </Avatar>
+                        </span>
+                      </span>
+                    )}
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{frame.name}</span>
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {frame.description}
+                      </span>
                     </span>
-                  </span>
-                </label>
-              ))}
-            </div>
+                  </label>
+                ))}
+              </div>
+            )
           ) : null}
 
           <DialogFooter>

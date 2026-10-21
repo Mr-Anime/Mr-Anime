@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getShopEnabled } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export type ShopActionResult =
@@ -23,6 +24,9 @@ function mapPurchaseError(raw: string): string {
 export async function purchaseShopItem(itemId: string): Promise<ShopActionResult> {
   const parsedId = itemIdSchema.safeParse(itemId);
   if (!parsedId.success) return { ok: false, error: "Invalid item." };
+  if (!(await getShopEnabled())) {
+    return { ok: false, error: "The shop is temporarily closed." };
+  }
 
   try {
     const supabase = await createClient();
@@ -74,6 +78,9 @@ export async function equipShopItem(
   if (!parsedSlot.success || !parsedId.success) {
     return { ok: false, error: "Invalid item." };
   }
+  if (!(await getShopEnabled())) {
+    return { ok: false, error: "The shop is temporarily closed." };
+  }
 
   try {
     const supabase = await createClient();
@@ -119,6 +126,10 @@ export async function equipShopItem(
 
 /** Buy (or renew) Mr. Anime Nitro for 30 days with Mr.Coin. */
 export async function buyNitro(): Promise<NitroActionResult> {
+  if (!(await getShopEnabled())) {
+    return { ok: false, error: "The shop is temporarily closed." };
+  }
+
   try {
     const supabase = await createClient();
     const { data: authData } = await supabase.auth.getClaims();

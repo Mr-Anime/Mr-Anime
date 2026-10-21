@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ScrollTextIcon, LayoutDashboardIcon, MegaphoneIcon, UsersIcon, BellRingIcon, ShieldCheckIcon, TicketPercentIcon } from "lucide-react";
+import { ScrollTextIcon, LayoutDashboardIcon, MegaphoneIcon, UsersIcon, BellRingIcon, ShieldCheckIcon, ShoppingBagIcon, TicketPercentIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboardIcon, exact: true },
   { href: "/admin/users", label: "Users", icon: UsersIcon, exact: false },
+  { href: "/admin/shop", label: "Shop", icon: ShoppingBagIcon, exact: false },
   { href: "/admin/ads", label: "Ads", icon: MegaphoneIcon, exact: false },
   { href: "/admin/notifications", label: "Notifications", icon: BellRingIcon, exact: false },
   { href: "/admin/redeem", label: "Redeem codes", icon: TicketPercentIcon, exact: false },

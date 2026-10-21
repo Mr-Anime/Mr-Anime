@@ -142,7 +142,9 @@ export function CustomizeClient({
     try {
       const payload: UserProfile = {
         ...prefs,
-        characters: prefs.characters.filter((c) => c in AVATAR_SRC),
+        flair: prefs.flair.slice(0, 6),
+        displayBadges: prefs.displayBadges.slice(0, 30),
+        characters: prefs.characters.filter((c) => c in AVATAR_SRC).slice(0, 3),
       };
       const res = await saveProfilePrefs(payload);
       if (res.ok) {
@@ -151,6 +153,9 @@ export function CustomizeClient({
       } else {
         toast.error(res.error);
       }
+    } catch (error) {
+      console.error("[customize] save failed", error);
+      toast.error("Could not save — check your connection and try again.");
     } finally {
       setSaving(false);
     }

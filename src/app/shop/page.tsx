@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { ShoppingBagIcon } from "lucide-react";
 import { getCommentViewer } from "@/lib/comments";
+import { getShopEnabled } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 import { EMPTY_COSMETICS, type Cosmetics, type ShopKind } from "@/lib/cosmetics";
 import { CoinIcon } from "@/components/coin-icon";
@@ -16,6 +18,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ShopPage() {
+  const shopEnabled = await getShopEnabled();
+  if (!shopEnabled) {
+    return (
+      <div className="mx-auto w-full max-w-lg px-4 py-28 text-center">
+        <ShoppingBagIcon className="mx-auto size-8 text-muted-foreground" />
+        <h1 className="mt-4 text-xl font-semibold">Shop is temporarily closed</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The Mr.Coin shop is disabled for now. Please check back later.
+        </p>
+      </div>
+    );
+  }
+
   const viewer = await getCommentViewer();
   if (!viewer) redirect("/login?next=/shop");
 

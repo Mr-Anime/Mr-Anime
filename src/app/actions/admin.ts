@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ADMIN_GRANTABLE_BADGES } from "@/lib/badges";
 import { adminGate } from "@/lib/admin-auth";
-import { EXCLUSIVE_FRAME_IDS } from "@/lib/cosmetics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AdminActionResult =
@@ -277,8 +276,8 @@ export async function setUserBadge(
   }
 }
 
-/** Grant or revoke an admin-exclusive avatar frame (never purchasable). */
-export async function setUserExclusiveFrame(
+/** Grant or revoke any avatar frame (shop or admin-exclusive) for a user. */
+export async function setUserFrame(
   targetId: string,
   frameId: string,
   enabled: boolean,
@@ -287,7 +286,8 @@ export async function setUserExclusiveFrame(
   if ("error" in auth) return auth.error;
 
   const idParsed = targetIdSchema.safeParse(targetId);
-  if (!idParsed.success || !EXCLUSIVE_FRAME_IDS.includes(frameId)) {
+  const frameParsed = z.string().min(1).max(60).safeParse(frameId);
+  if (!idParsed.success || !frameParsed.success) {
     return { ok: false, error: "Invalid input." };
   }
 
@@ -296,23 +296,32 @@ export async function setUserExclusiveFrame(
     if (!target) return { ok: false, error: "User not found." };
 
     const admin = createAdminClient();
+    const { data: frame, error: frameError } = await admin
+      .from("shop_items")
+      .select("id")
+      .eq("id", frameParsed.data)
+      .eq("kind", "frame")
+      .maybeSingle();
+    if (frameError || !frame) {
+      return { ok: false, error: "That frame does not exist." };
+    }
 
     if (enabled) {
       const { error: ownError } = await admin
         .from("user_items")
         .upsert(
-          { user_id: targetId, item_id: frameId },
+          { user_id: targetId, item_id: frameParsed.data },
           { onConflict: "user_id,item_id", ignoreDuplicates: true },
         );
       if (ownError) {
-        console.error("[admin] exclusive frame ownership failed", ownError.message);
-        return { ok: false, error: "Apply migration 0023_exclusive_frames.sql first." };
+        console.error("[admin] frame ownership failed", ownError.message);
+        return { ok: false, error: "Could not grant that frame." };
       }
 
       const { error } = await admin.from("user_loadout").upsert(
         {
           user_id: targetId,
-          frame: frameId,
+          frame: frameParsed.data,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" },
@@ -323,20 +332,20 @@ export async function setUserExclusiveFrame(
         .from("user_items")
         .delete()
         .eq("user_id", targetId)
-        .eq("item_id", frameId);
+        .eq("item_id", frameParsed.data);
       if (removeError) return { ok: false, error: removeError.message };
 
       const { error } = await admin
         .from("user_loadout")
         .update({ frame: null, updated_at: new Date().toISOString() })
         .eq("user_id", targetId)
-        .eq("frame", frameId);
+        .eq("frame", frameParsed.data);
       if (error) return { ok: false, error: error.message };
     }
 
     await audit(auth.adminId, targetId, enabled ? "grant_frame" : "revoke_frame", {
       username: target.username,
-      frame: frameId,
+      frame: frameParsed.data,
     });
     revalidatePath("/admin/users");
     revalidatePath("/");
@@ -344,11 +353,11 @@ export async function setUserExclusiveFrame(
     return {
       ok: true,
       message: enabled
-        ? `Exclusive frame granted to ${target.username}.`
-        : `Exclusive frame removed from ${target.username}.`,
+        ? `Frame granted to ${target.username}.`
+        : `Frame removed from ${target.username}.`,
     };
   } catch (error) {
-    console.error("[admin] setUserExclusiveFrame failed", error);
+    console.error("[admin] setUserFrame failed", error);
     return { ok: false, error: "Supabase is not configured." };
   }
 }
@@ -429,6 +438,35 @@ export async function setAdsSettings(input: {
     };
   } catch (error) {
     console.error("[admin] setAdsSettings failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
+/** Enable or disable the Mr.Coin shop site-wide. */
+export async function setShopEnabled(enabled: boolean): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+  if (typeof enabled !== "boolean") return { ok: false, error: "Invalid input." };
+
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.from("site_settings").upsert({
+      key: "shop.enabled",
+      value: { enabled },
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return { ok: false, error: error.message };
+
+    await audit(auth.adminId, null, "shop_settings", { enabled });
+    revalidatePath("/", "layout");
+    revalidatePath("/shop");
+    revalidatePath("/admin/shop");
+    return {
+      ok: true,
+      message: enabled ? "Shop enabled." : "Shop disabled — purchase and equip are blocked.",
+    };
+  } catch (error) {
+    console.error("[admin] setShopEnabled failed", error);
     return { ok: false, error: "Supabase is not configured." };
   }
 }

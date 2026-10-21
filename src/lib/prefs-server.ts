@@ -1,11 +1,15 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
+import { AVATAR_SRC } from "@/lib/avatar-catalog";
 import {
+  BANNER_IDS,
   DEFAULT_PREFS,
+  FLAIR_KEYS,
+  THEME_KEYS,
   TITLES,
   type TitleRule,
   type UserProfile,
 } from "@/lib/profile-prefs";
+import { createClient } from "@/lib/supabase/server";
 
 type PrefsRow = {
   avatar_id: string | null;
@@ -19,14 +23,33 @@ type PrefsRow = {
 
 function toPrefs(row: PrefsRow | null): UserProfile {
   if (!row) return { ...DEFAULT_PREFS };
+
+  // Normalize legacy / stale values so an unrelated old id never blocks saving.
+  const avatarId = row.avatar_id && row.avatar_id in AVATAR_SRC ? row.avatar_id : "";
+  const bannerId =
+    row.banner_id && (BANNER_IDS as readonly string[]).includes(row.banner_id)
+      ? row.banner_id
+      : "classic";
+  const title = row.title && TITLES.some((t) => t.key === row.title) ? row.title : null;
+  const flair = (Array.isArray(row.flair) ? row.flair : [])
+    .filter((key) => (FLAIR_KEYS as readonly string[]).includes(key))
+    .slice(0, 6);
+  const displayBadges = (Array.isArray(row.display_badges) ? row.display_badges : []).slice(0, 30);
+  const characters = (Array.isArray(row.characters) ? row.characters : [])
+    .filter((id) => id in AVATAR_SRC)
+    .slice(0, 3);
+  const theme = (THEME_KEYS as readonly string[]).includes(row.theme)
+    ? (row.theme as UserProfile["theme"])
+    : "classic";
+
   return {
-    avatarId: row.avatar_id ?? "",
-    bannerId: row.banner_id || "classic",
-    title: row.title,
-    flair: Array.isArray(row.flair) ? row.flair : [],
-    displayBadges: Array.isArray(row.display_badges) ? row.display_badges : [],
-    characters: Array.isArray(row.characters) ? row.characters : [],
-    theme: (row.theme as UserProfile["theme"]) ?? "classic",
+    avatarId,
+    bannerId,
+    title,
+    flair,
+    displayBadges,
+    characters,
+    theme,
   };
 }
 
