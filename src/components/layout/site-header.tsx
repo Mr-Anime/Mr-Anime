@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, TriangleAlertIcon } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { UserMenu } from "./user-menu";
 
@@ -17,6 +17,22 @@ const navLinks = [
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div className="border-b border-red-950/40 bg-red-600 text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-2 px-4 py-2 text-center text-xs font-medium sm:text-sm">
+          <TriangleAlertIcon className="size-4 shrink-0" />
+          <span>
+            Site is in maintenance mode.{" "}
+            <a
+              href="https://stats.mranime.cyou"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline underline-offset-2 hover:text-red-100"
+            >
+              See stats
+            </a>
+          </span>
+        </div>
+      </div>
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-4 px-4">
         <Link
           href="/"
