@@ -471,6 +471,36 @@ export async function setShopEnabled(enabled: boolean): Promise<AdminActionResul
   }
 }
 
+/** Show or hide the sitewide maintenance warning banner. */
+export async function setMaintenanceBannerEnabled(
+  enabled: boolean,
+): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+  if (typeof enabled !== "boolean") return { ok: false, error: "Invalid input." };
+
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin.from("site_settings").upsert({
+      key: "maintenance.enabled",
+      value: { enabled },
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return { ok: false, error: error.message };
+
+    await audit(auth.adminId, null, "maintenance_banner", { enabled });
+    revalidatePath("/", "layout");
+    revalidatePath("/admin/site");
+    return {
+      ok: true,
+      message: enabled ? "Maintenance banner shown." : "Maintenance banner hidden.",
+    };
+  } catch (error) {
+    console.error("[admin] setMaintenanceBannerEnabled failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
 const sendNotificationSchema = z.object({
   title: z.string().trim().min(1).max(80),
   body: z.string().trim().max(500).default(""),

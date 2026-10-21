@@ -6,21 +6,30 @@ export type AdSettings = {
   social: boolean;
 };
 
-/** Master switch for the Mr.Coin shop. Defaults to enabled if unset. */
-export async function getShopEnabled(): Promise<boolean> {
+async function getEnabledSetting(key: string): Promise<boolean> {
   try {
     const admin = createAdminClient();
     const { data } = await admin
       .from("site_settings")
       .select("value")
-      .eq("key", "shop.enabled")
+      .eq("key", key)
       .maybeSingle();
     if (!data) return true;
     return (data.value as { enabled?: boolean } | null)?.enabled !== false;
   } catch {
-    // Env not configured — keep the shop available rather than hiding it.
+    // Env not configured — keep features available rather than hiding them.
     return true;
   }
+}
+
+/** Master switch for the Mr.Coin shop. Defaults to enabled if unset. */
+export function getShopEnabled(): Promise<boolean> {
+  return getEnabledSetting("shop.enabled");
+}
+
+/** Sitewide maintenance warning banner. Defaults to visible if unset. */
+export function getMaintenanceBannerEnabled(): Promise<boolean> {
+  return getEnabledSetting("maintenance.enabled");
 }
 
 /** Read ad toggles from site_settings (service role; RLS blocks public reads). */
