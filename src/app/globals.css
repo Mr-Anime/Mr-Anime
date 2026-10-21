@@ -198,6 +198,36 @@
   }
 }
 
+/* Custom exclusive user frame: mostofa (a_ec414bdc7349060e321e6c652698c7d8.webp) */
+.shop-frame-mostofa,
+.shop-frame-a_ec414bdc7349060e321e6c652698c7d8 {
+  position: relative;
+}
+.shop-frame-mostofa::after,
+.shop-frame-a_ec414bdc7349060e321e6c652698c7d8::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/a_ec414bdc7349060e321e6c652698c7d8.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Admin-granted exclusive frame: crimson ring (a_fbefe2b8f016d8dffa230e01f89aa8f2.webp) */
+.shop-frame-exclusive-crimson {
+  position: relative;
+}
+.shop-frame-exclusive-crimson::after {
+  content: "";
+  position: absolute;
+  inset: -24%;
+  border-radius: 9999px;
+  background: url("/frames/a_fbefe2b8f016d8dffa230e01f89aa8f2.webp") center/contain no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* Image-based frame: cosmic koi ring (transparent webp overlay) */
 .shop-frame-koi {
   position: relative;

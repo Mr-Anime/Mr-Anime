@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ADMIN_GRANTABLE_BADGES } from "@/lib/badges";
 import { adminGate } from "@/lib/admin-auth";
+import { EXCLUSIVE_FRAME_IDS } from "@/lib/cosmetics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export type AdminActionResult =
@@ -272,6 +273,82 @@ export async function setUserBadge(
     };
   } catch (error) {
     console.error("[admin] setUserBadge failed", error);
+    return { ok: false, error: "Supabase is not configured." };
+  }
+}
+
+/** Grant or revoke an admin-exclusive avatar frame (never purchasable). */
+export async function setUserExclusiveFrame(
+  targetId: string,
+  frameId: string,
+  enabled: boolean,
+): Promise<AdminActionResult> {
+  const auth = await requireAdmin();
+  if ("error" in auth) return auth.error;
+
+  const idParsed = targetIdSchema.safeParse(targetId);
+  if (!idParsed.success || !EXCLUSIVE_FRAME_IDS.includes(frameId)) {
+    return { ok: false, error: "Invalid input." };
+  }
+
+  try {
+    const target = await loadTargetProfile(idParsed.data);
+    if (!target) return { ok: false, error: "User not found." };
+
+    const admin = createAdminClient();
+
+    if (enabled) {
+      const { error: ownError } = await admin
+        .from("user_items")
+        .upsert(
+          { user_id: targetId, item_id: frameId },
+          { onConflict: "user_id,item_id", ignoreDuplicates: true },
+        );
+      if (ownError) {
+        console.error("[admin] exclusive frame ownership failed", ownError.message);
+        return { ok: false, error: "Apply migration 0023_exclusive_frames.sql first." };
+      }
+
+      const { error } = await admin.from("user_loadout").upsert(
+        {
+          user_id: targetId,
+          frame: frameId,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+      if (error) return { ok: false, error: error.message };
+    } else {
+      const { error: removeError } = await admin
+        .from("user_items")
+        .delete()
+        .eq("user_id", targetId)
+        .eq("item_id", frameId);
+      if (removeError) return { ok: false, error: removeError.message };
+
+      const { error } = await admin
+        .from("user_loadout")
+        .update({ frame: null, updated_at: new Date().toISOString() })
+        .eq("user_id", targetId)
+        .eq("frame", frameId);
+      if (error) return { ok: false, error: error.message };
+    }
+
+    await audit(auth.adminId, targetId, enabled ? "grant_frame" : "revoke_frame", {
+      username: target.username,
+      frame: frameId,
+    });
+    revalidatePath("/admin/users");
+    revalidatePath("/");
+    revalidatePath("/", "layout");
+    return {
+      ok: true,
+      message: enabled
+        ? `Exclusive frame granted to ${target.username}.`
+        : `Exclusive frame removed from ${target.username}.`,
+    };
+  } catch (error) {
+    console.error("[admin] setUserExclusiveFrame failed", error);
     return { ok: false, error: "Supabase is not configured." };
   }
 }

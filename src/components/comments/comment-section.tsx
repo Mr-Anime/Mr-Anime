@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { CommentView, CommentViewer } from "@/lib/comments-shared";
 import { timeAgo } from "@/lib/comments-shared";
-import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
+import { nameClasses, userFrameClass } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { cn } from "cn";
 
@@ -77,10 +77,12 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
             className="mt-0.5 shrink-0"
             aria-label="View your profile"
           >
-            <Avatar size="sm">
-              {viewer.avatar_url ? <AvatarImage src={viewer.avatar_url} alt="" /> : null}
-              <AvatarFallback>{viewer.username.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+            <span className={cn("inline-flex rounded-full", userFrameClass(viewer.username))}>
+              <Avatar size="sm">
+                {viewer.avatar_url ? <AvatarImage src={viewer.avatar_url} alt="" /> : null}
+                <AvatarFallback>{viewer.username.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </span>
           </Link>
           <div className="min-w-0 flex-1 space-y-2">
             <Textarea
@@ -146,7 +148,7 @@ export function CommentSection({ anilistId, episode, comments, viewer, title }: 
                       <span
                         className={cn(
                           "inline-flex rounded-full",
-                          cosmeticClass(author.cosmetics?.frame),
+                          userFrameClass(author.username, author.cosmetics),
                           authorNitro && "nitro-avatar-glow",
                         )}
                       >

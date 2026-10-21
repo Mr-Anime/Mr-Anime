@@ -4,6 +4,7 @@ import { CrownIcon, MessageSquareIcon, CoinsIcon, HeartHandshakeIcon } from "luc
 import { UserBadges } from "@/components/user-badges";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { userFrameClass } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { cn } from "cn";
 
@@ -176,10 +177,12 @@ export default async function LeaderboardPage({
               <span className="flex w-8 shrink-0 justify-center">{medal(i + 1)}</span>
               {row.username ? (
                 <Link href={`/profile/${row.username}`} className="shrink-0">
-                  <Avatar size="sm">
-                    {row.avatar_url ? <AvatarImage src={row.avatar_url} alt="" /> : null}
-                    <AvatarFallback>{row.username.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+                  <span className={cn("inline-flex rounded-full", userFrameClass(row.username))}>
+                    <Avatar size="sm">
+                      {row.avatar_url ? <AvatarImage src={row.avatar_url} alt="" /> : null}
+                      <AvatarFallback>{row.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </span>
                 </Link>
               ) : null}
               <div className="min-w-0 flex-1">

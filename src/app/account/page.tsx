@@ -16,6 +16,9 @@ import { ActivityHistory } from "@/components/profile/activity-history";
 import { DailyRewardCard } from "@/components/account/daily-reward-card";
 import { GiftCoinsForm } from "@/components/account/gift-coins-form";
 import { tryCreateClient } from "@/lib/supabase/server";
+import { getLoadout } from "@/lib/loadouts";
+import { userFrameClass } from "@/lib/cosmetics";
+import { cn } from "cn";
 
 export const metadata: Metadata = {
   title: "Account",
@@ -67,6 +70,8 @@ export default async function AccountPage({
   if (!data) redirect("/login");
 
   const profile = data as unknown as Profile;
+  const cosmetics = await getLoadout(profile.id);
+  const frameClass = userFrameClass(profile.username, cosmetics);
   const apiTokens = await getApiTokens();
   const oauthApps = await getOAuthApps();
   const activity = await getCommentActivity(profile.id, range === "1y" ? 365 : 182);
@@ -106,12 +111,16 @@ export default async function AccountPage({
 
       <Card className="mb-6">
         <CardHeader className="flex-row items-center gap-4 space-y-0">
-          <Avatar className="size-16">
-            {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
-            <AvatarFallback className="text-lg">
-              {profile.username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <span
+            className={cn("inline-flex rounded-full", frameClass)}
+          >
+            <Avatar className="size-16">
+              {profile.avatar_url ? <AvatarImage src={profile.avatar_url} alt="" /> : null}
+              <AvatarFallback className="text-lg">
+                {profile.username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </span>
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               {profile.username}
@@ -173,6 +182,7 @@ export default async function AccountPage({
             <ProfileForm
               initialUsername={profile.username}
               initialAvatarUrl={profile.avatar_url ?? ""}
+              frameClass={frameClass}
             />
           </CardContent>
         </Card>

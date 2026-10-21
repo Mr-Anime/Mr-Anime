@@ -1,5 +1,6 @@
 import { cacheHeader, jsonError } from "@/lib/api";
 import { isNitroActive } from "@/lib/nitro";
+import { resolveUserFrame } from "@/lib/cosmetics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -99,7 +100,7 @@ export async function GET(_request: Request, { params }: Params): Promise<Respon
         joinedAt: row.created_at,
         nitro: isNitroActive({ badges: row.badges, nitro_until: row.nitro_until ?? null }),
         cosmetics: {
-          frame: loadout?.frame ?? null,
+          frame: resolveUserFrame(row.username, loadout?.frame ?? null),
           nameStyle: loadout?.name_style ?? null,
           nameAnimation: loadout?.name_animation ?? null,
         },

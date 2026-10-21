@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CheckIcon, ImageIcon, SearchIcon, SparklesIcon, XIcon } from "lucide-react";
 import {
   AVATAR_GROUPS,
-  AVATAR_SRC,
+  AVATAR_TOTAL,
   getAvatarIdFromSrc,
   type CatalogAvatar,
 } from "@/lib/avatar-catalog";
@@ -121,7 +121,7 @@ export function AvatarPickerDialog({
             <div>
               <DialogTitle className="text-base font-semibold">Choose Avatar</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Select from 230+ official anime avatars. Custom avatars & external links are not allowed.
+                Select from {AVATAR_TOTAL} official anime avatars. Custom avatars & external links are not allowed.
               </DialogDescription>
             </div>
           </div>

@@ -10,13 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AvatarPickerDialog } from "@/components/avatar/avatar-picker-dialog";
+import { AVATAR_TOTAL } from "@/lib/avatar-catalog";
+import { cn } from "cn";
 
 type ProfileFormProps = {
   initialUsername: string;
   initialAvatarUrl?: string | null;
+  frameClass?: string;
 };
 
-export function ProfileForm({ initialUsername, initialAvatarUrl }: ProfileFormProps) {
+export function ProfileForm({
+  initialUsername,
+  initialAvatarUrl,
+  frameClass,
+}: ProfileFormProps) {
   const [state, action, pending] = useActionState(updateProfile, undefined);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl ?? "");
 
@@ -28,12 +35,14 @@ export function ProfileForm({ initialUsername, initialAvatarUrl }: ProfileFormPr
       <div className="space-y-2">
         <Label>Avatar</Label>
         <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border/60 bg-muted/20 p-3">
-          <Avatar className="size-16 ring-2 ring-primary/20">
-            {avatarUrl ? <AvatarImage src={avatarUrl} alt="" className="object-cover" /> : null}
-            <AvatarFallback className="text-lg font-bold">
-              {initialUsername.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <span className={cn("inline-flex rounded-full", frameClass)}>
+            <Avatar className="size-16 ring-2 ring-primary/20">
+              {avatarUrl ? <AvatarImage src={avatarUrl} alt="" className="object-cover" /> : null}
+              <AvatarFallback className="text-lg font-bold">
+                {initialUsername.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </span>
 
           <div className="flex-1 space-y-1 min-w-[200px]">
             <div className="flex items-center gap-2">
@@ -54,7 +63,7 @@ export function ProfileForm({ initialUsername, initialAvatarUrl }: ProfileFormPr
               ) : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              Choose from 230+ official anime avatars across 20 series. Custom URLs and uploads are not allowed.
+              Choose from {AVATAR_TOTAL} official anime avatars across 20 series. Custom URLs and uploads are not allowed.
             </p>
           </div>
         </div>

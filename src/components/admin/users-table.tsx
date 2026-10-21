@@ -9,6 +9,7 @@ import {
   deleteAccount,
   setUserBadge,
   setUserBan,
+  setUserExclusiveFrame,
   setUserRole,
   setUserVerified,
   type AdminActionResult,
@@ -24,6 +25,7 @@ import {
   MOD_VERIFIED_BADGE,
   MOD_VERIFIED_IMAGE,
 } from "@/lib/badges";
+import { EXCLUSIVE_FRAMES } from "@/lib/cosmetics";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,10 +66,11 @@ export type AdminUser = {
   ban_reason: string | null;
   badges: string[];
   created_at: string;
+  exclusiveFrames?: string[];
 };
 
 type DialogState = {
-  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "donorbadge" | "badges" | "delete";
+  kind: "ban" | "unban" | "role" | "modrole" | "verify" | "unverify" | "badge" | "modbadge" | "nitro" | "nebula" | "donorbadge" | "badges" | "frames" | "delete";
   user: AdminUser;
 } | null;
 
@@ -87,6 +90,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
   const [dialog, setDialog] = useState<DialogState>(null);
   const [reason, setReason] = useState("");
   const [badgeSel, setBadgeSel] = useState<string[]>([]);
+  const [frameSel, setFrameSel] = useState<string[]>([]);
 
   function run(action: () => Promise<AdminActionResult>) {
     startTransition(async () => {
@@ -96,6 +100,7 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
       setDialog(null);
       setReason("");
       setBadgeSel([]);
+      setFrameSel([]);
       router.refresh();
     });
   }
@@ -141,11 +146,56 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
     });
   }
 
+  function openFrames(user: AdminUser) {
+    setFrameSel(user.exclusiveFrames ?? []);
+    setDialog({ kind: "frames", user });
+  }
+
+  function applyFrames() {
+    if (!dialog || dialog.kind !== "frames") return;
+    const { user } = dialog;
+    const orig = new Set(user.exclusiveFrames ?? []);
+    const next = new Set(frameSel);
+    const added = [...next].filter((f) => !orig.has(f));
+    const removed = [...orig].filter((f) => !next.has(f));
+    if (added.length === 0 && removed.length === 0) {
+      setDialog(null);
+      setFrameSel([]);
+      return;
+    }
+    startTransition(async () => {
+      let changed = 0;
+      let failed = false;
+      for (const f of added) {
+        const res = await setUserExclusiveFrame(user.id, f, true);
+        if (!res.ok) { toast.error(res.error); failed = true; break; }
+        changed += 1;
+      }
+      if (!failed) {
+        for (const f of removed) {
+          const res = await setUserExclusiveFrame(user.id, f, false);
+          if (!res.ok) { toast.error(res.error); failed = true; break; }
+          changed += 1;
+        }
+      }
+      if (!failed) {
+        toast.success(`Updated ${changed} exclusive frame${changed === 1 ? "" : "s"}.`);
+      }
+      setDialog(null);
+      setFrameSel([]);
+      router.refresh();
+    });
+  }
+
   function confirmDialog() {
     if (!dialog) return;
     const { kind, user } = dialog;
     if (kind === "badges") {
       applyBadges();
+      return;
+    }
+    if (kind === "frames") {
+      applyFrames();
       return;
     }
     if (kind === "ban") {
@@ -409,6 +459,10 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                             <AwardIcon className="text-amber-400" />
                             Manage badges…
                           </DropdownMenuItem>
+                          <DropdownMenuItem disabled={isSelf} onClick={() => openFrames(user)}>
+                            <SparklesIcon className="text-rose-400" />
+                            Exclusive frames…
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             disabled={isSelf}
@@ -435,6 +489,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
           if (!open) {
             setDialog(null);
             setReason("");
+            setBadgeSel([]);
+            setFrameSel([]);
           }
         }}
       >
@@ -445,7 +501,9 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 ? "Delete account"
                 : dialog?.kind === "badges"
                   ? `Manage ${dialog.user.username}'s badges`
-                  : dialog?.kind === "ban"
+                  : dialog?.kind === "frames"
+                    ? `Manage ${dialog.user.username}'s exclusive frames`
+                    : dialog?.kind === "ban"
                   ? `Ban ${dialog.user.username}`
                   : dialog?.kind === "unban"
                     ? `Unban ${dialog.user.username}`
@@ -490,6 +548,8 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
                 </>
               ) : dialog?.kind === "badges" ? (
                 "Tick badges to grant, untick to revoke. Only staff/milestone badges are listed — every change is recorded in the audit log."
+              ) : dialog?.kind === "frames" ? (
+                "Tick a frame to give it to this user — it is equipped immediately and cannot be bought in the shop. Untick to remove it. Every change is recorded in the audit log."
               ) : dialog?.kind === "ban" ? (
                 "Banned users are redirected to a suspension page on every request."
               ) : dialog?.kind === "role" ? (
@@ -553,8 +613,51 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
             </div>
           ) : null}
 
+          {dialog?.kind === "frames" ? (
+            <div className="grid max-h-64 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
+              {EXCLUSIVE_FRAMES.map((frame) => (
+                <label
+                  key={frame.id}
+                  className="flex cursor-pointer items-center gap-2 rounded-md border border-border/60 px-2 py-1.5 text-sm transition-colors hover:bg-muted/40"
+                >
+                  <input
+                    type="checkbox"
+                    checked={frameSel.includes(frame.id)}
+                    onChange={(e) =>
+                      setFrameSel((prev) =>
+                        e.target.checked ? [...prev, frame.id] : prev.filter((x) => x !== frame.id),
+                      )
+                    }
+                    className="accent-sky-500"
+                  />
+                  <Image
+                    src={frame.src}
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="size-7 rounded-full object-contain"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{frame.label}</span>
+                    <span className="block truncate text-[11px] text-muted-foreground">
+                      {frame.description}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : null}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialog(null); setReason(""); setBadgeSel([]); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDialog(null);
+                setReason("");
+                setBadgeSel([]);
+                setFrameSel([]);
+              }}
+            >
               Cancel
             </Button>
             <Button
@@ -562,7 +665,11 @@ export function UsersTable({ users, selfId, query, role, status }: Props) {
               disabled={isPending}
               onClick={confirmDialog}
             >
-              {isPending ? "Working…" : dialog?.kind === "badges" ? "Apply" : "Confirm"}
+              {isPending
+                ? "Working…"
+                : dialog?.kind === "badges" || dialog?.kind === "frames"
+                  ? "Apply"
+                  : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

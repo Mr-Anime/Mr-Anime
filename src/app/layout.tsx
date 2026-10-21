@@ -4,6 +4,7 @@ import "./globals.css";
 import { AdManager } from "@/components/ads/ad-manager";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
+import { PageVisitTracker } from "@/components/page-visit-tracker";
 import { PwaRegister } from "@/components/pwa-register";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
@@ -102,6 +103,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <SiteFooter />
               <Toaster position="bottom-right" closeButton richColors />
               <PwaRegister />
+              <PageVisitTracker />
             </QueryProvider>
           </TooltipProvider>
         </ThemeProvider>

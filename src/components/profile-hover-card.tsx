@@ -6,7 +6,7 @@ import { ArrowUpRightIcon, CalendarIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { UserBadges } from "@/components/user-badges";
-import { cosmeticClass, nameClasses, type Cosmetics } from "@/lib/cosmetics";
+import { nameClasses, userFrameClass, type Cosmetics } from "@/lib/cosmetics";
 import { cn } from "cn";
 
 export type ProfileCardData = {
@@ -174,7 +174,7 @@ export function ProfileHoverCard({ username, children }: Props) {
               <span
                 className={cn(
                   "inline-flex rounded-full",
-                  data && cosmeticClass(data.cosmetics?.frame),
+                  userFrameClass(username, data?.cosmetics),
                   data?.nitro && "nitro-avatar-glow",
                 )}
               >

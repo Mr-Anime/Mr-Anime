@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { UsersTable, type AdminUser } from "@/components/admin/users-table";
 import { Button } from "@/components/ui/button";
 import { adminGate } from "@/lib/admin-auth";
+import { EXCLUSIVE_FRAME_IDS } from "@/lib/cosmetics";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "Users" };
@@ -52,6 +53,26 @@ export default async function AdminUsersPage({
   }
 
   const users = (data ?? []) as AdminUser[];
+  const exclusiveByUser = new Map<string, string[]>();
+  if (users.length > 0) {
+    const { data: grants, error: grantsError } = await admin
+      .from("user_items")
+      .select("user_id, item_id")
+      .in("user_id", users.map((u) => u.id))
+      .in("item_id", EXCLUSIVE_FRAME_IDS);
+    if (grantsError) {
+      console.error("[admin/users] exclusive frames failed", grantsError.message);
+    }
+    for (const grant of (grants ?? []) as { user_id: string; item_id: string }[]) {
+      const list = exclusiveByUser.get(grant.user_id) ?? [];
+      list.push(grant.item_id);
+      exclusiveByUser.set(grant.user_id, list);
+    }
+  }
+  const usersWithFrames = users.map((user) => ({
+    ...user,
+    exclusiveFrames: exclusiveByUser.get(user.id) ?? [],
+  }));
   const total = count ?? users.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
@@ -103,7 +124,7 @@ export default async function AdminUsersPage({
       </div>
 
       <UsersTable
-        users={users}
+        users={usersWithFrames}
         selfId={gate.adminId}
         query={q}
         role={role}

@@ -34,6 +34,7 @@ import { cn } from "cn";
 type Props = {
   username: string;
   avatarUrl: string | null;
+  frameClass?: string;
   role: string;
   isVerified: boolean;
   badges: string[];
@@ -72,6 +73,7 @@ function Section({
 export function CustomizeClient({
   username,
   avatarUrl,
+  frameClass,
   role,
   isVerified,
   badges,
@@ -170,20 +172,22 @@ export function CustomizeClient({
           style={{ boxShadow: theme.glow }}
         >
           <div className="flex flex-wrap items-center gap-4">
-            <span
-              className={cn(
-                "inline-flex size-14 items-center justify-center overflow-hidden rounded-full ring-2",
-                theme.ring,
-              )}
-            >
-              {previewAvatar ? (
-                // eslint-disable-next-line @next/next/no-img-element -- catalog avatar preview
-                <img src={previewAvatar} alt="" className="size-14 object-cover" />
-              ) : (
-                <span className="flex size-14 items-center justify-center bg-muted text-xl font-bold">
-                  {username.charAt(0).toUpperCase()}
-                </span>
-              )}
+            <span className={cn("inline-flex rounded-full", frameClass)}>
+              <span
+                className={cn(
+                  "inline-flex size-14 items-center justify-center overflow-hidden rounded-full ring-2",
+                  theme.ring,
+                )}
+              >
+                {previewAvatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- catalog avatar preview
+                  <img src={previewAvatar} alt="" className="size-14 object-cover" />
+                ) : (
+                  <span className="flex size-14 items-center justify-center bg-muted text-xl font-bold">
+                    {username.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </span>
             </span>
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2">

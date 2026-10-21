@@ -6,7 +6,7 @@ import { UserBadges } from "@/components/user-badges";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ForumAuthor } from "@/lib/forum";
 import { timeAgo } from "@/lib/comments-shared";
-import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
+import { nameClasses, userFrameClass } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { cn } from "cn";
 
@@ -32,7 +32,7 @@ export function ForumAuthorLine({
               <span
                 className={cn(
                   "inline-flex rounded-full",
-                  cosmeticClass(author.cosmetics?.frame),
+                  userFrameClass(author.username, author.cosmetics),
                   nitro && "nitro-avatar-glow",
                 )}
               >

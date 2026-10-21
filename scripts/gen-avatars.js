@@ -1,4 +1,5 @@
 /* Generate src/lib/avatar-catalog.ts from public/avatars — run once after copying assets. */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require("fs");
 const path = require("path");
 

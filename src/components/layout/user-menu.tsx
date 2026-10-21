@@ -28,6 +28,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { userFrameClass } from "@/lib/cosmetics";
+import { cn } from "cn";
 
 type Profile = {
   username: string;
@@ -117,14 +119,21 @@ export function UserMenu() {
           />
         }
       >
-        <Avatar className="size-7">
-          {profile.avatar_url ? (
-            <AvatarImage src={profile.avatar_url} alt="" />
-          ) : null}
-          <AvatarFallback className="text-xs">
-            {profile.username.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <span
+          className={cn(
+            "inline-flex rounded-full",
+            userFrameClass(profile.username),
+          )}
+        >
+          <Avatar className="size-7">
+            {profile.avatar_url ? (
+              <AvatarImage src={profile.avatar_url} alt="" />
+            ) : null}
+            <AvatarFallback className="text-xs">
+              {profile.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </span>
         <span className="hidden max-w-28 truncate text-sm font-medium sm:inline">
           {profile.username}
         </span>

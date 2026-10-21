@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const STATS_ORIGIN = "https://stats.mranime.cyou";
+
 /** Third-party ad networks (banner iframe + social bar / popunder). */
 const AD_ORIGINS = [
   "https://www.highrevenueformat.com",
@@ -42,7 +44,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
-      `connect-src 'self'${supabaseOrigin ? ` ${supabaseOrigin}` : ""}${AD_ORIGINS.map((o) => ` ${o}`).join("")}`,
+      `connect-src 'self' ${STATS_ORIGIN}${supabaseOrigin ? ` ${supabaseOrigin}` : ""}${AD_ORIGINS.map((o) => ` ${o}`).join("")}`,
       `worker-src 'self'`,
       `frame-src 'self'${providerOrigins
         .map((o) => ` ${o}`)

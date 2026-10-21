@@ -8,7 +8,7 @@ import { mediaTitle } from "@/lib/anime-format";
 import { siteConfig } from "@/lib/config";
 import { getProfileByUsername, getRecentComments } from "@/lib/profiles";
 import { getLoadout } from "@/lib/loadouts";
-import { cosmeticClass, nameClasses } from "@/lib/cosmetics";
+import { nameClasses, userFrameClass } from "@/lib/cosmetics";
 import { isNitroActive } from "@/lib/nitro";
 import { getCommentActivity } from "@/lib/activity";
 import { getProfileStats } from "@/lib/achievements";
@@ -112,7 +112,7 @@ export default async function ProfilePage({ params, searchParams }: Params) {
           <span
             className={cn(
               "inline-flex rounded-full",
-              cosmeticClass(cosmetics?.frame),
+              userFrameClass(profile.username, cosmetics),
               nitro && "nitro-avatar-glow",
             )}
           >
