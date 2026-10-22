@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "s4.anilist.co" },
+      { protocol: "https", hostname: "media.kitsu.app" },
+      { protocol: "https", hostname: "media.kitsu.io" },
+      { protocol: "https", hostname: "**.backblazeb2.com" },
       { protocol: "https", hostname: "image.tmdb.org" },
       { protocol: "https", hostname: "*.githubusercontent.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },

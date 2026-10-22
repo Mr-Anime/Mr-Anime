@@ -463,8 +463,8 @@ export default async function AnimeDetailsPage({ params }: Params) {
 
           <div className="rounded-xl border border-border/60 bg-card p-4 text-xs text-muted-foreground">
             <p>
-              Metadata provided by AniList. Episode stills and trailers enriched with
-              TMDB where available.
+              Metadata provided by AniList or Kitsu. Episode stills and trailers
+              enriched with TMDB where available.
             </p>
           </div>
         </aside>

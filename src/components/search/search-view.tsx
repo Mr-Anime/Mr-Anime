@@ -109,7 +109,7 @@ export function SearchView() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Browse anime</h1>
           <p className="text-sm text-muted-foreground">
-            Search the AniList catalogue with genre, year, season and format filters.
+            Search the anime catalogue with genre, year, season and format filters.
           </p>
         </div>
 

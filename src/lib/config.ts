@@ -15,7 +15,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   author: "Bazil (Biytri Technology)",
   attribution:
-    "Data from AniList and TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "Data from AniList, Kitsu and TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.",
   requireLoginToWatch: bool(process.env.REQUIRE_LOGIN_TO_WATCH),
   oauthProviders,
 } as const;

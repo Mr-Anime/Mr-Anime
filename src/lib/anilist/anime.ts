@@ -1,5 +1,10 @@
 import "server-only";
 import { anilistRequest } from "@/lib/anilist/client";
+import {
+  getKitsuMediaByAnilistId,
+  getKitsuMediaByIds,
+  getKitsuPage,
+} from "@/lib/anilist/kitsu";
 import { MEDIA_BY_IDS_QUERY, MEDIA_DETAILS_QUERY, PAGE_MEDIA_QUERY } from "@/lib/anilist/queries";
 import type { Media, PageResult } from "@/lib/anilist/types";
 import { cacheTtl } from "@/lib/config";
@@ -17,26 +22,31 @@ type PageQuery = {
 };
 
 async function fetchPage(q: PageQuery, ttl: number): Promise<PageResult> {
-  const data = await anilistRequest<{
-    Page: { pageInfo: PageResult["pageInfo"]; media: Media[] };
-  }>(
-    PAGE_MEDIA_QUERY,
-    {
-      page: q.page ?? 1,
-      perPage: q.perPage ?? 24,
-      sort: q.sort ?? ["TRENDING_DESC"],
-      type: "ANIME",
-      season: q.season ?? undefined,
-      seasonYear: q.seasonYear ?? undefined,
-      genre: q.genre ?? undefined,
-      status: q.status ?? undefined,
-      format: q.format ?? undefined,
-      search: q.search ?? undefined,
-    },
-    ttl,
-  );
+  try {
+    const data = await anilistRequest<{
+      Page: { pageInfo: PageResult["pageInfo"]; media: Media[] };
+    }>(
+      PAGE_MEDIA_QUERY,
+      {
+        page: q.page ?? 1,
+        perPage: q.perPage ?? 24,
+        sort: q.sort ?? ["TRENDING_DESC"],
+        type: "ANIME",
+        season: q.season ?? undefined,
+        seasonYear: q.seasonYear ?? undefined,
+        genre: q.genre ?? undefined,
+        status: q.status ?? undefined,
+        format: q.format ?? undefined,
+        search: q.search ?? undefined,
+      },
+      ttl,
+    );
 
-  return { items: data.Page.media ?? [], pageInfo: data.Page.pageInfo };
+    return { items: data.Page.media ?? [], pageInfo: data.Page.pageInfo };
+  } catch (error) {
+    console.warn("[anilist] page request failed; using Kitsu fallback", error);
+    return getKitsuPage(q, ttl);
+  }
 }
 
 export function getTrending(page = 1, perPage = 20) {
@@ -75,13 +85,11 @@ export async function getAnimeDetails(id: number): Promise<Media | null> {
       { id },
       cacheTtl.details,
     );
-    return data.Media;
+    if (data.Media) return data.Media;
   } catch (error) {
-    if (error instanceof Error && "status" in error && (error as { status: number }).status === 404) {
-      return null;
-    }
-    throw error;
+    console.warn("[anilist] details request failed; using Kitsu fallback", error);
   }
+  return getKitsuMediaByAnilistId(id, cacheTtl.details);
 }
 
 /**
@@ -103,7 +111,8 @@ export async function getMediaByIds(ids: number[]): Promise<Media[]> {
       );
       out.push(...(data.Page.media ?? []));
     } catch (error) {
-      console.warn("[list] media batch lookup failed", error);
+      console.warn("[list] media batch lookup failed; using Kitsu fallback", error);
+      out.push(...(await getKitsuMediaByIds(chunk, cacheTtl.details)));
     }
   }
   return out;
