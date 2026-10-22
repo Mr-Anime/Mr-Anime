@@ -50,9 +50,16 @@ export function SiteFooter() {
 
         <div className="space-y-1 border-t border-border/60 pt-6 text-xs text-muted-foreground">
           <p>{siteConfig.attribution}</p>
-          <p>
-            © {new Date().getFullYear()} {siteConfig.author}. All rights
-            reserved.
+          <p className="flex flex-wrap items-center gap-2">
+            <span>© {new Date().getFullYear()}</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://i.ibb.co.com/gbMsr2mz/mostofastudio-removebg-preview.png"
+              alt="Mostofa Studio"
+              className="h-7 w-auto"
+              loading="lazy"
+            />
+            <span>All rights reserved.</span>
           </p>
         </div>
       </div>

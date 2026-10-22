@@ -84,6 +84,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col">
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var n=new Date(),y=n.getFullYear(),s=new Date(y,9,1),e=new Date(y,10,2);document.documentElement.classList.toggle("halloween",n>=s&&n<e);}catch(_){}})();',
+          }}
+        />
+        <div className="halloween-decor" aria-hidden="true">
+          <span className="halloween-bat halloween-bat-1" />
+          <span className="halloween-bat halloween-bat-2" />
+          <span className="halloween-bat halloween-bat-3" />
+          <span className="halloween-bat halloween-bat-4" />
+        </div>
         {/* Display fonts for shop name styles (link-loaded, CSP: fonts.googleapis.com) */}
         {/* eslint-disable @next/next/no-page-custom-font -- root layout = sitewide, app router */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
