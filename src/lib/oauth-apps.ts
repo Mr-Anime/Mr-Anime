@@ -6,6 +6,7 @@ export type OAuthAppRow = {
   name: string;
   client_id: string;
   redirect_uris: string[];
+  logo_url: string | null;
   created_at: string;
 };
 
@@ -18,7 +19,7 @@ export async function getOAuthApps(): Promise<OAuthAppRow[]> {
 
   const { data: rows, error } = await supabase
     .from("oauth_clients")
-    .select("id, name, client_id, redirect_uris, created_at")
+    .select("*")
     .eq("owner_user_id", userId)
     .is("revoked_at", null)
     .order("created_at", { ascending: false });
@@ -26,5 +27,12 @@ export async function getOAuthApps(): Promise<OAuthAppRow[]> {
     console.error("getOAuthApps failed", error);
     return [];
   }
-  return (rows ?? []) as OAuthAppRow[];
+  return (rows ?? []).map((row) => ({
+    id: row.id as string,
+    name: row.name as string,
+    client_id: row.client_id as string,
+    redirect_uris: (row.redirect_uris as string[]) ?? [],
+    logo_url: (row.logo_url as string | null | undefined) ?? null,
+    created_at: row.created_at as string,
+  }));
 }

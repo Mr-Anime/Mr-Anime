@@ -2,7 +2,12 @@
 
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { createOAuthApp, revokeOAuthApp } from "@/app/actions/oauth-apps";
+import { useRouter } from "next/navigation";
+import {
+  createOAuthApp,
+  revokeOAuthApp,
+  updateOAuthApp,
+} from "@/app/actions/oauth-apps";
 import type { OAuthAppActionResult } from "@/app/actions/oauth-apps";
 import type { OAuthAppRow } from "@/lib/oauth-apps";
 import { Button } from "@/components/ui/button";
@@ -30,6 +35,7 @@ function CreateAppForm() {
     return createOAuthApp(
       String(formData.get("name") ?? ""),
       String(formData.get("uris") ?? ""),
+      String(formData.get("logo") ?? ""),
     );
   }
 
@@ -121,6 +127,20 @@ function CreateAppForm() {
           />
         </div>
         <div className="space-y-2">
+          <Label htmlFor="app-logo">Logo URL (optional)</Label>
+          <Input
+            id="app-logo"
+            name="logo"
+            type="url"
+            maxLength={2048}
+            placeholder="https://your-app.example/logo.png"
+            autoComplete="off"
+          />
+          <p className="text-xs text-muted-foreground">
+            Shown on the approve screen. Use a square image for best results.
+          </p>
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="app-uris">Redirect URIs</Label>
           <Textarea
             id="app-uris"
@@ -163,6 +183,137 @@ function RevokeAppButton({ id }: { id: string }) {
   );
 }
 
+function AppLogo({ app, size = "size-10" }: { app: OAuthAppRow; size?: string }) {
+  if (app.logo_url) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- owner-supplied logo URL
+      <img
+        src={app.logo_url}
+        alt=""
+        className={`${size} shrink-0 rounded-md border border-border/60 bg-background object-cover`}
+      />
+    );
+  }
+  return (
+    <span
+      className={`${size} flex shrink-0 items-center justify-center rounded-md border border-border/60 bg-sky-500/15 text-sm font-semibold text-sky-300`}
+    >
+      {app.name.charAt(0).toUpperCase()}
+    </span>
+  );
+}
+
+function EditAppForm({ app, onCancel }: { app: OAuthAppRow; onCancel: () => void }) {
+  const router = useRouter();
+  const [state, action, pending] = useActionState<OAuthAppActionResult | null, FormData>(
+    async (_prev, formData) => {
+      const res = await updateOAuthApp(
+        app.id,
+        String(formData.get("name") ?? ""),
+        String(formData.get("uris") ?? ""),
+        String(formData.get("logo") ?? ""),
+      );
+      if (res.ok) {
+        router.refresh();
+        onCancel();
+      }
+      return res;
+    },
+    null,
+  );
+
+  return (
+    <form action={action} className="w-full space-y-3">
+      {state && !state.ok ? (
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+        >
+          {state.error}
+        </p>
+      ) : null}
+
+      <div className="space-y-2">
+        <Label htmlFor={`edit-name-${app.id}`}>App name</Label>
+        <Input
+          id={`edit-name-${app.id}`}
+          name="name"
+          required
+          maxLength={80}
+          defaultValue={app.name}
+          autoComplete="off"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`edit-logo-${app.id}`}>Logo URL (optional)</Label>
+        <Input
+          id={`edit-logo-${app.id}`}
+          name="logo"
+          type="url"
+          maxLength={2048}
+          defaultValue={app.logo_url ?? ""}
+          placeholder="https://your-app.example/logo.png"
+          autoComplete="off"
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`edit-uris-${app.id}`}>Redirect URIs</Label>
+        <Textarea
+          id={`edit-uris-${app.id}`}
+          name="uris"
+          required
+          rows={3}
+          defaultValue={app.redirect_uris.join("\n")}
+          className="font-mono text-xs"
+        />
+        <p className="text-xs text-muted-foreground">
+          One URI per line — https only (http://localhost for development).
+        </p>
+      </div>
+      <div className="flex gap-2">
+        <Button type="submit" size="sm" disabled={pending}>
+          {pending ? "Saving…" : "Save changes"}
+        </Button>
+        <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={pending}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function AppRow({ app }: { app: OAuthAppRow }) {
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <li className="px-3 py-3">
+      {editing ? (
+        <EditAppForm app={app} onCancel={() => setEditing(false)} />
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <AppLogo app={app} />
+            <div className="min-w-0 space-y-0.5">
+              <p className="truncate text-sm font-medium">{app.name}</p>
+              <p className="truncate font-mono text-xs text-muted-foreground">{app.client_id}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {app.redirect_uris.length} redirect URI
+                {app.redirect_uris.length === 1 ? "" : "s"} · Created {formatDate(app.created_at)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+              Edit
+            </Button>
+            <RevokeAppButton id={app.id} />
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
+
 export function OAuthAppsManager({ apps }: { apps: OAuthAppRow[] }) {
   return (
     <div className="space-y-6">
@@ -179,17 +330,7 @@ export function OAuthAppsManager({ apps }: { apps: OAuthAppRow[] }) {
       ) : (
         <ul className="divide-y divide-border/60 rounded-md border border-border/60">
           {apps.map((app) => (
-            <li key={app.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3">
-              <div className="min-w-0 space-y-0.5">
-                <p className="truncate text-sm font-medium">{app.name}</p>
-                <p className="truncate font-mono text-xs text-muted-foreground">{app.client_id}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {app.redirect_uris.length} redirect URI
-                  {app.redirect_uris.length === 1 ? "" : "s"} · Created {formatDate(app.created_at)}
-                </p>
-              </div>
-              <RevokeAppButton id={app.id} />
-            </li>
+            <AppRow key={app.id} app={app} />
           ))}
         </ul>
       )}

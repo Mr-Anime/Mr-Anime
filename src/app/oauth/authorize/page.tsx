@@ -68,17 +68,42 @@ export default async function OAuthAuthorizePage({
     );
   }
 
-  let client: { id: string; name: string; redirect_uris: string[] } | null = null;
+  let client: {
+    id: string;
+    name: string;
+    redirect_uris: string[];
+    logo_url: string | null;
+  } | null = null;
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin
+    const columns = "id, name, redirect_uris, logo_url";
+    const initial = await admin
       .from("oauth_clients")
-      .select("id, name, redirect_uris")
+      .select(columns)
       .eq("client_id", clientId)
       .is("revoked_at", null)
       .maybeSingle();
+    let data = initial.data as {
+      id: string;
+      name: string;
+      redirect_uris: string[];
+      logo_url?: string | null;
+    } | null;
+    let error = initial.error;
+
+    // Migration 0026 may not be applied yet — fall back without the logo column.
+    if (error) {
+      const fallback = await admin
+        .from("oauth_clients")
+        .select("id, name, redirect_uris")
+        .eq("client_id", clientId)
+        .is("revoked_at", null)
+        .maybeSingle();
+      data = fallback.data as typeof data;
+      error = fallback.error;
+    }
     if (error) throw error;
-    client = data;
+    client = data ? { ...data, logo_url: data.logo_url ?? null } : null;
   } catch (err) {
     console.error("oauth authorize: client lookup failed", err);
     return <ErrorCard message="Authorization is temporarily unavailable. Try again later." />;
@@ -147,7 +172,23 @@ export default async function OAuthAuthorizePage({
     <div className="mx-auto w-full max-w-lg px-4 py-16">
       <Card>
         <CardHeader>
-          <CardTitle>Authorize {client.name}</CardTitle>
+          <CardTitle className="flex flex-wrap items-center gap-3">
+            {client.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element -- owner-supplied logo URL
+              <img
+                src={client.logo_url}
+                alt=""
+                className="size-12 shrink-0 rounded-lg border border-border/60 bg-background object-cover"
+              />
+            ) : (
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-border/60 bg-sky-500/15 text-lg font-semibold text-sky-300">
+                {client.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <span>
+              Authorize <span className="text-sky-400">{client.name}</span>
+            </span>
+          </CardTitle>
           <CardDescription>
             {client.name} wants to access your Mr.Anime account
             {username ? (

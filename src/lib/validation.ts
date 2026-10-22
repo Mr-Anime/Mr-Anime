@@ -79,6 +79,23 @@ export const redirectUriSchema = z
     error: "Use an https:// URL (or http://localhost for development), without a #fragment.",
   });
 
+export const oauthLogoUrlSchema = z
+  .string()
+  .trim()
+  .max(2048, { error: "Logo URL is too long." })
+  .refine(
+    (value) => {
+      if (value === "") return true;
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" || url.protocol === "http:";
+      } catch {
+        return false;
+      }
+    },
+    { error: "Enter a valid http(s) image URL, or leave it empty." },
+  );
+
 export const reportSchema = z.object({
   anilistId: z.coerce.number().int().positive(),
   episode: z.coerce.number().int().min(1).max(10000),
