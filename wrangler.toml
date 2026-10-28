@@ -13,7 +13,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "mr-anime-db"
-database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "d1/migrations"
 
 [vars]
