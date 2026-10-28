@@ -1,83 +1,99 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { InfoIcon, PlayIcon } from "lucide-react";
-import type { Media } from "@/lib/anilist/types";
-import { mediaTitle } from "@/lib/anime-format";
-import { stripHtml } from "@/lib/sanitize";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Play, Clock, Calendar } from "lucide-react";
 
-export function HeroBanner({ media }: { media: Media }) {
-  const title = mediaTitle(media);
-  const banner = media.bannerImage || media.coverImage?.extraLarge || media.coverImage?.large;
-  const description = stripHtml(media.description).slice(0, 320);
-  const firstEpisode = 1;
-  const canWatch = Boolean(media.episodes && media.episodes > 0);
-
+export function HeroBanner() {
   return (
-    <section
-      className="relative -mx-4 mb-10 h-[58vh] min-h-[400px] w-[calc(100%+2rem)] overflow-hidden sm:mx-0 sm:w-full"
-      aria-label={`Featured: ${title}`}
-    >
-      {banner ? (
+    <section className="relative h-[460px] w-full overflow-hidden rounded-xl">
+      <div className="absolute inset-0">
         <Image
-          src={banner}
-          alt=""
+          src="https://picsum.photos/seed/hero-cyberpunk/1200/460"
+          alt="Cyberpunk: Edgerunners 2"
           fill
           priority
-          sizes="100vw"
-          className="object-cover object-top"
+          className="object-cover object-right"
         />
-      ) : null}
+      </div>
 
-      {/* cinematic gradients */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/40 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1F1E32] via-[#1F1E32]/80 to-transparent" />
 
-      <div className="absolute right-0 bottom-0 left-0">
-        <div className="mx-auto w-full max-w-7xl space-y-4 px-4 pb-8 sm:pb-12">
-          <div className="flex flex-wrap items-center gap-2">
-            {media.format ? <Badge variant="secondary">{media.format}</Badge> : null}
-            {media.seasonYear ? (
-              <Badge variant="outline">
-                {media.season ? `${media.season.charAt(0) + media.season.slice(1).toLowerCase()} ` : ""}
-                {media.seasonYear}
-              </Badge>
-            ) : null}
-            {media.averageScore ? (
-              <Badge variant="outline" className="text-emerald-400">
-                ★ {(media.averageScore / 10).toFixed(1)}
-              </Badge>
-            ) : null}
+      <div className="relative z-10 flex h-full items-center px-8">
+        <div className="max-w-2xl">
+          <div className="mb-4 flex items-center gap-2">
+            <span className="bg-[#7CE5D0] text-[#1F1E32] px-3 py-1 rounded-full text-xs font-semibold">
+              #2 Spotlight
+            </span>
           </div>
 
-          <h1 className="max-w-3xl text-3xl font-bold text-balance tracking-tight sm:text-5xl">
-            <Link href={`/anime/${media.id}`} className="transition-colors hover:text-sky-400">
-              {title}
-            </Link>
+          <h1 className="mb-4 text-4xl font-bold text-white md:text-6xl">
+            Cyberpunk: Edgerunners 2
           </h1>
 
-          {description ? (
-            <p className="max-w-2xl line-clamp-3 text-sm text-muted-foreground sm:text-base">
-              {description}
-            </p>
-          ) : null}
+          <div className="mb-6 flex flex-wrap items-center gap-3 text-sm text-[#B8B7C9]">
+            <div className="flex items-center gap-1">
+              <Play className="h-4 w-4 text-[#7CE5D0]" />
+              <span>ONA</span>
+            </div>
 
-          <div className="flex flex-wrap gap-3">
-            {canWatch ? (
-              <Button render={<Link href={`/watch/${media.id}/${firstEpisode}`} />} size="lg">
-                <PlayIcon />
-                Watch episode 1
-              </Button>
-            ) : null}
-            <Button
-              render={<Link href={`/anime/${media.id}`} />}
-              size="lg"
-              variant="outline"
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4 text-[#7CE5D0]" />
+              <span>28m</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4 text-[#7CE5D0]" />
+              <span>2026</span>
+            </div>
+
+            <div className="bg-[#7CE5D0]/20 text-[#7CE5D0] px-2 py-1 rounded text-xs font-semibold">
+              HD
+            </div>
+
+            <div className="bg-[#55C7F0]/20 text-[#55C7F0] px-2 py-1 rounded text-xs font-semibold">
+              PG-13
+            </div>
+
+            <div className="bg-[#35334D] text-white px-2 py-1 rounded text-xs font-semibold">
+              DUB / SUB
+            </div>
+          </div>
+
+          <p className="mb-8 line-clamp-2 text-base text-[#B8B7C9] md:line-clamp-3">
+            Cyberpunk: Edgerunners 2 pulls you back into Night City,
+            where lives become entangled to the extreme. Weak, a washed-up
+            cyberpunk legend... and more story content here.
+          </p>
+
+          <div className="flex gap-4">
+            <Link
+              href="/watch/cyberpunk-edgerunners-2-episode-1"
+              className="group flex items-center gap-2 rounded-full bg-[#7CE5D0] px-6 py-3 font-semibold text-[#1F1E32] transition-all duration-300 hover:bg-[#7CE5D0]/90"
             >
-              <InfoIcon />
-              Details
-            </Button>
+              <Play className="h-4 w-4 fill-[#1F1E32]" />
+              <span>Watch Now</span>
+            </Link>
+
+            <Link
+              href="/anime/cyberpunk-edgerunners-2"
+              className="flex items-center gap-2 rounded-full border border-[#7CE5D0]/30 bg-transparent px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-[#7CE5D0]/10"
+            >
+              <span>Detail</span>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Link>
           </div>
         </div>
       </div>
