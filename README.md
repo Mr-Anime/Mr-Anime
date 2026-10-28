@@ -84,7 +84,26 @@ update public.profiles set role = 'admin', is_verified = true
 where username = 'your_name';
 ```
 
-### 2. TMDB (optional)
+### 2. Cloudflare D1 Database Setup & DQL Auto-Push
+
+1. Create a D1 database with Cloudflare Wrangler (or via Cloudflare Dashboard):
+   ```bash
+   npx wrangler d1 create mr-anime-db
+   ```
+2. Update `database_id` in `wrangler.toml` under `[[d1_databases]]`.
+3. Auto-push migrations/DQL files to D1:
+   ```bash
+   npm run d1:push:local   # Push DQL to local D1 instance
+   npm run d1:push:remote  # Push DQL to production remote D1 database
+   ```
+4. Query D1 programmatically in application code using `src/lib/d1.ts`:
+   ```ts
+   import { queryD1, queryD1First } from "@/lib/d1";
+
+   const rows = await queryD1("SELECT * FROM app_cache WHERE key = ?", ["some_key"]);
+   ```
+
+### 3. TMDB (optional)
 
 Get an **API Read Access Token** from
 [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) →
@@ -156,11 +175,13 @@ route protection.
 ## Scripts
 
 ```bash
-npm run dev        # dev server
-npm run build      # production build (verified passing)
-npm run start      # serve the production build
-npm run lint       # eslint
-npm run typecheck  # tsc --noEmit
+npm run dev            # dev server
+npm run build          # production build (verified passing)
+npm run start          # serve the production build
+npm run lint           # eslint
+npm run typecheck      # tsc --noEmit
+npm run d1:push:local  # push DQL / migrations to local D1
+npm run d1:push:remote # push DQL / migrations to remote D1
 ```
 
 ## Project structure

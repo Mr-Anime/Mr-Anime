@@ -10,6 +10,12 @@ binding = "ASSETS"
 [observability]
 enabled = true
 
+[[d1_databases]]
+binding = "DB"
+database_name = "mr-anime-db"
+database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+migrations_dir = "d1/migrations"
+
 [vars]
 # ---- Streaming providers ----
 PROVIDER_1_BASE = "https://megaplay.buzz/stream/ani/{id}/{ep}/{lang}"

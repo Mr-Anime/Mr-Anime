@@ -9,7 +9,10 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "d1:push": "node scripts/push-d1.js",
+    "d1:push:local": "node scripts/push-d1.js --local",
+    "d1:push:remote": "node scripts/push-d1.js --remote"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
