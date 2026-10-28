@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, Search, Bell, Play, ChevronRight, Clock, Calendar, Volume2, VolumeX, Users, Languages, Globe, Newspaper, Shuffle, User, ChevronLeft, ChevronRight, Star, Heart, Info, ExternalLink } from "lucide-react";
+import { Menu, X, Search, Bell, Play, Clock, Calendar, Volume2, VolumeX, Users, Languages, Globe, Newspaper, Shuffle, User, ChevronLeft, ChevronRight, Star, Heart, Info, ExternalLink } from "lucide-react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);

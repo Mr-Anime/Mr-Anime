@@ -20,7 +20,7 @@ function runTypecheck() {
 
   if (options.errors.length > 0) {
     console.log("TypeScript Configuration Errors:");
-    options.errors.forEach((error) => {
+    options.errors.forEach((error: any) => {
       console.log(`${error.code}: ${error.message}`);
     });
     process.exit(1);
@@ -37,7 +37,7 @@ function runTypecheck() {
   const diagnostics = ts.getPreEmitDiagnostics(program);
   if (diagnostics.length > 0) {
     console.log("TypeScript Type Check Errors:");
-    diagnostics.forEach((diagnostic) => {
+    diagnostics.forEach((diagnostic: any) => {
       console.log(`${ts.default.formatDiagnosticMessage(
         ts.sys,
         diagnostic,
