@@ -1,11 +1,14 @@
-name = "mr-anime"                     # Worker name (change if needed)
-compatibility_date = "2026-10-01"
-# If this is a Next.js app deployed with OpenNext, also add:
-# main = ".open-next/worker.js"
-# compatibility_flags = ["nodejs_compat"]
-# [assets]
-# directory = ".open-next/assets"
-# binding = "ASSETS"
+name = "mr-anime"
+main = ".open-next/worker.js"
+compatibility_date = "2026-10-26"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[observability]
+enabled = true
 
 [vars]
 # ---- Streaming providers ----
