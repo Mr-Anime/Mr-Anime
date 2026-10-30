@@ -2,7 +2,18 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X, Search, Bell, Play, Clock, Calendar, Volume2, VolumeX, Users, Languages, Globe, Newspaper, Shuffle, User, ChevronLeft, ChevronRight, Star, Heart, Info, ExternalLink } from "lucide-react";
+import {
+  Menu,
+  X,
+  Search,
+  Bell,
+  Play,
+  Shuffle,
+  User,
+  ShoppingBag,
+  MessageSquare,
+  Sparkles,
+} from "lucide-react";
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,151 +28,150 @@ export function Navbar() {
   }, []);
 
   return (
-        <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-[#2D2B45]/95 backdrop-blur-md py-2" : "bg-transparent py-4"}`.split("  ").join(" ")}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? "bg-[#161527]/95 backdrop-blur-md border-b border-white/10 py-2.5 shadow-xl"
+          : "bg-gradient-to-b from-[#161527]/90 to-transparent py-4"
+      }`}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
+          {/* Left section: Hamburger & Brand */}
           <div className="flex items-center gap-6">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-white hover:text-[#7CE5D0] transition-colors"
+              className="text-slate-300 hover:text-[#7CE5D0] transition-colors md:hidden"
               aria-label="Toggle menu"
             >
               <Menu className="h-6 w-6" />
             </button>
 
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl font-bold">
-                <span className="text-[#7CE5D0]">YOUR</span>ANIME
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#7CE5D0] to-[#55C7F0] text-[#161527] shadow-lg shadow-[#7CE5D0]/30 transition-transform duration-300 group-hover:scale-110">
+                <Play className="h-5 w-5 fill-current ml-0.5" />
+              </div>
+              <span className="text-xl font-black tracking-wider text-white">
+                MR.<span className="text-[#7CE5D0]">ANIME</span>
               </span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="/watchtogether" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span>Watch2gether</span>
-                </div>
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center gap-6 text-sm font-bold">
+              <Link
+                href="/search?sort=TRENDING_DESC"
+                className="text-slate-300 hover:text-[#7CE5D0] transition-colors flex items-center gap-1.5"
+              >
+                <span>Trending</span>
               </Link>
 
-              <Link href="/random" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-1">
-                  <Shuffle className="h-4 w-4" />
-                  <span>Random</span>
-                </div>
+              <Link
+                href="/search"
+                className="text-slate-300 hover:text-[#7CE5D0] transition-colors flex items-center gap-1.5"
+              >
+                <span>Browse</span>
               </Link>
 
-              <div className="nav-link relative text-sm font-medium">
-                <button className="flex items-center gap-1 text-white hover:text-[#7CE5D0] transition-colors">
-                  <Languages className="h-4 w-4" />
-                  <span>EN</span>
-                </button>
-              </div>
-
-              <Link href="/news" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-1">
-                  <Newspaper className="h-4 w-4" />
-                  <span>News</span>
-                </div>
+              <Link
+                href="/forum"
+                className="text-slate-300 hover:text-[#7CE5D0] transition-colors flex items-center gap-1.5"
+              >
+                <MessageSquare className="h-4 w-4 text-[#7CE5D0]" />
+                <span>Forum</span>
               </Link>
 
-              <Link href="/community" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-1">
-                  <Globe className="h-4 w-4" />
-                  <span>Community</span>
-                </div>
+              <Link
+                href="/shop"
+                className="text-slate-300 hover:text-[#7CE5D0] transition-colors flex items-center gap-1.5"
+              >
+                <ShoppingBag className="h-4 w-4 text-[#55C7F0]" />
+                <span>Shop</span>
+              </Link>
+
+              <Link
+                href="/leaderboard"
+                className="text-slate-300 hover:text-[#7CE5D0] transition-colors flex items-center gap-1.5"
+              >
+                <Sparkles className="h-4 w-4 text-amber-300" />
+                <span>Leaderboard</span>
               </Link>
             </nav>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/search" className="text-white hover:text-[#7CE5D0] transition-colors">
-              <Search className="h-5 w-5" />
+          {/* Right section: Search & User Controls */}
+          <div className="flex items-center gap-4">
+            <Link
+              href="/search"
+              className="flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-slate-200 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white"
+            >
+              <Search className="h-4 w-4 text-[#7CE5D0]" />
+              <span className="hidden sm:inline">Search anime...</span>
             </Link>
 
-            <button className="text-white hover:text-[#7CE5D0] transition-colors relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                3
-              </span>
-            </button>
-
-            <Link href="/profile" className="text-white hover:text-[#7CE5D0] transition-colors">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-[#7CE5D0] to-[#55C7F0] flex items-center justify-center">
+            <Link
+              href="/account"
+              className="group relative flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-[#7CE5D0] to-[#55C7F0] p-0.5 shadow-md transition-transform hover:scale-105"
+            >
+              <div className="flex h-full w-full items-center justify-center rounded-full bg-[#161527] text-[#7CE5D0] transition-colors group-hover:bg-transparent group-hover:text-[#161527]">
                 <User className="h-4 w-4" />
               </div>
             </Link>
-          </div>
 
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden text-white hover:text-[#7CE5D0] transition-colors"
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="hidden md:inline-flex text-slate-300 hover:text-[#7CE5D0] transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Mobile Drawer */}
       {isOpen && (
-        <div className="absolute left-0 right-0 bg-[#2D2B45] border-t border-[#35334D] md:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-4">
-            <nav className="flex flex-col gap-4">
-              <Link href="/watchtogether" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  <span>Watch2gether</span>
-                </div>
+        <div className="absolute left-0 right-0 bg-[#161527] border-b border-white/10 md:hidden shadow-2xl">
+          <div className="mx-auto max-w-7xl px-4 py-5 space-y-4 font-bold text-sm">
+            <nav className="flex flex-col gap-3">
+              <Link
+                href="/search?sort=TRENDING_DESC"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-200 hover:text-[#7CE5D0] transition-colors"
+              >
+                🔥 Trending
               </Link>
 
-              <Link href="/random" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-2">
-                  <Shuffle className="h-4 w-4" />
-                  <span>Random</span>
-                </div>
+              <Link
+                href="/search"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-200 hover:text-[#7CE5D0] transition-colors"
+              >
+                🔍 Browse All Anime
               </Link>
 
-              <div className="nav-link relative text-sm font-medium">
-                <button className="flex items-center gap-2 w-full text-left text-white hover:text-[#7CE5D0] transition-colors">
-                  <Languages className="h-4 w-4" />
-                  <span>EN</span>
-                </button>
-              </div>
-
-              <Link href="/news" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-2">
-                  <Newspaper className="h-4 w-4" />
-                  <span>News</span>
-                </div>
+              <Link
+                href="/forum"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-200 hover:text-[#7CE5D0] transition-colors"
+              >
+                💬 Community Forum
               </Link>
 
-              <Link href="/community" className="nav-link text-sm font-medium text-white hover:text-[#7CE5D0] transition-colors">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span>Community</span>
-                </div>
+              <Link
+                href="/shop"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-200 hover:text-[#7CE5D0] transition-colors"
+              >
+                🛍️ Item Shop
               </Link>
 
-              <div className="flex gap-4 mt-4">
-                <Link href="https://discord.com" className="text-white hover:text-[#7CE5D0] transition-colors">
-                  <div className="h-8 w-8 rounded-full bg-[#2D2B45] border border-[#35334D] flex items-center justify-center">
-                    <Users className="h-4 w-4" />
-                  </div>
-                </Link>
-
-                <Link href="https://telegram.org" className="text-white hover:text-[#7CE5D0] transition-colors">
-                  <div className="h-8 w-8 rounded-full bg-[#2D2B45] border border-[#35334D] flex items-center justify-center">
-                    <Users className="h-4 w-4" />
-                  </div>
-                </Link>
-
-                <Link href="https://instagram.com" className="text-white hover:text-[#7CE5D0] transition-colors">
-                  <div className="h-8 w-8 rounded-full bg-[#2D2B45] border border-[#35334D] flex items-center justify-center">
-                    <Users className="h-4 w-4" />
-                  </div>
-                </Link>
-              </div>
+              <Link
+                href="/account"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-200 hover:text-[#7CE5D0] transition-colors"
+              >
+                👤 My Account
+              </Link>
             </nav>
           </div>
         </div>
