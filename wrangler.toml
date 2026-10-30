@@ -11,13 +11,11 @@ binding = "ASSETS"
 enabled = true
 
 # ---- Cloudflare D1 Database ----
-# Create a D1 database: npx wrangler d1 create mr-anime-db
-# To bind D1 to your deployed Worker, uncomment the block below and set database_id:
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "mr-anime-db"
-# database_id = "<YOUR_D1_DATABASE_ID>"
-# migrations_dir = "d1/migrations"
+[[d1_databases]]
+binding = "DB"
+database_name = "mr-anime-db"
+database_id = "mr-anime-db"
+migrations_dir = "d1/migrations"
 
 [vars]
 # ---- Streaming providers ----

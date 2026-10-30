@@ -39,6 +39,39 @@ export type Provider = {
 
 export type AudioLang = "sub" | "dub";
 
+const DEFAULT_PROVIDERS: Provider[] = [
+  {
+    id: "provider-1",
+    name: "MegaPlay",
+    base: "https://megaplay.buzz/stream/ani/{id}/{ep}/{lang}",
+    subOnly: false,
+  },
+  {
+    id: "provider-2",
+    name: "Anixo",
+    base: "https://anixo.buzz/embed/ani/{id}/{ep}",
+    subOnly: false,
+  },
+  {
+    id: "provider-3",
+    name: "VidNest",
+    base: "https://vidnest.fun/anime/{id}/{ep}/{lang}",
+    subOnly: false,
+  },
+  {
+    id: "provider-4",
+    name: "TryEmbed",
+    base: "https://tryembed.us.cc/embed/anime/{id}/{ep}/{lang}",
+    subOnly: false,
+  },
+  {
+    id: "provider-5",
+    name: "VidRift",
+    base: "https://embed.vidrift.net/embed/tv/{tmdb}/{season}/{ep}",
+    subOnly: true,
+  },
+];
+
 const MAX_PROVIDERS = 6;
 
 export function getProviders(): Provider[] {
@@ -55,6 +88,12 @@ export function getProviders(): Provider[] {
       subOnly: flag === "1" || flag === "true",
     });
   }
+
+  // Fallback to directly configured providers if env vars are missing
+  if (providers.length === 0) {
+    return DEFAULT_PROVIDERS;
+  }
+
   return providers;
 }
 
