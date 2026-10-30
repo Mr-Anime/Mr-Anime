@@ -3,9 +3,26 @@ import { OAUTH_ENV_FLAGS, OAUTH_PROVIDERS, type OAuthProvider } from "@/lib/oaut
 
 const bool = (v: string | undefined) => v === "1" || v?.toLowerCase() === "true";
 
-const oauthProviders: OAuthProvider[] = OAUTH_PROVIDERS.filter((provider) =>
-  bool(process.env[OAUTH_ENV_FLAGS[provider]]),
-);
+const isProviderEnabled = (provider: OAuthProvider) => {
+  const envKey = OAUTH_ENV_FLAGS[provider];
+  let envVal: string | undefined;
+  if (envKey === "ENABLE_GOOGLE_OAUTH") {
+    envVal = process.env.ENABLE_GOOGLE_OAUTH ?? process.env.NEXT_PUBLIC_ENABLE_GOOGLE_OAUTH;
+  } else if (envKey === "ENABLE_GITHUB_OAUTH") {
+    envVal = process.env.ENABLE_GITHUB_OAUTH ?? process.env.NEXT_PUBLIC_ENABLE_GITHUB_OAUTH;
+  } else if (envKey === "ENABLE_DISCORD_OAUTH") {
+    envVal = process.env.ENABLE_DISCORD_OAUTH ?? process.env.NEXT_PUBLIC_ENABLE_DISCORD_OAUTH;
+  }
+
+  if (envVal !== undefined) {
+    return bool(envVal);
+  }
+  // If Supabase URL is present and flag is not explicitly false/0, enable providers by default
+  const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  return hasSupabase;
+};
+
+const oauthProviders: OAuthProvider[] = OAUTH_PROVIDERS.filter(isProviderEnabled);
 
 export const siteConfig = {
   name: "Mr.Anime",

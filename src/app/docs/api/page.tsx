@@ -186,7 +186,7 @@ const { data, pageInfo } = await res.json();`}</Code>
 
           <div className="space-y-2">
             <h3 className="font-medium text-foreground">1. Redirect the user</h3>
-            <Code>{`https://mr-anime.vercel.app/oauth/authorize
+            <Code>{`https://mranime.cyou/oauth/authorize
   ?client_id=CLIENT_ID
   &redirect_uri=YOUR_CALLBACK
   &response_type=code
@@ -205,7 +205,7 @@ const { data, pageInfo } = await res.json();`}</Code>
 
           <div className="space-y-2">
             <h3 className="font-medium text-foreground">2. Exchange the code</h3>
-            <Code>{`curl -X POST https://mr-anime.vercel.app/oauth/token \\
+            <Code>{`curl -X POST https://mranime.cyou/oauth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d grant_type=authorization_code \\
   -d code=CODE \\
@@ -219,7 +219,7 @@ const { data, pageInfo } = await res.json();`}</Code>
 
           <div className="space-y-2">
             <h3 className="font-medium text-foreground">Server-to-server (no user)</h3>
-            <Code>{`curl -X POST https://mr-anime.vercel.app/oauth/token \\
+            <Code>{`curl -X POST https://mranime.cyou/oauth/token \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d grant_type=client_credentials \\
   -d client_id=CLIENT_ID \\

@@ -41,7 +41,6 @@ PROVIDER_5_SUBONLY = "1"
 # ---- Supabase (public values) ----
 NEXT_PUBLIC_SUPABASE_URL = "https://oqgropjhbhdslcepffca.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xZ3JvcGpoYmhkc2xjZXBmZmNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNDE3NDYsImV4cCI6MjEwNjkxNzc0Nn0.wya3NUPVz-YgQl0yVGsGdE0z1YAIRqpI3sXQ7ue0EIY"
-SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xZ3JvcGpoYmhkc2xjZXBmZmNhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MTM0MTc0NiwiZXhwIjoyMTA2OTE3NzQ2fQ.Y75ju3NKY9wz5CQXZ3Wn22VOLfxnWpqM2FV2fvinn9w"
 # ---- SECRETS: do NOT put these in this file. Set them with: ----
 #   npx wrangler secret put OXAPAY_MERCHANT_KEY
 #   npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
