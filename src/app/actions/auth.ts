@@ -123,16 +123,21 @@ export async function login(
 
     if (error) return { message: friendlyAuthError(error.message) };
 
-    const admin = createAdminClient();
-    const { data: profile } = await admin
-      .from("profiles")
-      .select("is_banned, ban_reason")
-      .eq("id", data.user.id)
-      .single();
+    try {
+      const admin = createAdminClient();
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("is_banned, ban_reason")
+        .eq("id", data.user.id)
+        .single();
 
-    if (profile?.is_banned) {
-      await supabase.auth.signOut();
-      redirect(`/suspended?r=${encodeURIComponent(profile.ban_reason ?? "No reason recorded.")}`);
+      if (profile?.is_banned) {
+        await supabase.auth.signOut();
+        redirect(`/suspended?r=${encodeURIComponent(profile.ban_reason ?? "No reason recorded.")}`);
+      }
+    } catch (err) {
+      if (isRedirectError(err)) throw err;
+      console.warn("banned check failed during login:", err);
     }
 
     redirect(next);
