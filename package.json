@@ -8,7 +8,6 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "cf:dev": "wrangler dev",
     "deploy": "astro build && wrangler deploy",
     "migrate": "wrangler d1 migrations apply mr-anime-db",
     "migrate:local": "wrangler d1 migrations apply mr-anime-db --local"
@@ -23,7 +22,6 @@
     "tailwindcss": "^4.0.0",
     "drizzle-orm": "^0.38.0",
     "zod": "^3.24.0",
-    "arctic": "^2.3.0",
     "nanoid": "^5.0.0"
   },
   "devDependencies": {
