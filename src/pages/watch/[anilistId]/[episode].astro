@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
-import { providers } from '../../config/providers';
+import { providers } from '../../../config/providers';
 const { anilistId, episode } = Astro.params;
 const ep = Number(episode);
 const active = providers.find(p=>p.enabled);
