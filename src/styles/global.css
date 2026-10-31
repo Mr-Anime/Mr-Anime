@@ -178,7 +178,8 @@ h1, h2, h3 { font-family: "Space Grotesk", sans-serif; letter-spacing: -1.6px; }
   .header-action { padding: 8px 11px; font-size: 11px; }
   .header-tools { gap: 3px; }
   .header-tools .notification-center { display: none; }
-  .header-register { display: none; }
+  .header-tools .header-action[href="/#account"] { display: none; }
+  .header-register { display: inline-flex; }
   .notification-trigger { padding: 8px 7px; font-size: 10px; }
   main { padding: 0 18px 55px; }
   .hero { grid-template-columns: 1fr; min-height: 0; padding: 48px 0 15px; }
