@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CommentSystem from "../../components/CommentSystem.astro";
+import { getAnime } from "../../lib/anilist";
+
+export const prerender = false;
+const id = Number(Astro.params.id);
+const episode = Math.max(1, Number(Astro.url.searchParams.get("episode")) || 1);
+if (!Number.isSafeInteger(id) || id < 1) return Astro.redirect("/");
+
+let anime: Awaited<ReturnType<typeof getAnime>> = null;
+let loadError = false;
+try {
+  anime = await getAnime(id);
+} catch (error) {
+  console.error("Unable to load AniList metadata", error);
+  loadError = true;
+}
+
+const configuredPlayer = Astro.locals.runtime.env.PLAYER_EMBED_BASE_URL?.trim();
+let playerUrl: string | null = null;
+if (configuredPlayer) {
+  try {
+    const url = new URL(configuredPlayer);
+    if (url.protocol === "https:") {
+      url.searchParams.set("anilist", String(id));
+      url.searchParams.set("episode", String(episode));
+      playerUrl = url.toString();
+    }
+  } catch {
+    console.error("PLAYER_EMBED_BASE_URL must be an absolute HTTPS URL");
+  }
+}
+---
+
+<BaseLayout title={anime ? `${anime.title.english || anime.title.romaji} — Mr. Anime` : "Watch anime — Mr. Anime"}>
+  {anime ? (
+    <>
+      <section class="watch-heading">
+        <div class="watch-poster"><img src={anime.coverImage.extraLarge || anime.coverImage.large} alt={`Cover for ${anime.title.english || anime.title.romaji}`} /></div>
+        <div class="watch-details">
+          <p class="eyebrow">ANILIST · {anime.seasonYear || "ANIME"}</p>
+          <h1>{anime.title.english || anime.title.romaji}</h1>
+          <p class="watch-meta">{anime.episodes ? `${anime.episodes} episodes` : "Episodes"}{anime.averageScore ? ` · ${anime.averageScore}% score` : ""}</p>
+          <div class="genre-list">{anime.genres.slice(0, 5).map((genre) => <span>{genre}</span>)}</div>
+          <p class="anime-description">{anime.description?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "Discover this title on Mr. Anime."}</p>
+        </div>
+      </section>
+      <section class="player-section">
+        <div class="section-heading"><div><p class="eyebrow">NOW PLAYING</p><h2>Episode {episode}</h2></div>
+          <form method="get" class="episode-picker"><label for="episode">Episode</label><input id="episode" name="episode" type="number" min="1" max={anime.episodes || 999} value={episode} /><button class="button button-quiet">Go</button></form>
+        </div>
+        {playerUrl ? (
+          <iframe class="video-player" src={playerUrl} title={`${anime.title.english || anime.title.romaji}, episode ${episode}`} allow="fullscreen; picture-in-picture" referrerpolicy="no-referrer" sandbox="allow-scripts allow-presentation" allowfullscreen></iframe>
+        ) : (
+          <div class="player-placeholder"><span class="play-icon">▶</span><h3>Connect your licensed video provider</h3><p>Set <code>PLAYER_EMBED_BASE_URL</code> to an HTTPS embed endpoint you are authorized to use. It will receive <code>anilist</code> and <code>episode</code> query parameters.</p></div>
+        )}
+      </section>
+      <CommentSystem animeId={anime.id} episode={episode} />
+    </>
+  ) : (
+    <section class="not-found"><p class="eyebrow">TITLE NOT FOUND</p><h1>{loadError ? "Anime metadata is unavailable right now." : "We couldn't find that title."}</h1><a class="button button-primary" href="/">Back to discovery</a></section>
+  )}
+</BaseLayout>

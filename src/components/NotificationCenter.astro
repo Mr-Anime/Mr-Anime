@@ -1,0 +1,69 @@
+<div class="notification-center" id="notification-center">
+  <button class="notification-trigger" id="notification-trigger" aria-label="Notifications" aria-expanded="false">
+    Alerts <span id="notification-badge" class="notification-badge" hidden></span>
+  </button>
+  <div class="notification-panel" id="notification-panel" hidden>
+    <div class="notification-panel-heading"><strong>Notifications</strong><button id="notification-close" aria-label="Close notifications">×</button></div>
+    <div id="notification-items"><p class="muted">Sign in to see alerts.</p></div>
+  </div>
+</div>
+<script>
+  const trigger = document.querySelector<HTMLButtonElement>("#notification-trigger")!;
+  const panel = document.querySelector<HTMLDivElement>("#notification-panel")!;
+  const badge = document.querySelector<HTMLSpanElement>("#notification-badge")!;
+  const items = document.querySelector<HTMLDivElement>("#notification-items")!;
+  const close = document.querySelector<HTMLButtonElement>("#notification-close")!;
+
+  async function loadNotifications() {
+    try {
+      const response = await fetch("/api/notifications");
+      if (response.status === 401) return;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to load alerts.");
+      const notifications = result.notifications as Array<{ id: number; title: string; body: string; created_at: string }>;
+      badge.hidden = notifications.length === 0;
+      badge.textContent = String(notifications.length);
+      items.replaceChildren();
+      if (!notifications.length) {
+        const empty = document.createElement("p");
+        empty.className = "muted";
+        empty.textContent = "You're all caught up.";
+        items.append(empty);
+        return;
+      }
+      for (const notification of notifications) {
+        const article = document.createElement("article");
+        article.className = "notification-item";
+        const title = document.createElement("strong");
+        title.textContent = notification.title;
+        const body = document.createElement("p");
+        body.textContent = notification.body;
+        const acknowledge = document.createElement("button");
+        acknowledge.textContent = "Got it";
+        acknowledge.addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/notifications", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ id: notification.id }),
+            });
+            if (!response.ok) throw new Error("Unable to dismiss this alert.");
+            await loadNotifications();
+          } catch (error) {
+            items.textContent = error instanceof Error ? error.message : "Unable to dismiss this alert.";
+          }
+        });
+        article.append(title, body, acknowledge);
+        items.append(article);
+      }
+    } catch (error) {
+      items.textContent = error instanceof Error ? error.message : "Unable to load alerts.";
+    }
+  }
+  trigger.addEventListener("click", async () => {
+    panel.hidden = !panel.hidden;
+    trigger.setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) await loadNotifications();
+  });
+  close.addEventListener("click", () => { panel.hidden = true; trigger.setAttribute("aria-expanded", "false"); });
+</script>

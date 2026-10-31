@@ -1,0 +1,171 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Staff dashboard — Mr. Anime">
+  <section class="admin-page">
+    <p class="eyebrow">STAFF TOOLS</p>
+    <h1>Community dashboard</h1>
+    <p class="muted">Admin controls are restricted by server-side role checks. Moderators can block/ban accounts; admins can manage roles, rewards, and notices.</p>
+    <form class="admin-form" id="notice-form">
+      <h2>Send a community notice</h2>
+      <input name="title" maxlength="120" placeholder="Notice title" required />
+      <textarea name="body" maxlength="2000" placeholder="Write an announcement..." required></textarea>
+      <input name="userId" type="number" min="1" placeholder="Recipient user ID (leave blank for everyone)" />
+      <button class="button button-primary">Send notice</button>
+      <p class="form-message" id="notice-message" role="status"></p>
+    </form>
+    <div class="section-heading"><div><p class="eyebrow">ACCOUNT MANAGEMENT</p><h2>Users</h2></div><button class="button button-quiet" id="refresh-users">Refresh</button></div>
+    <p id="admin-message" class="form-message" role="status"></p>
+    <div class="user-table-wrap"><table class="user-table"><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody id="user-rows"></tbody></table></div>
+    <div class="section-heading"><div><p class="eyebrow">COMMUNITY CARE</p><h2>Flagged comments</h2></div><button class="button button-quiet" id="refresh-flags">Refresh</button></div>
+    <p id="moderation-message" class="form-message" role="status"></p>
+    <div class="comment-list" id="flagged-comments"></div>
+  </section>
+  <script>
+    const rows = document.querySelector<HTMLTableSectionElement>("#user-rows")!;
+    const adminMessage = document.querySelector<HTMLParagraphElement>("#admin-message")!;
+    const noticeForm = document.querySelector<HTMLFormElement>("#notice-form")!;
+    const noticeMessage = document.querySelector<HTMLParagraphElement>("#notice-message")!;
+    const moderationMessage = document.querySelector<HTMLParagraphElement>("#moderation-message")!;
+    const flaggedComments = document.querySelector<HTMLDivElement>("#flagged-comments")!;
+
+    async function api(action: string, data: Record<string, unknown> = {}) {
+      const response = await fetch(action === "list" ? "/api/admin" : "/api/admin", {
+        method: action === "list" ? "GET" : "POST",
+        headers: { "content-type": "application/json" },
+        body: action === "list" ? undefined : JSON.stringify({ action, ...data }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Request failed.");
+      return result;
+    }
+    async function loadUsers() {
+      adminMessage.textContent = "";
+      try {
+        const result = await api("list");
+        rows.replaceChildren();
+        for (const user of result.users) {
+          const row = document.createElement("tr");
+          const identity = document.createElement("td");
+          identity.textContent = `${user.username} · ${user.email} (#${user.id})`;
+          const role = document.createElement("td");
+          role.textContent = user.role;
+          const status = document.createElement("td");
+          status.textContent = user.status;
+          const actions = document.createElement("td");
+          const roleButton = document.createElement("button");
+          roleButton.className = "table-action";
+          roleButton.textContent = "Make moderator";
+          roleButton.addEventListener("click", () => runAction("role", { userId: user.id, role: "moderator" }));
+          const blockButton = document.createElement("button");
+          blockButton.className = "table-action";
+          blockButton.textContent = user.status === "active" ? "Block 1 day" : "Unblock";
+          blockButton.addEventListener("click", () => runAction(user.status === "active" ? "block" : "unblock", { userId: user.id, minutes: 1440 }));
+          const banButton = document.createElement("button");
+          banButton.className = "table-action danger";
+          banButton.textContent = "Ban";
+          banButton.addEventListener("click", () => runAction("ban", { userId: user.id }));
+          const frameSelect = document.createElement("select");
+          frameSelect.className = "table-action";
+          for (const frame of result.frames) {
+            const option = document.createElement("option");
+            option.value = String(frame.id);
+            option.textContent = frame.name;
+            frameSelect.append(option);
+          }
+          const giftButton = document.createElement("button");
+          giftButton.className = "table-action";
+          giftButton.textContent = "Gift frame";
+          giftButton.disabled = result.frames.length === 0;
+          giftButton.addEventListener("click", () => runAction("grant-frame", { userId: user.id, frameId: Number(frameSelect.value) }));
+          const badgeInput = document.createElement("input");
+          badgeInput.className = "table-action";
+          badgeInput.placeholder = "Badge";
+          badgeInput.maxLength = 32;
+          const badgeButton = document.createElement("button");
+          badgeButton.className = "table-action";
+          badgeButton.textContent = "Grant badge";
+          badgeButton.addEventListener("click", () => runAction("badge", { userId: user.id, badge: badgeInput.value }));
+          actions.append(roleButton, blockButton, banButton, frameSelect, giftButton, badgeInput, badgeButton);
+          row.append(identity, role, status, actions);
+          rows.append(row);
+        }
+      } catch (error) {
+        adminMessage.textContent = error instanceof Error ? error.message : "Unable to load users.";
+      }
+    }
+    async function runAction(action: string, data: Record<string, unknown>) {
+      try {
+        await api(action, data);
+        await loadUsers();
+      } catch (error) {
+        adminMessage.textContent = error instanceof Error ? error.message : "Action failed.";
+      }
+    }
+    async function loadFlags() {
+      moderationMessage.textContent = "";
+      try {
+        const response = await fetch("/api/moderation");
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Unable to load flagged comments.");
+        flaggedComments.replaceChildren();
+        if (!result.comments.length) {
+          const empty = document.createElement("p");
+          empty.className = "empty-state";
+          empty.textContent = "No comments are waiting for review.";
+          flaggedComments.append(empty);
+        }
+        for (const comment of result.comments) {
+          const article = document.createElement("article");
+          article.className = "comment-card";
+          const title = document.createElement("strong");
+          title.textContent = `${comment.username} · Anime ${comment.anime_id}, episode ${comment.episode}`;
+          const body = document.createElement("p");
+          body.textContent = comment.body;
+          const remove = document.createElement("button");
+          remove.className = "table-action danger";
+          remove.textContent = "Remove";
+          remove.addEventListener("click", () => moderate(comment.id, "remove"));
+          const dismiss = document.createElement("button");
+          dismiss.className = "table-action";
+          dismiss.textContent = "Dismiss report";
+          dismiss.addEventListener("click", () => moderate(comment.id, "dismiss"));
+          article.append(title, body, remove, dismiss);
+          flaggedComments.append(article);
+        }
+      } catch (error) {
+        moderationMessage.textContent = error instanceof Error ? error.message : "Unable to load flagged comments.";
+      }
+    }
+    async function moderate(commentId: number, action: "remove" | "dismiss") {
+      try {
+        const response = await fetch("/api/moderation", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ commentId, action }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Moderation action failed.");
+        await loadFlags();
+      } catch (error) {
+        moderationMessage.textContent = error instanceof Error ? error.message : "Moderation action failed.";
+      }
+    }
+    document.querySelector("#refresh-users")!.addEventListener("click", loadUsers);
+    document.querySelector("#refresh-flags")!.addEventListener("click", loadFlags);
+    noticeForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const formData = Object.fromEntries(new FormData(noticeForm).entries());
+        await api("notice", { ...formData, userId: formData.userId ? Number(formData.userId) : "" });
+        noticeMessage.textContent = "Notice sent.";
+        noticeForm.reset();
+      } catch (error) {
+        noticeMessage.textContent = error instanceof Error ? error.message : "Unable to send notice.";
+      }
+    });
+    loadUsers();
+    loadFlags();
+  </script>
+</BaseLayout>

@@ -1,0 +1,174 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+:root {
+  color-scheme: dark;
+  font-family: "DM Sans", sans-serif;
+  color: #f4f3f8;
+  background: #11131a;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --surface: #191b24;
+  --surface-soft: #20232e;
+  --muted: #9b9baa;
+  --line: rgba(255,255,255,.09);
+  --pink: #f375a8;
+  --purple: #a28aff;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: radial-gradient(ellipse at 18% 0%, rgba(114,78,151,.14), transparent 38%), #11131a; }
+a { color: inherit; text-decoration: none; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+.site-header { height: 78px; display: flex; align-items: center; justify-content: space-between; max-width: 1240px; margin: auto; padding: 0 32px; border-bottom: 1px solid var(--line); }
+.header-tools { display: flex; align-items: center; gap: 9px; }
+.notification-center { position: relative; }
+.notification-trigger, .notification-panel-heading button { border: 0; color: #e8e4ef; background: transparent; font-size: 11px; }
+.notification-trigger { padding: 10px 12px; }
+.notification-badge { display: inline-grid; place-items: center; min-width: 17px; height: 17px; margin-left: 4px; border-radius: 50%; background: var(--pink); color: #241722; font-size: 9px; }
+.notification-panel { position: absolute; z-index: 5; top: 42px; right: 0; width: min(330px, calc(100vw - 36px)); max-height: 390px; overflow: auto; padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: #1b1d26; box-shadow: 0 18px 50px #0008; }
+.notification-panel-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+.notification-item { padding: 12px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.notification-item p { margin: 7px 0; color: #aaa9b7; line-height: 1.6; }
+.notification-item button, .table-action { border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; color: #e7d5f1; background: #292532; font-size: 10px; }
+.brand { display: inline-flex; align-items: center; gap: 9px; font-family: "Space Grotesk", sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -.8px; }
+.brand-mark { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 10px; background: linear-gradient(135deg, var(--pink), #8a71f5); color: #17131d; font-weight: 700; }
+nav { display: flex; gap: 35px; color: #b6b5c3; font-size: 13px; }
+nav a:hover, .header-action:hover { color: white; }
+.header-action { border: 1px solid var(--line); border-radius: 9px; padding: 10px 16px; font-size: 13px; }
+main { max-width: 1240px; min-height: 65vh; margin: auto; padding: 0 32px 72px; }
+.hero { position: relative; display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; min-height: 500px; overflow: hidden; }
+.hero-copy { position: relative; z-index: 1; padding: 42px 0 44px; }
+.eyebrow { color: #c78fc6; font-size: 10px; font-weight: 700; letter-spacing: 1.8px; }
+.live-dot { display: inline-block; width: 7px; height: 7px; margin-right: 7px; border-radius: 50%; background: #f375a8; box-shadow: 0 0 12px #f375a8; }
+h1, h2, h3, p { margin-top: 0; }
+h1, h2, h3 { font-family: "Space Grotesk", sans-serif; letter-spacing: -1.6px; }
+.hero h1 { margin: 23px 0 17px; font-size: clamp(44px, 6vw, 71px); line-height: 1.03; }
+.hero h1 span { color: var(--pink); }
+.hero-description { max-width: 420px; color: #a6a5b4; font-size: 15px; line-height: 1.8; }
+.search-form { display: flex; gap: 10px; max-width: 510px; margin-top: 30px; padding: 7px; border: 1px solid var(--line); border-radius: 13px; background: rgba(26,28,37,.88); }
+.search-form input, .account-form input, .episode-picker input { min-width: 0; border: 0; outline: 0; color: white; background: transparent; }
+.search-form input { flex: 1; padding: 0 12px; }
+.button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 12px; border: 0; border-radius: 9px; padding: 0 17px; font-size: 12px; font-weight: 700; }
+.button-primary { background: linear-gradient(110deg, #ed78ad, #a988ff); color: #17131d; }
+.button-primary:hover { filter: brightness(1.08); }
+.button-quiet { color: #e4d8ff; background: #2a2637; }
+.hero-tags { display: flex; flex-wrap: wrap; gap: 19px; margin-top: 20px; color: #898998; font-size: 10px; }
+.hero-tags span::before { content: "✦"; margin-right: 6px; color: #b891ed; }
+.hero-art { position: relative; height: 390px; }
+.art-glow { position: absolute; width: 280px; height: 280px; top: 55px; left: 80px; border-radius: 50%; background: #9a5c9e; opacity: .19; filter: blur(80px); }
+.art-card { position: absolute; overflow: hidden; width: 235px; height: 310px; top: 40px; left: 90px; border: 1px solid rgba(255,255,255,.22); border-radius: 18px; box-shadow: 0 24px 80px #08080d99; }
+.art-card-back { transform: rotate(12deg) translate(78px, 20px); background: linear-gradient(155deg, #e99ba6 0%, #c47b9a 41%, #655b83 42%, #302d49); color: #ffecf6; padding: 22px; font-size: 11px; }
+.art-card-front { background: linear-gradient(180deg, #edb3a5 0%, #f6c3a2 48%, #91677f 49%, #282640 100%); }
+.art-sun { position: absolute; top: 60px; left: 74px; width: 92px; height: 92px; border-radius: 50%; background: #f9d99d; box-shadow: 0 0 36px #fce3a988; }
+.art-mountain { position: absolute; width: 300px; height: 150px; bottom: 60px; left: -38px; transform: rotate(-12deg); background: linear-gradient(155deg, #756b91, #38344f 72%); clip-path: polygon(0 100%, 38% 5%, 53% 49%, 73% 10%, 100% 100%); }
+.art-horizon { position: absolute; bottom: 0; width: 100%; height: 90px; background: linear-gradient(0deg, #171828, transparent); }
+.art-caption { position: absolute; bottom: 27px; left: 20px; z-index: 1; font-size: 10px; line-height: 1.5; letter-spacing: 2px; }
+.art-stamp { position: absolute; top: 280px; left: 23px; display: grid; place-content: center; width: 65px; height: 65px; border: 1px solid #ffffff44; border-radius: 50%; background: #1b1929; color: #c5b5e9; text-align: center; font-size: 9px; letter-spacing: 1px; transform: rotate(-12deg); }
+.art-stamp b { font-size: 20px; }
+.content-section { padding-top: 35px; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.section-heading .eyebrow { margin-bottom: 8px; }
+.section-heading h2, .account-strip h2 { margin-bottom: 0; font-size: 25px; }
+.muted { color: var(--muted); font-size: 12px; }
+.anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 17px; }
+.anime-card { display: grid; gap: 7px; color: #f3f0f7; font-size: 12px; }
+.anime-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 11px; background: var(--surface); transition: transform .2s ease; }
+.anime-card:hover img { transform: translateY(-4px); }
+.anime-card span { color: var(--muted); font-size: 11px; }
+.empty-state { color: var(--muted); font-size: 13px; }
+.account-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 88px; padding: 32px; border: 1px solid var(--line); border-radius: 17px; background: linear-gradient(120deg, #1d1b27, #191b24); }
+.account-strip h2 { margin: 12px 0; }
+.account-strip > div > p:last-child { max-width: 420px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.account-form { display: grid; gap: 10px; }
+.account-form input, .comment-form textarea { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 9px; outline: 0; background: #12141b; color: white; font-size: 13px; }
+.account-form input:focus, .comment-form textarea:focus { border-color: #b785d0; }
+.account-actions { display: flex; gap: 9px; }
+.form-message { min-height: 16px; margin: 0; color: #d3a9e3; font-size: 12px; }
+.watch-heading { display: grid; grid-template-columns: 190px 1fr; gap: 32px; align-items: center; padding: 44px 0 38px; }
+.watch-poster img { display: block; width: 190px; max-height: 280px; object-fit: cover; border-radius: 13px; box-shadow: 0 15px 40px #0006; }
+.watch-details h1 { margin: 10px 0; font-size: clamp(30px, 4vw, 44px); }
+.watch-meta { color: var(--muted); font-size: 13px; }
+.genre-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.genre-list span { padding: 6px 10px; border: 1px solid var(--line); border-radius: 100px; color: #c5b7d6; font-size: 10px; }
+.anime-description { max-width: 790px; color: #aaa9b7; font-size: 13px; line-height: 1.8; }
+.player-section { margin-top: 8px; }
+.episode-picker { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; }
+.episode-picker input { width: 67px; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.video-player { display: block; width: 100%; aspect-ratio: 16/9; border: 1px solid var(--line); border-radius: 14px; background: #08090d; }
+.player-placeholder { display: grid; justify-items: center; align-content: center; min-height: 340px; padding: 32px; border: 1px solid var(--line); border-radius: 14px; background: radial-gradient(ellipse at center, #24202f, #101117 70%); text-align: center; }
+.player-placeholder h3 { margin: 18px 0 8px; font-size: 20px; }
+.player-placeholder p { max-width: 620px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.player-placeholder code { color: #e6b5dc; }
+.play-icon { display: grid; place-items: center; width: 52px; height: 52px; padding-left: 4px; border-radius: 50%; background: linear-gradient(135deg, var(--pink), var(--purple)); color: #211726; }
+.comments-section { padding-top: 52px; }
+.comment-form { display: grid; gap: 10px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.comment-form textarea { min-height: 100px; resize: vertical; background: #15171e; }
+.comment-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.comment-list { display: grid; gap: 10px; margin-top: 15px; }
+.comment-card { padding: 17px; border: 1px solid var(--line); border-radius: 11px; background: #171920; }
+.comment-heading { display: flex; align-items: center; gap: 9px; font-size: 12px; }
+.comment-avatar { position: relative; display: grid; flex: 0 0 33px; place-items: center; width: 33px; height: 33px; border-radius: 50%; background: linear-gradient(135deg, #ed78ad, #a988ff); color: #201724; font-weight: 700; }
+.comment-avatar-frame { position: absolute; inset: -4px; width: 41px; height: 41px; object-fit: contain; }
+.comment-heading time { margin-left: auto; color: var(--muted); font-size: 10px; }
+.comment-card p { margin: 11px 0 0; color: #c7c5d0; font-size: 13px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.user-badge { border-radius: 100px; padding: 3px 7px; background: #3a2b46; color: #e4b7f4; font-size: 9px; }
+.not-found { padding: 120px 0; text-align: center; }
+.profile-page, .admin-page { max-width: 900px; margin: auto; padding: 55px 0; }
+.profile-preview { display: flex; align-items: center; gap: 13px; margin: 24px 0 5px; padding: 17px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+.preview-avatar { position: relative; display: grid; place-items: center; width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(135deg, #ed78ad, #a988ff); color: #201724; font-size: 25px; font-weight: 700; }
+.preview-avatar img { position: absolute; inset: -5px; width: 76px; height: 76px; object-fit: contain; }
+.profile-page h1, .admin-page h1 { margin: 12px 0; font-size: clamp(32px, 5vw, 46px); }
+.redeem-form, .profile-form, .admin-form { display: grid; gap: 11px; margin-top: 22px; padding: 21px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.profile-form label, .redeem-form label { color: #c7c3d0; font-size: 12px; }
+.redeem-form input, .profile-form select, .admin-form input, .admin-form textarea { width: 100%; padding: 12px 13px; border: 1px solid var(--line); border-radius: 8px; outline: 0; background: #12141b; color: white; font-size: 12px; }
+.profile-form select { color-scheme: dark; }
+.admin-page .section-heading { margin-top: 38px; }
+.admin-form h2 { margin: 0 0 3px; font-size: 20px; }
+.admin-form textarea { min-height: 100px; resize: vertical; }
+.user-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+.user-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; }
+.user-table th, .user-table td { padding: 12px; border-bottom: 1px solid var(--line); }
+.user-table th { color: #aaa5b7; font-weight: 600; }
+.user-table td { color: #e1dce8; }
+.user-table td:last-child { display: flex; gap: 6px; }
+.table-action.danger { color: #ff9aab; }
+.not-found h1 { margin-bottom: 25px; }
+.site-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; max-width: 1240px; margin: auto; padding: 27px 32px; border-top: 1px solid var(--line); color: #82818f; font-size: 10px; }
+.site-footer .brand { color: #e2deea; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.name-style-neon { color: #89fff2; text-shadow: 0 0 10px #27e9d8; }
+.name-style-gradient { color: transparent; background: linear-gradient(90deg, #f375a8, #a28aff); background-clip: text; }
+.name-style-glow { color: #e6b3ff; text-shadow: 0 0 14px #bd5aff; }
+
+@media (max-width: 700px) {
+  .site-header { height: 68px; padding: 0 18px; }
+  nav { gap: 14px; font-size: 11px; }
+  nav a:nth-child(2) { display: none; }
+  .header-action { padding: 8px 11px; font-size: 11px; }
+  .header-tools { gap: 3px; }
+  .notification-trigger { padding: 8px 7px; font-size: 10px; }
+  main { padding: 0 18px 55px; }
+  .hero { grid-template-columns: 1fr; min-height: 0; padding: 48px 0 15px; }
+  .hero-copy { padding: 0; }
+  .hero-art { height: 270px; transform: scale(.8); transform-origin: top center; margin-bottom: -35px; }
+  .art-card { left: calc(50% - 117px); }
+  .art-stamp { left: calc(50% - 185px); }
+  .art-glow { left: calc(50% - 140px); }
+  .account-strip { grid-template-columns: 1fr; gap: 10px; margin-top: 60px; padding: 22px; }
+  .watch-heading { grid-template-columns: 110px 1fr; gap: 18px; padding-top: 30px; }
+  .watch-poster img { width: 110px; }
+  .watch-details h1 { font-size: 25px; }
+  .anime-description { grid-column: 1/-1; }
+  .player-placeholder { min-height: 250px; }
+  .site-footer { padding: 22px 18px; }
+}
+
+@media (max-width: 420px) {
+  nav a:nth-child(3) { display: none; }
+  .section-heading { align-items: start; flex-direction: column; }
+  .search-form { gap: 4px; }
+  .search-form input { width: 50%; font-size: 12px; }
+  .search-form .button { padding: 0 10px; }
+}

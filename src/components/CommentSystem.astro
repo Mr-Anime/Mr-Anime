@@ -1,0 +1,120 @@
+---
+interface Props {
+  animeId: number;
+  episode: number;
+}
+const { animeId, episode } = Astro.props;
+---
+
+<section class="comments-section" id="community" data-anime-id={animeId} data-episode={episode}>
+  <div class="section-heading"><div><p class="eyebrow">THE COMMUNITY</p><h2>Episode discussion</h2></div><span class="muted" id="comment-count">Loading comments…</span></div>
+  <form class="comment-form" id="comment-form">
+    <label class="sr-only" for="comment-body">Write a comment</label>
+    <textarea id="comment-body" name="body" maxlength="1000" placeholder="Share your thoughts about this episode…" required></textarea>
+    <div class="comment-form-footer"><span class="muted">Be kind. Comments are moderated.</span><button class="button button-primary">Post comment</button></div>
+  </form>
+  <p class="form-message" id="comment-message" role="status"></p>
+  <div class="comment-list" id="comment-list" aria-live="polite"></div>
+</section>
+
+<script>
+  const section = document.querySelector<HTMLElement>(".comments-section")!;
+  const list = document.querySelector<HTMLDivElement>("#comment-list")!;
+  const counter = document.querySelector<HTMLSpanElement>("#comment-count")!;
+  const form = document.querySelector<HTMLFormElement>("#comment-form")!;
+  const message = document.querySelector<HTMLParagraphElement>("#comment-message")!;
+  const { animeId, episode } = section.dataset;
+
+  async function loadComments() {
+    const response = await fetch(`/api/comments?animeId=${animeId}&episode=${episode}`);
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "Unable to load comments.");
+    list.replaceChildren();
+    counter.textContent = `${payload.comments.length} comments`;
+    if (!payload.comments.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-state";
+      empty.textContent = "No comments yet. Start the conversation.";
+      list.append(empty);
+    }
+    for (const comment of payload.comments) {
+      const article = document.createElement("article");
+      article.className = "comment-card";
+      const heading = document.createElement("div");
+      heading.className = "comment-heading";
+      const avatar = document.createElement("span");
+      avatar.className = "comment-avatar";
+      avatar.textContent = comment.username.slice(0, 1).toUpperCase();
+      if (comment.frame_image) {
+        const frame = document.createElement("img");
+        frame.src = comment.frame_image;
+        frame.alt = "";
+        frame.className = "comment-avatar-frame";
+        avatar.append(frame);
+      }
+      const username = document.createElement("strong");
+      username.textContent = comment.username;
+      if (comment.css_class) username.className = comment.css_class;
+      heading.append(avatar);
+      if (comment.badge) {
+        const badge = document.createElement("span");
+        badge.className = "user-badge";
+        badge.textContent = comment.badge;
+        heading.append(username, badge);
+      } else {
+        heading.append(username);
+      }
+      const date = document.createElement("time");
+      date.dateTime = comment.created_at;
+      date.textContent = new Date(comment.created_at).toLocaleDateString();
+      heading.append(date);
+      const body = document.createElement("p");
+      body.textContent = comment.body;
+      article.append(heading, body);
+      if (payload.viewer) {
+        const action = document.createElement("button");
+        action.className = "table-action";
+        action.textContent = payload.viewer.role === "moderator" || payload.viewer.role === "admin"
+          ? "Remove comment"
+          : "Report";
+        action.addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/comments", {
+              method: payload.viewer.role === "moderator" || payload.viewer.role === "admin" ? "DELETE" : "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ commentId: comment.id }),
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Unable to moderate comment.");
+            await loadComments();
+          } catch (error) {
+            message.textContent = error instanceof Error ? error.message : "Unable to moderate comment.";
+          }
+        });
+        article.append(action);
+      }
+      list.append(article);
+    }
+  }
+
+  loadComments().catch((error) => { counter.textContent = error.message; });
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    message.textContent = "";
+    const body = new FormData(form).get("body")?.toString().trim();
+    try {
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ animeId: Number(animeId), episode: Number(episode), body }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to post comment.");
+      form.reset();
+      message.textContent = "Comment posted.";
+      await loadComments();
+    } catch (error) {
+      message.textContent = error instanceof Error ? error.message : "Unable to post comment.";
+    }
+  });
+</script>
