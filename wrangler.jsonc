@@ -3,15 +3,11 @@
   "name": "mr-anime",
   "compatibility_date": "2025-03-20",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": "./dist",
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "mr-anime",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_name": "mr-anime-db",
+      "database_id": "7f15806d-0064-414e-a62d-34cdec6f002d"
     }
-  ],
-  "vars": {
-    "PLAYER_EMBED_BASE_URL": ""
-  }
+  ]
 }

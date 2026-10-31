@@ -1,6 +1,6 @@
 # Mr. Anime
 
-Astro server-rendered anime discovery and community app using AniList metadata, Cloudflare Pages, and Cloudflare D1. Video playback is deliberately provider-neutral: connect only a video service you are licensed and authorized to embed.
+Astro server-rendered anime discovery and community app using AniList metadata, Cloudflare Workers, and Cloudflare D1. Video playback is deliberately provider-neutral: connect only a video service you are licensed and authorized to embed.
 
 ## Project structure
 
@@ -15,32 +15,32 @@ src/
     api/                  D1-backed auth, comments, profile, moderation APIs
     watch/[id].astro      AniList title page and episode player
   styles/global.css       Pure project CSS (no CSS framework)
-astro.config.mjs          Astro SSR + Cloudflare adapter
+astro.config.mjs          Astro SSR + Cloudflare Workers adapter
 schema.sql                Paste-ready Cloudflare D1 schema and starter items
-wrangler.jsonc            Cloudflare Pages build and D1 binding
+wrangler.jsonc            Cloudflare Workers and D1 binding
 ```
 
 ## Run locally
 
-1. Install Node.js 20 or later.
+1. Install Node.js 22 or later (required by the installed Wrangler version).
 2. Run `npm install`.
-3. Replace the D1 ID placeholder in `wrangler.jsonc` with your database UUID. For local D1 emulation, initialize its local copy with `npx wrangler d1 execute mr-anime --local --file=./schema.sql`. This local-only step is optional; the production setup below runs the schema directly in the Dashboard and does not require the CLI.
-4. Run `npm run dev`. Run `npm run check` and `npm run build` before deployment.
+3. Replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc` with the UUID of your D1 database. Do not commit credentials or secrets.
+4. Run `npm run dev`. Run `npm run check` and `npm run build` before deployment. `npm run deploy` deploys the already-built Worker and preserves Dashboard-managed variables.
 
 Astro pages that call D1 use the Cloudflare runtime binding at `Astro.locals.runtime.env.DB`. Do not use a local SQLite file in production.
 
-## Create and bind Cloudflare D1 from the Dashboard
+## Create and bind Cloudflare D1
 
-1. In the Cloudflare Dashboard, open **Storage & databases → D1 SQL Database** and select **Create database**. Name it `mr-anime`.
-2. Open that database's **Console**. Copy the complete contents of `schema.sql` and execute it. It creates the tables and indexes plus three starter frame and name-style catalog entries.
-3. In the database's **Settings** page, copy its database UUID. Replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc` with that UUID, then commit the config change.
-4. Push this project to a GitHub repository. In Cloudflare, go to **Workers & Pages → Create application → Pages → Connect to Git**, authorize GitHub, and select the repository.
-5. Set the build command to `npm run build` and build output directory to `dist`. Use a Node.js 20+ build environment.
-6. In the Pages project's **Settings → Functions → D1 database bindings**, add a binding named exactly `DB` and select the `mr-anime` database. Add this binding separately for **Production** and **Preview** if both should use D1. Save and redeploy.
-7. In **Settings → Variables and Secrets**, optionally set `PLAYER_EMBED_BASE_URL` as a production variable to your authorized HTTPS embed endpoint. The app adds `anilist=<AniList ID>` and `episode=<episode number>` query parameters. Leave it unset to show the player setup prompt. Never put secrets in `wrangler.jsonc`.
-8. For the requested domain, open the Pages project **Custom domains**, add `mranime.cyou`, and follow the DNS and certificate instructions shown there. The domain must be controlled by your Cloudflare account.
+1. In the Cloudflare Dashboard, open **Storage & databases → D1 SQL Database** and create a database named `mr-anime`.
+2. Open that database's **Console** and execute the complete contents of `schema.sql`. It creates the tables and indexes plus three starter frame and name-style catalog entries.
+3. Copy the database UUID from the database's **Settings** page. Replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc` with that UUID. The ID is account-specific and must not be guessed.
+4. Push this project to GitHub. In Cloudflare, go to **Workers & Pages → Create application → Workers → Import a repository**, connect the repository, and configure **Workers Builds** (not a Pages project).
+5. Set the build command to `npm run build` and the deploy command to `npm run deploy`. Use Node.js 22 or later. No Pages build-output directory is needed; Astro's Cloudflare adapter generates the Worker entry point and static asset configuration.
+6. The D1 binding is declared in `wrangler.jsonc` as `DB`. Keep the database UUID in that file aligned with the database selected for the Worker. If using separate preview and production databases, configure each environment with its own matching binding and ID.
+7. In the Worker **Settings → Variables and Secrets**, optionally set `PLAYER_EMBED_BASE_URL` to your authorized HTTPS embed endpoint. The app adds `anilist=<AniList ID>` and `episode=<episode number>` query parameters. Leave it unset to show the player setup prompt. Never put secrets in `wrangler.jsonc`.
+8. For a custom domain, open the Worker **Settings → Domains & Routes** and add the domain. It must be controlled by your Cloudflare account.
 
-`wrangler.jsonc` is also used to describe the Pages D1 binding; keep its database UUID aligned with the Dashboard binding. For local Wrangler use, the same UUID must be set. Astro's built-in sessions and image optimizer are disabled because the app stores its own sessions in D1 and uses standard remote images.
+The adapter's generated `ASSETS` binding is the Workers static-assets binding and must not be renamed. Astro's built-in sessions and image optimizer are disabled because the app stores its own sessions in D1 and uses standard remote images. The project is configured for Workers; do not create or deploy it as a Pages project.
 
 ## First admin and roles
 
