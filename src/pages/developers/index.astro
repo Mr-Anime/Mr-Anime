@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getDb } from '../../lib/db';
+import { oauthClients } from '../../lib/schema';
+import { eq } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
+import { sha256Hex, randomBytesHex } from '../../lib/crypto';
+
+const user = (Astro.locals as any).user;
+const env = (Astro.locals as any).runtime?.env;
+const db = getDb(env);
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const name = String(form.get('name')||'');
+  const redirectUris = String(form.get('redirect_uris')||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  const scopes = String(form.get('scopes')||'profile').split(',').map(s=>s.trim()).filter(Boolean);
+  const isConfidential = form.get('confidential') ? 1 : 0;
+  const clientId = 'mr_' + randomBytesHex(12);
+  let clientSecretHash: string | null = null;
+  let secret = '';
+  if (isConfidential) { secret = randomBytesHex(32); clientSecretHash = await sha256Hex(secret); }
+  const id = nanoid();
+  const now = Math.floor(Date.now()/1000);
+  await db.insert(oauthClients).values({ id, clientId, clientSecretHash, name, description: '', logoUrl: null, redirectUris: JSON.stringify(redirectUris), allowedScopes: JSON.stringify(scopes), isConfidential, isActive: 1, ownerId: user.id, createdAt: now });
+  if (secret) return new Response('<html><body><p>Save this secret now (shown once): '+secret+'</p><a href="/developers">Back</a></body></html>', { headers: {'Content-Type':'text/html'} });
+  return Astro.redirect('/developers');
+}
+const clients = await db.select().from(oauthClients).where(eq(oauthClients.ownerId, user.id)).all();
+---
+<BaseLayout>
+  <main class="min-h-screen p-6 max-w-4xl mx-auto space-y-6">
+    <h1 class="text-2xl font-bold">Developer Portal</h1>
+    <form method="post" class="bg-[#15151a] p-4 rounded space-y-3">
+      <input name="name" placeholder="App name" required class="w-full p-2 rounded bg-[#0b0b0f]" />
+      <textarea name="redirect_uris" placeholder="Redirect URIs (one per line)" required class="w-full p-2 rounded bg-[#0b0b0f]"></textarea>
+      <input name="scopes" placeholder="scopes (comma separated)" value="profile,email" class="w-full p-2 rounded bg-[#0b0b0f]" />
+      <label><input type="checkbox" name="confidential" /> Confidential client</label>
+      <button class="bg-red-600 px-4 py-2 rounded">Create App</button>
+    </form>
+    <div class="space-y-2">
+      {clients.map((c:any)=>(
+        <div class="bg-[#15151a] p-4 rounded">
+          <div class="font-bold">{c.name}</div>
+          <div class="text-sm text-gray-400">client_id: {c.clientId}</div>
+        </div>
+      ))}
+    </div>
+  </main>
+</BaseLayout>

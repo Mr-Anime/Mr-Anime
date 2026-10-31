@@ -1,31 +1,23 @@
-/// <reference types="astro/client" />
-
-interface D1PreparedStatement {
-  bind(...values: unknown[]): D1PreparedStatement;
-  first<T = Record<string, unknown>>(columnName?: string): Promise<T | null>;
-  all<T = Record<string, unknown>>(): Promise<D1Result<T>>;
-  run(): Promise<D1Result>;
-}
-
-interface D1Result<T = unknown> {
-  results: T[];
-  success: boolean;
-  meta: {
-    changes: number;
-    last_row_id: number;
-  };
-}
-
-interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-  batch(statements: D1PreparedStatement[]): Promise<D1Result[]>;
-}
-
-interface Env {
+﻿export interface Env {
   DB: D1Database;
-  PLAYER_EMBED_BASE_URL?: string;
+  CACHE: KVNamespace;
+  ASSETS: Fetcher;
+  TMDB_READ_ACCESS_TOKEN?: string;
+  EMAIL_API_KEY?: string;
+  SESSION_SECRET?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  SITE_URL?: string;
+  OAUTH_ISSUER?: string;
+  REQUIRE_LOGIN_TO_WATCH?: string;
+  PROVIDER_1_BASE?: string;
+  PROVIDER_2_BASE?: string;
+  PROVIDER_3_BASE?: string;
 }
 
-declare module "cloudflare:workers" {
-  export const env: Env;
+declare namespace App {
+  interface Locals {
+    user: any | null;
+    runtime?: { env: Env };
+  }
 }

@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { providers } from '../../config/providers';
+const { anilistId, episode } = Astro.params;
+const ep = Number(episode);
+const active = providers.find(p=>p.enabled);
+const src = active ? active.buildUrl({ anilistId: Number(anilistId), episode: ep, season: 1, type: "sub" } as any) : '#';
+---
+<BaseLayout>
+  <main class="min-h-screen p-4 max-w-6xl mx-auto space-y-4">
+    <h1 class="text-xl font-bold">Watch Episode {ep}</h1>
+    <div class="aspect-video bg-black rounded overflow-hidden">
+      <iframe src={src} class="w-full h-full" sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-fullscreen" referrerpolicy="no-referrer" allowfullscreen></iframe>
+    </div>
+    <div class="flex gap-2">
+      <a href={'/watch/'+anilistId+'/'+(ep-1)} class="px-3 py-2 bg-[#15151a] rounded">Prev</a>
+      <a href={'/watch/'+anilistId+'/'+(ep+1)} class="px-3 py-2 bg-[#15151a] rounded">Next</a>
+    </div>
+    <button class="px-3 py-2 bg-red-900 rounded">Report broken video</button>
+  </main>
+</BaseLayout>

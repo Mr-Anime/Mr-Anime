@@ -1,38 +1,16 @@
----
-import "../styles/global.css";
-import NotificationCenter from "../components/NotificationCenter.astro";
-
-interface Props {
-  title?: string;
-}
-const { title = "Mr. Anime" } = Astro.props;
+﻿---
+import '../styles/global.css';
 ---
 
-<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#081426" />
-    <meta name="description" content="Discover anime and join the Mr. Anime community." />
-    <title>{title}</title>
-  </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="/" aria-label="Mr. Anime home"><span class="brand-mark">M</span>r. Anime</a>
-      <nav aria-label="Main navigation">
-        <a href="/">Discover</a>
-        <a href="/#discover">Trending</a>
-        <a href="/#account">Community</a>
-      </nav>
-      <div class="header-tools"><NotificationCenter /><a class="header-action" href="/profile">Profile</a><a class="header-action" href="/#account">Sign in</a><a class="header-action header-register" href="/?account=register#account">Register <span aria-hidden="true">→</span></a></div>
-    </header>
-    <main>
-      <slot />
-    </main>
-    <footer class="site-footer">
-      <a class="brand" href="/"><span class="brand-mark">M</span>r. Anime</a>
-      <span>Anime data by AniList. Video playback is provided only by sources you are authorized to use.</span>
-    </footer>
-  </body>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Mr.Anime</title>
+	</head>
+	<body class="bg-[#0b0b0f] text-white">
+		<slot />
+	</body>
 </html>

@@ -1,38 +1,36 @@
 import type { APIRoute } from "astro";
-import { env } from "cloudflare:workers";
-import { hashPassword, issueSession, json } from "../../../lib/auth";
+import { getDb } from "../../../lib/db";
+import { users } from "../../../lib/schema";
+import { nanoid } from "nanoid";
 
-export const POST: APIRoute = async (context) => {
-  const { request } = context;
-  let input: Record<string, unknown>;
+async function hashPassword(pw: string) {
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
-    input = await request.json() as Record<string, unknown>;
-  } catch {
-    return json({ error: "Request body must be valid JSON." }, 400);
+    const env = (locals as any).runtime?.env;
+    const db = getDb(env);
+    const form = await request.formData();
+    const email = String(form.get("email") || "").toLowerCase().trim();
+    const username = String(form.get("username") || "").toLowerCase().trim();
+    const password = String(form.get("password") || "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return new Response("Invalid email", { status: 400 });
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) return new Response("Invalid username", { status: 400 });
+    if (password.length < 8) return new Response("Password too short", { status: 400 });
+    const exists = await db.select().from(users).all();
+    const taken = exists.find((u:any)=>u.email===email || u.username===username);
+    if (taken) return new Response("Email or username taken", { status: 400 });
+    const id = nanoid();
+    const now = Math.floor(Date.now()/1000);
+    const passwordHash = await hashPassword(password);
+    await db.insert(users).values({ id, email, emailVerified: 0, passwordHash, username, avatarUrl: null, role: "user", isVerified: 0, badges: "[]", isBanned: 0, banReason: null, createdAt: now });
+    return Response.redirect(new URL("/login", request.url), 302);
+  } catch (e:any) {
+    return new Response(e.message, { status: 500 });
   }
-  if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
-
-  const username = typeof input.username === "string" ? input.username.trim() : "";
-  const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
-  const password = typeof input.password === "string" ? input.password : "";
-  if (!/^[\p{L}\p{N}_-]{3,24}$/u.test(username)) {
-    return json({ error: "Username must be 3–24 letters, numbers, underscores, or hyphens." }, 400);
-  }
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json({ error: "Enter a valid email address." }, 400);
-  }
-  if (password.length < 8 || new TextEncoder().encode(password).length > 128) {
-    return json({ error: "Password must be at least 8 characters and no more than 128 bytes." }, 400);
-  }
-
-  const passwordHash = await hashPassword(password);
-  const result = await env.DB.prepare(
-    "INSERT OR IGNORE INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-  ).bind(username, email, passwordHash).run();
-
-  if (result.meta.changes === 0) return json({ error: "That email or username is already in use." }, 409);
-  const userId = Number(result.meta.last_row_id);
-  await env.DB.prepare("INSERT INTO profiles (user_id) VALUES (?)").bind(userId).run();
-  await issueSession(context, userId);
-  return json({ user: { username } }, 201);
 };
+
+export const config = { runtime: "edge" };

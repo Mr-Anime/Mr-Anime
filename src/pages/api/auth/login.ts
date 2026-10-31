@@ -1,34 +1,35 @@
 import type { APIRoute } from "astro";
-import { env } from "cloudflare:workers";
-import { issueSession, json, verifyPassword } from "../../../lib/auth";
+import { getDb } from "../../../lib/db";
+import { users } from "../../../lib/schema";
+import { eq } from "drizzle-orm";
+import { createSession, SESSION_COOKIE } from "../../../lib/session";
 
-export const POST: APIRoute = async (context) => {
-  let input: Record<string, unknown>;
+async function hashPassword(pw: string) {
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+export const POST: APIRoute = async ({ request, locals, cookies }) => {
   try {
-    input = await context.request.json() as Record<string, unknown>;
-  } catch {
-    return json({ error: "Request body must be valid JSON." }, 400);
+    const env = (locals as any).runtime?.env;
+    const db = getDb(env);
+    const form = await request.formData();
+    const email = String(form.get("email") || "").toLowerCase().trim();
+    const password = String(form.get("password") || "");
+    const user = await db.select().from(users).where(eq(users.email, email)).get();
+    if (!user || !user.passwordHash) return new Response("Invalid credentials", { status: 400 });
+    const hp = await hashPassword(password);
+    if (hp !== user.passwordHash) return new Response("Invalid credentials", { status: 400 });
+    if (user.isBanned) return Response.redirect(new URL("/suspended", request.url), 302);
+    const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || undefined;
+    const ua = request.headers.get("user-agent") || undefined;
+    const { token, expiresAt } = await createSession(env, user.id, ip, ua);
+    cookies.set(SESSION_COOKIE, token, { path: "/", httpOnly: true, secure: true, sameSite: "lax", expires: new Date(expiresAt * 1000) });
+    return Response.redirect(new URL("/", request.url), 302);
+  } catch (e:any) {
+    return new Response(e.message, { status: 500 });
   }
-  if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
-  const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
-  const password = typeof input.password === "string" ? input.password : "";
-  if (!email || !password) return json({ error: "Email and password are required." }, 400);
-
-  const user = await env.DB.prepare(
-    "SELECT id, username, password_hash, status, blocked_until FROM users WHERE email = ?",
-  ).bind(email).first<{ id: number; username: string; password_hash: string; status: string; blocked_until: string | null }>();
-
-  if (!user || !(await verifyPassword(password, user.password_hash))) {
-    return json({ error: "Email or password is incorrect." }, 401);
-  }
-  if (user.status === "banned" || (user.status === "blocked" && (!user.blocked_until || user.blocked_until > new Date().toISOString()))) {
-    return json({ error: "This account is currently restricted." }, 403);
-  }
-  if (user.status === "blocked") {
-    await env.DB.prepare(
-      "UPDATE users SET status = 'active', blocked_until = NULL WHERE id = ?",
-    ).bind(user.id).run();
-  }
-  await issueSession(context, user.id);
-  return json({ user: { username: user.username } });
 };
+
+export const config = { runtime: "edge" };

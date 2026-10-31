@@ -1,25 +1,17 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-export const prerender = false;
+import BaseLayout from '../layouts/BaseLayout.astro';
+const user = (Astro.locals as any).user;
+if (user) return Astro.redirect('/');
 ---
-<BaseLayout title="Register — Mr. Anime">
-  <section class="auth-card">
-    <h1>Register</h1>
-    <form id="register-form">
-      <label>Username<input type="text" name="username" required /></label>
-      <label>Email<input type="email" name="email" required /></label>
-      <label>Password<input type="password" name="password" required /></label>
-      <button class="button button-primary" type="submit">Register</button>
+<BaseLayout>
+  <main class="min-h-screen flex items-center justify-center p-4">
+    <form method="post" action="/api/auth/register" class="w-full max-w-sm bg-[#15151a] p-6 rounded-lg space-y-4">
+      <h1 class="text-2xl font-bold">Register</h1>
+      <input name="email" type="email" placeholder="Email" required class="w-full p-2 rounded bg-[#0b0b0f]" />
+      <input name="username" placeholder="Username" required class="w-full p-2 rounded bg-[#0b0b0f]" />
+      <input name="password" type="password" placeholder="Password" required class="w-full p-2 rounded bg-[#0b0b0f]" />
+      <button class="w-full bg-red-600 py-2 rounded">Register</button>
+      <p class="text-sm text-gray-400"><a href="/login" class="text-red-400">Login</a></p>
     </form>
-    <p>Have an account? <a href="/login">Login</a></p>
-  </section>
-  <script>
-    const form = document.getElementById('register-form');
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(form as HTMLFormElement));
-      const res = await fetch('/api/auth/register', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(data) });
-      if (res.ok) location.href = '/login'; else alert((await res.json()).error);
-    });
-  </script>
+  </main>
 </BaseLayout>

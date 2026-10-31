@@ -1,0 +1,3 @@
+﻿-- Make first admin manually:
+-- wrangler d1 execute mr-anime-db --local --command=\"UPDATE users SET role='admin', is_verified=1 WHERE email='your@email.com'\"
+-- Or in production: wrangler d1 execute mr-anime-db --remote --command=...

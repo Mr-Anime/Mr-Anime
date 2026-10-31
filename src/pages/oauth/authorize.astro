@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getDb } from '../../lib/db';
+import { oauthClients, oauthConsents } from '../../lib/schema';
+import { eq, and } from 'drizzle-orm';
+import { sha256Hex, randomBytesHex } from '../../lib/crypto';
+import { oauthAuthCodes } from '../../lib/schema';
+import { nanoid } from 'nanoid';
+
+const user = (Astro.locals as any).user;
+const url = new URL(Astro.request.url);
+const client_id = url.searchParams.get('client_id') || '';
+const redirect_uri = url.searchParams.get('redirect_uri') || '';
+const response_type = url.searchParams.get('response_type') || '';
+const scope = url.searchParams.get('scope') || 'profile';
+const state = url.searchParams.get('state') || '';
+const code_challenge = url.searchParams.get('code_challenge') || '';
+const code_challenge_method = url.searchParams.get('code_challenge_method') || '';
+
+if (!user) {
+  return Astro.redirect('/login?next=' + encodeURIComponent(url.pathname + url.search));
+}
+
+const env = (Astro.locals as any).runtime?.env;
+const db = getDb(env);
+const client = await db.select().from(oauthClients).where(eq(oauthClients.clientId, client_id)).get();
+if (!client || client.isActive !== 1) return new Response('Invalid client', { status: 400 });
+let redirectUris: string[] = [];
+try { redirectUris = JSON.parse(client.redirectUris || '[]'); } catch {}
+if (!redirectUris.includes(redirect_uri)) return new Response('Invalid redirect_uri', { status: 400 });
+if (response_type !== 'code') return new Response('Invalid response_type', { status: 400 });
+if (!state) return new Response('Missing state', { status: 400 });
+if (code_challenge_method !== 'S256' || !code_challenge) return new Response('PKCE S256 required', { status: 400 });
+
+const scopes = scope.split(' ').filter(Boolean);
+let allowed: string[] = [];
+try { allowed = JSON.parse(client.allowedScopes || '["profile"]'); } catch {}
+const okScopes = scopes.every(s => allowed.includes(s));
+if (!okScopes) return new Response('Invalid scope', { status: 400 });
+
+const consent = await db.select().from(oauthConsents).where(and(eq(oauthConsents.userId, user.id), eq(oauthConsents.clientId, client.clientId))).get();
+let grantedScopes: string[] = [];
+try { if (consent) grantedScopes = JSON.parse(consent.scopes || '[]'); } catch {}
+const hasConsent = grantedScopes.length && scopes.every(s => grantedScopes.includes(s));
+
+if (hasConsent && Astro.request.method === 'GET') {
+  const code = randomBytesHex(32);
+  const codeHash = await sha256Hex(code);
+  const now = Math.floor(Date.now()/1000);
+  await db.insert(oauthAuthCodes).values({ codeHash, clientId: client.clientId, userId: user.id, redirectUri: redirect_uri, scopes: JSON.stringify(scopes), codeChallenge: code_challenge, codeChallengeMethod: 'S256', expiresAt: now + 600, usedAt: null });
+  const r = new URL(redirect_uri);
+  r.searchParams.set('code', code);
+  r.searchParams.set('state', state);
+  return Astro.redirect(r.toString());
+}
+---
+
+<BaseLayout>
+  <main class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-[#15151a] p-6 rounded-lg space-y-4">
+      <h1 class="text-xl font-bold">Authorize {client.name}</h1>
+      <p class="text-gray-400">This app wants access to: {scopes.join(', ')}</p>
+      <form method="post">
+        <input type="hidden" name="client_id" value={client_id} />
+        <input type="hidden" name="redirect_uri" value={redirect_uri} />
+        <input type="hidden" name="scope" value={scope} />
+        <input type="hidden" name="state" value={state} />
+        <input type="hidden" name="code_challenge" value={code_challenge} />
+        <input type="hidden" name="code_challenge_method" value={code_challenge_method} />
+        <div class="flex gap-2">
+          <button name="action" value="allow" class="flex-1 bg-red-600 py-2 rounded">Allow</button>
+          <button name="action" value="deny" class="flex-1 bg-gray-700 py-2 rounded">Deny</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</BaseLayout>

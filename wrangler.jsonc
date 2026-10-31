@@ -1,13 +1,28 @@
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
+﻿{
   "name": "mr-anime",
-  "compatibility_date": "2025-03-20",
+  "main": "dist/_worker.js",
+  "compatibility_date": "2025-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist"
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "mr-anime-db",
-      "database_id": "7f15806d-0064-414e-a62d-34cdec6f002d"
+      "database_id": "REPLACE_WITH_DB_ID"
     }
-  ]
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE",
+      "id": "REPLACE_WITH_KV_ID"
+    }
+  ],
+  "vars": {
+    "SITE_URL": "http://localhost:4321",
+    "OAUTH_ISSUER": "http://localhost:4321",
+    "REQUIRE_LOGIN_TO_WATCH": "false"
+  }
 }

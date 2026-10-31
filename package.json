@@ -1,27 +1,36 @@
-{
+﻿{
   "name": "mr-anime",
-  "version": "1.0.0",
-  "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=22"
-  },
+  "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
+    "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
-    "deploy": "wrangler deploy --keep-vars",
-    "db:init": "wrangler d1 execute mr-anime-db --remote --file=./schema.sql",
-    "admin:create": "node scripts/create-admin.mjs"
+    "astro": "astro",
+    "cf:dev": "wrangler dev",
+    "deploy": "astro build && wrangler deploy",
+    "migrate": "wrangler d1 migrations apply mr-anime-db",
+    "migrate:local": "wrangler d1 migrations apply mr-anime-db --local"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.4.3",
-    "astro": "^7.4.4"
+    "astro": "^5.4.0",
+    "@astrojs/cloudflare": "^12.2.1",
+    "@astrojs/react": "^4.2.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.0.0",
+    "drizzle-orm": "^0.38.0",
+    "zod": "^3.24.0",
+    "arctic": "^2.3.0",
+    "nanoid": "^5.0.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "typescript": "^5.8.3",
-    "wrangler": "^4.156.0"
+    "wrangler": "^3.109.0",
+    "@cloudflare/workers-types": "^4.20250109.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
   }
 }
