@@ -2,67 +2,165 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getTrendingAnime, type Anime } from "../lib/anilist";
 
-let trendingAnime: Anime[] = [];
+// Extra fields are optional: add them to your AniList query in lib/anilist.ts
+// (description, format, episodes, genres) to get richer spotlight slides.
+type AnimeCard = Anime & {
+  description?: string | null;
+  format?: string | null;
+  episodes?: number | null;
+  genres?: string[] | null;
+};
+
+let trendingAnime: AnimeCard[] = [];
 try {
-  trendingAnime = await getTrendingAnime();
+  trendingAnime = (await getTrendingAnime()) as AnimeCard[];
 } catch (error) {
   console.error("Unable to load trending AniList titles", error);
 }
-const featuredAnime = trendingAnime[0];
+
+const titleOf = (a: AnimeCard) => a.title.english || a.title.romaji;
+const plain = (html?: string | null) => (html ?? "").replace(/<[^>]*>/g, "").trim();
+const metaOf = (a: AnimeCard) =>
+  [a.format, a.seasonYear, a.averageScore ? `${a.averageScore}%` : ""].filter(Boolean).join(" · ");
+
+const spotlight = trendingAnime.slice(0, 10);
+const strip = trendingAnime.slice(0, 12);
+const top10 = trendingAnime.slice(0, 10);
+
+const genres = [
+  "Action", "Adventure", "Comedy", "Drama", "Fantasy", "Horror", "Mahou Shoujo", "Mecha",
+  "Music", "Mystery", "Psychological", "Romance", "Sci-Fi", "Slice of Life", "Sports",
+  "Supernatural", "Thriller",
+];
 ---
 
 <BaseLayout title="Mr. Anime — Discover your next favorite">
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow"><span class="live-dot"></span> YOUR NEXT STORY STARTS HERE</p>
-      <h1>Find your next<br /><span>favorite anime.</span></h1>
-      <p class="hero-description">Explore the worlds, characters, and stories you can't stop thinking about.</p>
-      <form class="search-form" id="anime-search">
-        <label class="sr-only" for="search-query">Search anime</label>
-        <input id="search-query" name="query" placeholder="Search anime titles..." autocomplete="off" />
-        <button class="button button-primary" type="submit">Explore <span aria-hidden="true">→</span></button>
-      </form>
-      <div class="hero-tags"><span>Trending now</span><span>Community powered</span><span>Powered by AniList</span></div>
-    </div>
-    {featuredAnime ? (
-      <a class="hero-art hero-feature" href={`/watch/${featuredAnime.id}`} aria-label={`Discover ${featuredAnime.title.english || featuredAnime.title.romaji}`}>
-        {featuredAnime.bannerImage && <img class="hero-banner" src={featuredAnime.bannerImage} alt="" />}
-        <div class="feature-overlay">
-          <span class="feature-label">✦ TRENDING THIS WEEK</span>
-          <strong>{featuredAnime.title.english || featuredAnime.title.romaji}</strong>
-          <span class="feature-meta">{featuredAnime.seasonYear || "Anime"}{featuredAnime.averageScore ? ` · ${featuredAnime.averageScore}% score` : ""}</span>
-          <span class="button button-primary">View anime <span aria-hidden="true">→</span></span>
+  <!-- Top bar: quick nav + search -->
+  <div class="ha-topbar">
+    <nav class="ha-nav" aria-label="Browse">
+      <a href="/" class="is-active">Home</a>
+      <a href="#trending">Trending</a>
+      <a href="#discover">Discover</a>
+      <a href="#genres">Genres</a>
+      <a href="#account">Community</a>
+    </nav>
+    <form class="ha-search" id="anime-search">
+      <label class="sr-only" for="search-query">Search anime</label>
+      <input id="search-query" name="query" placeholder="Search anime..." autocomplete="off" />
+      <button type="submit" aria-label="Search">⌕</button>
+    </form>
+  </div>
+
+  <!-- Spotlight slider -->
+  <section class="ha-spotlight" aria-label="Spotlight">
+    {spotlight.length ? (
+      <>
+        {spotlight.map((anime, i) => (
+          <article class={`ha-slide${i === 0 ? " is-active" : ""}`} data-index={i}>
+            <img class="ha-slide-bg" src={anime.bannerImage || anime.coverImage.large} alt="" loading={i === 0 ? "eager" : "lazy"} />
+            <div class="ha-slide-shade"></div>
+            <div class="ha-slide-body">
+              <p class="ha-rank">#{i + 1} Spotlight</p>
+              <h1>{titleOf(anime)}</h1>
+              <p class="ha-slide-meta">
+                {anime.format && <span class="ha-chip">{anime.format}</span>}
+                {anime.seasonYear && <span class="ha-chip">{anime.seasonYear}</span>}
+                {anime.averageScore ? <span class="ha-chip ha-chip-hot">★ {anime.averageScore}%</span> : null}
+                {anime.episodes ? <span class="ha-chip">{anime.episodes} eps</span> : null}
+              </p>
+              {plain(anime.description) && <p class="ha-slide-desc">{plain(anime.description)}</p>}
+              <div class="ha-slide-actions">
+                <a class="ha-btn ha-btn-primary" href={`/watch/${anime.id}`}>▶ Watch now</a>
+                <a class="ha-btn ha-btn-ghost" href={`/watch/${anime.id}`}>Details →</a>
+              </div>
+            </div>
+          </article>
+        ))}
+        <div class="ha-slide-controls">
+          <button type="button" id="slide-prev" aria-label="Previous slide">‹</button>
+          <button type="button" id="slide-next" aria-label="Next slide">›</button>
         </div>
-      </a>
+        <div class="ha-dots" id="slide-dots">
+          {spotlight.map((_, i) => <button type="button" class={i === 0 ? "is-active" : ""} data-dot={i} aria-label={`Go to slide ${i + 1}`}></button>)}
+        </div>
+      </>
     ) : (
-      <div class="hero-art hero-feature hero-feature-fallback" aria-label="Anime artwork">
-        <div class="art-glow"></div>
-        <div class="art-card art-card-back"><span>新しい世界</span></div>
-        <div class="art-card art-card-front">
-          <div class="art-sun"></div><div class="art-mountain"></div><div class="art-horizon"></div>
-          <span class="art-caption">THE NEXT<br />ADVENTURE</span>
+      <div class="ha-slide is-active ha-slide-fallback">
+        <div class="ha-slide-body">
+          <p class="ha-rank">Mr. Anime</p>
+          <h1>Find your next favorite anime.</h1>
+          <p class="ha-slide-desc">Trending titles are unavailable right now. Use the search bar above to explore.</p>
         </div>
-        <div class="art-stamp">MR.<br /><b>ANIME</b></div>
       </div>
     )}
   </section>
 
-  <section class="content-section" id="discover">
-    <div class="section-heading">
-      <div><p class="eyebrow">A WORLD OF STORIES</p><h2>Trending anime</h2></div>
-      <span class="muted">Powered by AniList</span>
-    </div>
-    <div id="search-results" class="anime-grid" aria-live="polite">
-      {trendingAnime.length ? trendingAnime.map((anime) => (
-        <a class="anime-card" href={`/watch/${anime.id}`}>
-          <img src={anime.coverImage.large} alt={`Cover for ${anime.title.english || anime.title.romaji}`} loading="lazy" />
-          <strong>{anime.title.english || anime.title.romaji}</strong>
-          <span>{[anime.seasonYear, anime.averageScore ? `${anime.averageScore}%` : ""].filter(Boolean).join(" · ")}</span>
-        </a>
-      )) : <p class="empty-state">Trending titles are unavailable right now. Search for an anime to try again.</p>}
-    </div>
-  </section>
+  <!-- Trending strip -->
+  {strip.length > 0 && (
+    <section class="ha-section" id="trending">
+      <div class="ha-head"><h2><span class="ha-bar"></span>Trending</h2><span class="ha-muted">Powered by AniList</span></div>
+      <div class="ha-strip">
+        {strip.map((anime, i) => (
+          <a class="ha-strip-item" href={`/watch/${anime.id}`}>
+            <div class="ha-poster">
+              <img src={anime.coverImage.large} alt={`Cover for ${titleOf(anime)}`} loading="lazy" />
+              <span class="ha-num">{String(i + 1).padStart(2, "0")}</span>
+            </div>
+            <strong>{titleOf(anime)}</strong>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 
+  <!-- Main grid + sidebar -->
+  <div class="ha-layout">
+    <section class="ha-main" id="discover">
+      <div class="ha-head"><h2><span class="ha-bar"></span><span id="results-title">Discover anime</span></h2><span class="ha-muted">Fresh &amp; popular</span></div>
+      <div id="search-results" class="ha-grid" aria-live="polite">
+        {trendingAnime.length ? trendingAnime.map((anime) => (
+          <a class="ha-card" href={`/watch/${anime.id}`}>
+            <div class="ha-poster">
+              <img src={anime.coverImage.large} alt={`Cover for ${titleOf(anime)}`} loading="lazy" />
+              {anime.averageScore ? <span class="ha-badge">★ {anime.averageScore}%</span> : null}
+              <span class="ha-play" aria-hidden="true">▶</span>
+            </div>
+            <strong>{titleOf(anime)}</strong>
+            <span>{metaOf(anime)}</span>
+          </a>
+        )) : <p class="ha-empty">Trending titles are unavailable right now. Search for an anime to try again.</p>}
+      </div>
+    </section>
+
+    <aside class="ha-side">
+      <div class="ha-panel">
+        <div class="ha-head"><h2><span class="ha-bar"></span>Top 10</h2></div>
+        <ol class="ha-top">
+          {top10.length ? top10.map((anime, i) => (
+            <li>
+              <a href={`/watch/${anime.id}`}>
+                <span class={`ha-top-num${i < 3 ? " is-top" : ""}`}>{String(i + 1).padStart(2, "0")}</span>
+                <img src={anime.coverImage.large} alt="" loading="lazy" />
+                <span class="ha-top-info">
+                  <strong>{titleOf(anime)}</strong>
+                  <span>{metaOf(anime)}</span>
+                </span>
+              </a>
+            </li>
+          )) : <li class="ha-empty">No data yet.</li>}
+        </ol>
+      </div>
+
+      <div class="ha-panel" id="genres">
+        <div class="ha-head"><h2><span class="ha-bar"></span>Genres</h2></div>
+        <div class="ha-genres">
+          {genres.map((g) => <button type="button" class="ha-genre" data-genre={g}>{g}</button>)}
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Account (unchanged behavior) -->
   <section class="account-strip" id="account">
     <div><p class="eyebrow">JOIN THE COMMUNITY</p><h2>Your anime corner, your way.</h2><p>Create an account to comment, save your style, and receive community notices.</p></div>
     <form class="account-form" id="account-form">
@@ -80,49 +178,221 @@ const featuredAnime = trendingAnime[0];
     <p class="form-message" id="account-message" role="status"></p>
     </form>
   </section>
+
+  <style is:global>
+    :root {
+      --ha-bg: #14151a;
+      --ha-surface: #1d1e25;
+      --ha-surface-2: #262833;
+      --ha-text: #f1f2f6;
+      --ha-muted: #9a9db0;
+      --ha-accent: #ff8fb8;
+      --ha-accent-ink: #2a0f1a;
+      --ha-radius: 12px;
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* Top bar */
+    .ha-topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 12px 0 16px; }
+    .ha-nav { display: flex; gap: 6px; flex-wrap: wrap; }
+    .ha-nav a { color: var(--ha-muted); text-decoration: none; padding: 8px 14px; border-radius: 999px; font-weight: 600; font-size: 14px; transition: background .2s, color .2s; }
+    .ha-nav a:hover, .ha-nav a.is-active { color: var(--ha-text); background: var(--ha-surface-2); }
+    .ha-search { display: flex; align-items: center; background: var(--ha-surface); border: 1px solid #2f3140; border-radius: 999px; padding: 4px 4px 4px 16px; min-width: min(100%, 320px); transition: border-color .2s; }
+    .ha-search:focus-within { border-color: var(--ha-accent); }
+    .ha-search input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--ha-text); font-size: 14px; padding: 8px 0; }
+    .ha-search button { border: 0; background: var(--ha-accent); color: var(--ha-accent-ink); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+
+    /* Spotlight */
+    .ha-spotlight { position: relative; height: clamp(360px, 52vw, 540px); border-radius: 18px; overflow: hidden; background: var(--ha-surface); }
+    .ha-slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s; }
+    .ha-slide.is-active { opacity: 1; visibility: visible; }
+    .ha-slide-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.04); transition: transform 8s ease-out; }
+    .ha-slide.is-active .ha-slide-bg { transform: scale(1); }
+    .ha-slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,21,26,.96) 0%, rgba(20,21,26,.75) 38%, rgba(20,21,26,.1) 80%), linear-gradient(0deg, rgba(20,21,26,.85) 0%, transparent 45%); }
+    .ha-slide-body { position: absolute; left: clamp(20px, 4vw, 48px); bottom: clamp(36px, 7vw, 72px); max-width: min(620px, 86%); display: grid; gap: 14px; color: var(--ha-text); }
+    .ha-rank { margin: 0; color: var(--ha-accent); font-weight: 700; letter-spacing: .04em; font-size: 14px; }
+    .ha-slide-body h1 { margin: 0; font-size: clamp(26px, 4.4vw, 46px); line-height: 1.08; text-wrap: balance; }
+    .ha-slide-meta { margin: 0; display: flex; gap: 8px; flex-wrap: wrap; }
+    .ha-chip { background: rgba(255,255,255,.12); backdrop-filter: blur(6px); border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+    .ha-chip-hot { background: var(--ha-accent); color: var(--ha-accent-ink); }
+    .ha-slide-desc { margin: 0; color: #cfd1de; font-size: 14px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .ha-slide-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+    .ha-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 14px; transition: transform .15s, filter .2s; }
+    .ha-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .ha-btn-primary { background: var(--ha-accent); color: var(--ha-accent-ink); }
+    .ha-btn-ghost { background: rgba(255,255,255,.12); color: var(--ha-text); }
+    .ha-slide-controls { position: absolute; right: 20px; bottom: 20px; display: flex; gap: 8px; z-index: 2; }
+    .ha-slide-controls button { width: 42px; height: 42px; border-radius: 10px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 22px; cursor: pointer; backdrop-filter: blur(6px); transition: background .2s; }
+    .ha-slide-controls button:hover { background: var(--ha-accent); color: var(--ha-accent-ink); }
+    .ha-dots { position: absolute; left: clamp(20px, 4vw, 48px); bottom: 16px; display: flex; gap: 6px; z-index: 2; }
+    .ha-dots button { width: 8px; height: 8px; border-radius: 99px; border: 0; background: rgba(255,255,255,.3); cursor: pointer; padding: 0; transition: width .25s, background .25s; }
+    .ha-dots button.is-active { width: 24px; background: var(--ha-accent); }
+
+    /* Sections */
+    .ha-section { margin-top: 36px; }
+    .ha-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .ha-head h2 { margin: 0; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    .ha-bar { width: 4px; height: 20px; border-radius: 4px; background: var(--ha-accent); display: inline-block; }
+    .ha-muted { color: var(--ha-muted); font-size: 13px; }
+
+    /* Posters */
+    .ha-poster { position: relative; aspect-ratio: 2 / 3; border-radius: var(--ha-radius); overflow: hidden; background: var(--ha-surface-2); }
+    .ha-poster img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+
+    /* Trending strip */
+    .ha-strip { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 10px; scrollbar-width: thin; }
+    .ha-strip-item { flex: 0 0 150px; scroll-snap-align: start; text-decoration: none; color: var(--ha-text); display: grid; gap: 8px; align-content: start; }
+    .ha-strip-item strong { font-size: 13px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ha-strip-item:hover img { transform: scale(1.06); }
+    .ha-num { position: absolute; left: 8px; bottom: 6px; font-size: 38px; font-weight: 800; line-height: 1; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.8); }
+
+    /* Layout */
+    .ha-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 28px; margin-top: 36px; align-items: start; }
+    .ha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
+    .ha-card { text-decoration: none; color: var(--ha-text); display: grid; gap: 6px; align-content: start; }
+    .ha-card strong { font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ha-card > span { color: var(--ha-muted); font-size: 12px; }
+    .ha-card:hover img { transform: scale(1.07); }
+    .ha-badge { position: absolute; top: 8px; left: 8px; background: var(--ha-accent); color: var(--ha-accent-ink); border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 800; }
+    .ha-play { position: absolute; inset: 0; display: grid; place-items: center; font-size: 34px; color: #fff; background: rgba(20,21,26,.55); opacity: 0; transition: opacity .25s; }
+    .ha-card:hover .ha-play { opacity: 1; }
+    .ha-empty { color: var(--ha-muted); grid-column: 1 / -1; }
+
+    /* Sidebar */
+    .ha-side { display: grid; gap: 20px; }
+    .ha-panel { background: var(--ha-surface); border-radius: 16px; padding: 18px; }
+    .ha-top { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .ha-top a { display: grid; grid-template-columns: 30px 46px 1fr; gap: 12px; align-items: center; padding: 8px; border-radius: 10px; text-decoration: none; color: var(--ha-text); transition: background .2s; }
+    .ha-top a:hover { background: var(--ha-surface-2); }
+    .ha-top-num { font-weight: 800; color: var(--ha-muted); font-size: 18px; }
+    .ha-top-num.is-top { color: var(--ha-accent); }
+    .ha-top img { width: 46px; height: 62px; object-fit: cover; border-radius: 8px; }
+    .ha-top-info { display: grid; gap: 3px; min-width: 0; }
+    .ha-top-info strong { font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ha-top-info span { color: var(--ha-muted); font-size: 12px; }
+    .ha-genres { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ha-genre { border: 0; cursor: pointer; background: var(--ha-surface-2); color: var(--ha-text); border-radius: 8px; padding: 7px 12px; font-size: 13px; font-weight: 600; transition: background .2s, color .2s; }
+    .ha-genre:hover, .ha-genre.is-active { background: var(--ha-accent); color: var(--ha-accent-ink); }
+
+    @media (max-width: 960px) {
+      .ha-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .ha-topbar { flex-direction: column; align-items: stretch; }
+      .ha-slide-controls { display: none; }
+      .ha-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .ha-strip-item { flex-basis: 120px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ha-slide, .ha-slide-bg, .ha-poster img { transition: none; }
+    }
+  </style>
+
   <script>
+    /* ---------- Spotlight slider ---------- */
+    const slides = Array.from(document.querySelectorAll<HTMLElement>(".ha-slide[data-index]"));
+    const dots = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-dot]"));
+    let current = 0;
+    let timer: number | undefined;
+    function showSlide(next: number) {
+      if (!slides.length) return;
+      current = (next + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle("is-active", i === current));
+      dots.forEach((d, i) => d.classList.toggle("is-active", i === current));
+    }
+    function startAuto() {
+      stopAuto();
+      if (slides.length > 1) timer = window.setInterval(() => showSlide(current + 1), 6500);
+    }
+    function stopAuto() {
+      if (timer) window.clearInterval(timer);
+    }
+    document.querySelector("#slide-prev")?.addEventListener("click", () => { showSlide(current - 1); startAuto(); });
+    document.querySelector("#slide-next")?.addEventListener("click", () => { showSlide(current + 1); startAuto(); });
+    dots.forEach((d) => d.addEventListener("click", () => { showSlide(Number(d.dataset.dot)); startAuto(); }));
+    const spot = document.querySelector(".ha-spotlight");
+    spot?.addEventListener("mouseenter", stopAuto);
+    spot?.addEventListener("mouseleave", startAuto);
+    startAuto();
+
+    /* ---------- Search + genre filter (AniList) ---------- */
     const form = document.querySelector<HTMLFormElement>("#anime-search")!;
     const results = document.querySelector<HTMLDivElement>("#search-results")!;
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const query = new FormData(form).get("query")?.toString().trim();
-      if (!query) return;
-      results.innerHTML = '<p class="empty-state">Searching AniList…</p>';
+    const resultsTitle = document.querySelector<HTMLElement>("#results-title")!;
+    const genreButtons = Array.from(document.querySelectorAll<HTMLButtonElement>(".ha-genre"));
+
+    async function runSearch(opts: { search?: string; genre?: string }, label: string) {
+      resultsTitle.textContent = label;
+      results.innerHTML = '<p class="ha-empty">Searching AniList…</p>';
+      document.querySelector("#discover")?.scrollIntoView({ behavior: "smooth", block: "start" });
       try {
         const response = await fetch(`https://graphql.anilist.co`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            query: `query ($search: String) { Page(perPage: 12) { media(search: $search, type: ANIME, sort: POPULARITY_DESC) { id title { english romaji } coverImage { large } seasonYear averageScore } } }`,
-            variables: { search: query },
+            query: `query ($search: String, $genre: String) { Page(perPage: 24) { media(search: $search, genre: $genre, type: ANIME, sort: POPULARITY_DESC) { id title { english romaji } coverImage { large } seasonYear averageScore format } } }`,
+            variables: { search: opts.search || undefined, genre: opts.genre || undefined },
           }),
         });
         if (!response.ok) throw new Error("Search service is unavailable.");
         const payload = await response.json();
-        const anime = payload.data.Page.media;
+        const anime = payload.data.Page.media as any[];
         results.replaceChildren();
         for (const item of anime) {
           const title = item.title.english || item.title.romaji;
           const card = document.createElement("a");
-          card.className = "anime-card";
+          card.className = "ha-card";
           card.href = `/watch/${item.id}`;
+
+          const poster = document.createElement("div");
+          poster.className = "ha-poster";
           const image = document.createElement("img");
           image.src = item.coverImage.large;
           image.alt = `Cover for ${title}`;
           image.loading = "lazy";
+          poster.append(image);
+          if (item.averageScore) {
+            const badge = document.createElement("span");
+            badge.className = "ha-badge";
+            badge.textContent = `★ ${item.averageScore}%`;
+            poster.append(badge);
+          }
+          const play = document.createElement("span");
+          play.className = "ha-play";
+          play.setAttribute("aria-hidden", "true");
+          play.textContent = "▶";
+          poster.append(play);
+
           const name = document.createElement("strong");
           name.textContent = title;
           const meta = document.createElement("span");
-          meta.textContent = [item.seasonYear, item.averageScore ? `${item.averageScore}%` : ""].filter(Boolean).join(" · ");
-          card.append(image, name, meta);
+          meta.textContent = [item.format, item.seasonYear, item.averageScore ? `${item.averageScore}%` : ""].filter(Boolean).join(" · ");
+          card.append(poster, name, meta);
           results.append(card);
         }
-        if (!anime.length) results.innerHTML = '<p class="empty-state">No titles found. Try another search.</p>';
+        if (!anime.length) results.innerHTML = '<p class="ha-empty">No titles found. Try another search.</p>';
       } catch (error) {
         results.textContent = error instanceof Error ? error.message : "Unable to search right now.";
       }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = new FormData(form).get("query")?.toString().trim();
+      if (!query) return;
+      genreButtons.forEach((b) => b.classList.remove("is-active"));
+      runSearch({ search: query }, `Results for “${query}”`);
     });
 
+    genreButtons.forEach((btn) =>
+      btn.addEventListener("click", () => {
+        genreButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+        const genre = btn.dataset.genre || "";
+        runSearch({ genre }, `${genre} anime`);
+      })
+    );
+
+    /* ---------- Account (unchanged) ---------- */
     const accountForm = document.querySelector<HTMLFormElement>("#account-form")!;
     const usernameInput = document.querySelector<HTMLInputElement>("#account-username")!;
     const passwordInput = document.querySelector<HTMLInputElement>("#account-password")!;
