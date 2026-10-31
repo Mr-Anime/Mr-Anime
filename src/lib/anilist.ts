@@ -49,7 +49,7 @@ const trendingQuery = `
 export async function getAnime(id: number): Promise<Anime | null> {
   const response = await fetch(ANILIST_ENDPOINT, {
     method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
+    headers: { "content-type": "application/json", accept: "application/json", "user-agent": "Mr.Anime/1.0" },
     body: JSON.stringify({ query, variables: { id } }),
   });
 
@@ -64,7 +64,7 @@ export async function getAnime(id: number): Promise<Anime | null> {
 export async function getTrendingAnime(): Promise<Anime[]> {
   const response = await fetch(ANILIST_ENDPOINT, {
     method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
+    headers: { "content-type": "application/json", accept: "application/json", "user-agent": "Mr.Anime/1.0" },
     body: JSON.stringify({ query: trendingQuery }),
   });
 

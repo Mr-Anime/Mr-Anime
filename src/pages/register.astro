@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+export const prerender = false;
+---
+<BaseLayout title="Register — Mr. Anime">
+  <section class="auth-card">
+    <h1>Register</h1>
+    <form id="register-form">
+      <label>Username<input type="text" name="username" required /></label>
+      <label>Email<input type="email" name="email" required /></label>
+      <label>Password<input type="password" name="password" required /></label>
+      <button class="button button-primary" type="submit">Register</button>
+    </form>
+    <p>Have an account? <a href="/login">Login</a></p>
+  </section>
+  <script>
+    const form = document.getElementById('register-form');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form as HTMLFormElement));
+      const res = await fetch('/api/auth/register', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(data) });
+      if (res.ok) location.href = '/login'; else alert((await res.json()).error);
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getAnime } from "../../lib/anilist";
+export const prerender = false;
+const id = Number(Astro.params.id);
+if (!Number.isSafeInteger(id) || id < 1) return Astro.redirect("/");
+let anime = null; let loadError = false;
+try { anime = await getAnime(id); } catch { loadError = true; }
+---
+<BaseLayout title={anime ? `${anime.title.english || anime.title.romaji} — Mr. Anime` : "Anime info — Mr. Anime"}>
+  {anime ? (
+    <section class="anime-info">
+      <img src={anime.coverImage.extraLarge || anime.coverImage.large} alt={anime.title.english || anime.title.romaji} />
+      <div>
+        <h1>{anime.title.english || anime.title.romaji}</h1>
+        <p>{anime.description?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()}</p>
+        <p>{anime.episodes ? `${anime.episodes} episodes` : ""}{anime.averageScore ? ` · ${anime.averageScore}%` : ""}</p>
+        <div class="genre-list">{anime.genres.map((g) => <span>{g}</span>)}</div>
+        <a class="button button-primary" href={`/watch/${anime.id}`}>Watch</a>
+      </div>
+    </section>
+  ) : (
+    <section class="not-found"><p class="eyebrow">TITLE NOT FOUND</p><h1>{loadError ? "Anime metadata is unavailable right now." : "We couldn't find that title."}</h1><a class="button button-primary" href="/">Back</a></section>
+  )}
+</BaseLayout>

@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+<BaseLayout title="API Docs — Mr. Anime">
+  <section class="docs">
+    <h1>API Documentation</h1>
+    <h2>Auth</h2>
+    <p>POST /api/auth/login — {'{ email, password }'}</p>
+    <p>POST /api/auth/register — {'{ username, email, password }'}</p>
+    <p>POST /api/auth/logout</p>
+    <h2>Anime</h2>
+    <p>GET /anime/:id — info page; GET /watch/:id — watch page</p>
+    <h2>Other</h2>
+    <p>Comments, profile, moderation, notifications, redeem, admin endpoints under /api.</p>
+  </section>
+</BaseLayout>
