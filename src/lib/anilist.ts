@@ -28,6 +28,24 @@ const query = `
   }
 `;
 
+const trendingQuery = `
+  query {
+    Page(perPage: 8) {
+      media(type: ANIME, sort: TRENDING_DESC) {
+        id
+        title { english romaji }
+        description(asHtml: false)
+        coverImage { extraLarge large }
+        bannerImage
+        episodes
+        seasonYear
+        genres
+        averageScore
+      }
+    }
+  }
+`;
+
 export async function getAnime(id: number): Promise<Anime | null> {
   const response = await fetch(ANILIST_ENDPOINT, {
     method: "POST",
@@ -41,4 +59,19 @@ export async function getAnime(id: number): Promise<Anime | null> {
 
   const result = await response.json() as { data?: { Media?: Anime | null } };
   return result.data?.Media ?? null;
+}
+
+export async function getTrendingAnime(): Promise<Anime[]> {
+  const response = await fetch(ANILIST_ENDPOINT, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({ query: trendingQuery }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AniList request failed with status ${response.status}`);
+  }
+
+  const result = await response.json() as { data?: { Page?: { media?: Anime[] } } };
+  return result.data?.Page?.media ?? [];
 }

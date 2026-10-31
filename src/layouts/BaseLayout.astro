@@ -13,7 +13,7 @@ const { title = "Mr. Anime" } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#11131a" />
+    <meta name="theme-color" content="#081426" />
     <meta name="description" content="Discover anime and join the Mr. Anime community." />
     <title>{title}</title>
   </head>
@@ -22,10 +22,10 @@ const { title = "Mr. Anime" } = Astro.props;
       <a class="brand" href="/" aria-label="Mr. Anime home"><span class="brand-mark">M</span>r. Anime</a>
       <nav aria-label="Main navigation">
         <a href="/">Discover</a>
-        <a href="/#community">Community</a>
-        <a href="/admin">Dashboard</a>
+        <a href="/#discover">Trending</a>
+        <a href="/#account">Community</a>
       </nav>
-      <div class="header-tools"><NotificationCenter /><a class="header-action" href="/#account">Sign in</a><a class="header-action" href="/profile">Profile</a></div>
+      <div class="header-tools"><NotificationCenter /><a class="header-action" href="/profile">Profile</a><a class="header-action" href="/#account">Sign in</a><a class="header-action header-register" href="/?account=register#account">Register <span aria-hidden="true">→</span></a></div>
     </header>
     <main>
       <slot />

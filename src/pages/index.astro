@@ -1,5 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getTrendingAnime, type Anime } from "../lib/anilist";
+
+let trendingAnime: Anime[] = [];
+try {
+  trendingAnime = await getTrendingAnime();
+} catch (error) {
+  console.error("Unable to load trending AniList titles", error);
+}
+const featuredAnime = trendingAnime[0];
 ---
 
 <BaseLayout title="Mr. Anime — Discover your next favorite">
@@ -13,37 +22,62 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <input id="search-query" name="query" placeholder="Search anime titles..." autocomplete="off" />
         <button class="button button-primary" type="submit">Explore <span aria-hidden="true">→</span></button>
       </form>
-      <div class="hero-tags"><span>Curated for you</span><span>Community powered</span><span>Always in season</span></div>
+      <div class="hero-tags"><span>Trending now</span><span>Community powered</span><span>Powered by AniList</span></div>
     </div>
-    <div class="hero-art" aria-label="Anime artwork">
-      <div class="art-glow"></div>
-      <div class="art-card art-card-back"><span>新しい世界</span></div>
-      <div class="art-card art-card-front">
-        <div class="art-sun"></div><div class="art-mountain"></div><div class="art-horizon"></div>
-        <span class="art-caption">THE NEXT<br />ADVENTURE</span>
+    {featuredAnime ? (
+      <a class="hero-art hero-feature" href={`/watch/${featuredAnime.id}`} aria-label={`Discover ${featuredAnime.title.english || featuredAnime.title.romaji}`}>
+        {featuredAnime.bannerImage && <img class="hero-banner" src={featuredAnime.bannerImage} alt="" />}
+        <div class="feature-overlay">
+          <span class="feature-label">✦ TRENDING THIS WEEK</span>
+          <strong>{featuredAnime.title.english || featuredAnime.title.romaji}</strong>
+          <span class="feature-meta">{featuredAnime.seasonYear || "Anime"}{featuredAnime.averageScore ? ` · ${featuredAnime.averageScore}% score` : ""}</span>
+          <span class="button button-primary">View anime <span aria-hidden="true">→</span></span>
+        </div>
+      </a>
+    ) : (
+      <div class="hero-art hero-feature hero-feature-fallback" aria-label="Anime artwork">
+        <div class="art-glow"></div>
+        <div class="art-card art-card-back"><span>新しい世界</span></div>
+        <div class="art-card art-card-front">
+          <div class="art-sun"></div><div class="art-mountain"></div><div class="art-horizon"></div>
+          <span class="art-caption">THE NEXT<br />ADVENTURE</span>
+        </div>
+        <div class="art-stamp">MR.<br /><b>ANIME</b></div>
       </div>
-      <div class="art-stamp">EP<br /><b>01</b></div>
-    </div>
+    )}
   </section>
 
   <section class="content-section" id="discover">
     <div class="section-heading">
-      <div><p class="eyebrow">A WORLD OF STORIES</p><h2>Explore anime</h2></div>
+      <div><p class="eyebrow">A WORLD OF STORIES</p><h2>Trending anime</h2></div>
       <span class="muted">Powered by AniList</span>
     </div>
     <div id="search-results" class="anime-grid" aria-live="polite">
-      <p class="empty-state">Search for a title to discover anime.</p>
+      {trendingAnime.length ? trendingAnime.map((anime) => (
+        <a class="anime-card" href={`/watch/${anime.id}`}>
+          <img src={anime.coverImage.large} alt={`Cover for ${anime.title.english || anime.title.romaji}`} loading="lazy" />
+          <strong>{anime.title.english || anime.title.romaji}</strong>
+          <span>{[anime.seasonYear, anime.averageScore ? `${anime.averageScore}%` : ""].filter(Boolean).join(" · ")}</span>
+        </a>
+      )) : <p class="empty-state">Trending titles are unavailable right now. Search for an anime to try again.</p>}
     </div>
   </section>
 
   <section class="account-strip" id="account">
     <div><p class="eyebrow">JOIN THE COMMUNITY</p><h2>Your anime corner, your way.</h2><p>Create an account to comment, save your style, and receive community notices.</p></div>
     <form class="account-form" id="account-form">
-      <input name="username" placeholder="Username (for registration)" minlength="3" maxlength="24" />
-      <input name="email" type="email" placeholder="Email" required />
-      <input name="password" type="password" placeholder="Password (8+ characters)" minlength="8" required />
-      <div class="account-actions"><button class="button button-primary" data-mode="login">Sign in</button><button class="button button-quiet" data-mode="register">Create account</button></div>
-      <p class="form-message" id="account-message" role="status"></p>
+    <div class="account-tabs" role="tablist" aria-label="Account options">
+      <button class="account-tab is-active" id="login-tab" type="button" role="tab" aria-selected="true" data-mode="login">Sign in</button>
+      <button class="account-tab" id="register-tab" type="button" role="tab" aria-selected="false" data-mode="register">Create account</button>
+    </div>
+    <label class="sr-only" for="account-username">Username</label>
+    <input id="account-username" name="username" placeholder="Username" minlength="3" maxlength="24" autocomplete="username" hidden />
+    <label class="sr-only" for="account-email">Email</label>
+    <input id="account-email" name="email" type="email" placeholder="Email address" autocomplete="email" required />
+    <label class="sr-only" for="account-password">Password</label>
+    <input id="account-password" name="password" type="password" placeholder="Password" minlength="8" maxlength="128" autocomplete="current-password" required />
+    <button class="button button-primary account-submit" id="account-submit" type="submit">Sign in <span aria-hidden="true">→</span></button>
+    <p class="form-message" id="account-message" role="status"></p>
     </form>
   </section>
   <script>
@@ -90,14 +124,34 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     });
 
     const accountForm = document.querySelector<HTMLFormElement>("#account-form")!;
+    const usernameInput = document.querySelector<HTMLInputElement>("#account-username")!;
+    const passwordInput = document.querySelector<HTMLInputElement>("#account-password")!;
+    const accountSubmit = document.querySelector<HTMLButtonElement>("#account-submit")!;
+    const accountTabs = Array.from(document.querySelectorAll<HTMLButtonElement>(".account-tab"));
+    let accountMode = "login";
+    function setAccountMode(mode: string) {
+      accountMode = mode;
+      const registering = mode === "register";
+      usernameInput.hidden = !registering;
+      usernameInput.required = registering;
+      passwordInput.autocomplete = registering ? "new-password" : "current-password";
+      accountSubmit.innerHTML = registering ? 'Create account <span aria-hidden="true">→</span>' : 'Sign in <span aria-hidden="true">→</span>';
+      accountTabs.forEach((tab) => {
+        const active = tab.dataset.mode === mode;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", String(active));
+      });
+    }
+    accountTabs.forEach((tab) => tab.addEventListener("click", () => setAccountMode(tab.dataset.mode || "login")));
+    if (new URL(window.location.href).searchParams.get("account") === "register") setAccountMode("register");
     accountForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const submitter = (event as SubmitEvent).submitter as HTMLButtonElement | null;
-      const mode = submitter?.dataset.mode ?? "login";
       const data = Object.fromEntries(new FormData(accountForm).entries());
       const message = document.querySelector<HTMLParagraphElement>("#account-message")!;
       try {
-        const response = await fetch(`/api/auth/${mode}`, {
+        accountSubmit.disabled = true;
+        accountSubmit.textContent = accountMode === "register" ? "Creating account…" : "Signing in…";
+        const response = await fetch(`/api/auth/${accountMode}`, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(data),
@@ -105,8 +159,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Unable to sign in.");
         message.textContent = `Welcome${result.user?.username ? `, ${result.user.username}` : ""}!`;
+        window.location.assign("/profile");
       } catch (error) {
         message.textContent = error instanceof Error ? error.message : "Unable to sign in.";
+      } finally {
+        accountSubmit.disabled = false;
+        setAccountMode(accountMode);
       }
     });
   </script>

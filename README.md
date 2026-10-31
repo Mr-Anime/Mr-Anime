@@ -18,39 +18,39 @@ src/
 astro.config.mjs          Astro SSR + Cloudflare Workers adapter
 schema.sql                Paste-ready Cloudflare D1 schema and starter items
 wrangler.jsonc            Cloudflare Workers and D1 binding
+scripts/create-admin.mjs  Secure one-time admin account setup
 ```
 
 ## Run locally
 
 1. Install Node.js 22 or later (required by the installed Wrangler version).
 2. Run `npm install`.
-3. Replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc` with the UUID of your D1 database. Do not commit credentials or secrets.
+3. Configure the `database_id` in `wrangler.jsonc` from your Cloudflare D1 database. Do not commit credentials or secrets.
 4. Run `npm run dev`. Run `npm run check` and `npm run build` before deployment. `npm run deploy` deploys the already-built Worker and preserves Dashboard-managed variables.
 
 Astro pages that call D1 use the Cloudflare runtime binding at `Astro.locals.runtime.env.DB`. Do not use a local SQLite file in production.
 
 ## Create and bind Cloudflare D1
 
-1. In the Cloudflare Dashboard, open **Storage & databases → D1 SQL Database** and create a database named `mr-anime`.
-2. Open that database's **Console** and execute the complete contents of `schema.sql`. It creates the tables and indexes plus three starter frame and name-style catalog entries.
-3. Copy the database UUID from the database's **Settings** page. Replace `REPLACE_WITH_YOUR_D1_DATABASE_ID` in `wrangler.jsonc` with that UUID. The ID is account-specific and must not be guessed.
-4. Push this project to GitHub. In Cloudflare, go to **Workers & Pages → Create application → Workers → Import a repository**, connect the repository, and configure **Workers Builds** (not a Pages project).
-5. Set the build command to `npm run build` and the deploy command to `npm run deploy`. Use Node.js 22 or later. No Pages build-output directory is needed; Astro's Cloudflare adapter generates the Worker entry point and static asset configuration.
-6. The D1 binding is declared in `wrangler.jsonc` as `DB`. Keep the database UUID in that file aligned with the database selected for the Worker. If using separate preview and production databases, configure each environment with its own matching binding and ID.
-7. In the Worker **Settings → Variables and Secrets**, optionally set `PLAYER_EMBED_BASE_URL` to your authorized HTTPS embed endpoint. The app adds `anilist=<AniList ID>` and `episode=<episode number>` query parameters. Leave it unset to show the player setup prompt. Never put secrets in `wrangler.jsonc`.
-8. For a custom domain, open the Worker **Settings → Domains & Routes** and add the domain. It must be controlled by your Cloudflare account.
+1. In the Cloudflare Dashboard, open **Storage & databases → D1 SQL Database** and create a database. Set its name in `wrangler.jsonc` under `database_name`, then copy its UUID from **Settings** into `database_id`.
+2. Apply the schema to that database with `npm run db:init`. This is a remote, write operation; run it deliberately after verifying the configured database. It creates tables and indexes and adds three starter frame and name-style catalog entries.
+3. Push this project to GitHub. In Cloudflare, go to **Workers & Pages → Create application → Workers → Import a repository**, connect the repository, and configure **Workers Builds** (not a Pages project).
+4. Set the build command to `npm run build` and the deploy command to `npm run deploy`. Use Node.js 22 or later. No Pages build-output directory is needed; Astro's Cloudflare adapter generates the Worker entry point and static asset configuration.
+5. The D1 binding is declared in `wrangler.jsonc` as `DB`. Keep the database UUID in that file aligned with the database selected for the Worker. If using separate preview and production databases, configure each environment with its own matching binding and ID.
+6. In the Worker **Settings → Variables and Secrets**, optionally set `PLAYER_EMBED_BASE_URL` to an authorized HTTPS embed endpoint. The app adds `anilist=<AniList ID>` and `episode=<episode number>` query parameters. Leave it unset to show the playback setup prompt. Never put secrets in `wrangler.jsonc`.
+7. For a custom domain, open the Worker **Settings → Domains & Routes** and add the domain. It must be controlled by your Cloudflare account.
 
 The adapter's generated `ASSETS` binding is the Workers static-assets binding and must not be renamed. Astro's built-in sessions and image optimizer are disabled because the app stores its own sessions in D1 and uses standard remote images. The project is configured for Workers; do not create or deploy it as a Pages project.
 
 ## First admin and roles
 
-Create an account through the app first. Find its numeric `id` in the D1 `users` table and promote it from the D1 Console:
+To create a new admin account, run the one-time setup script in an interactive terminal. Use the database name from `wrangler.jsonc`:
 
-```sql
-UPDATE users SET role = 'admin' WHERE id = 1;
+```powershell
+npm run admin:create -- <database-name>
 ```
 
-Replace `1` with the account's actual ID. This is intentionally a manual bootstrap; public registration can only create ordinary users. Admins can promote moderators and send notices from `/admin`; moderators can restrict accounts and remove comments. Restrictions and privileged routes are enforced server-side.
+The script asks for the email, username, and password twice; password input is hidden. It hashes the password using the same PBKDF2 settings as sign-in, writes the account and profile to D1, and removes its temporary SQL file. It does not create a known default password or overwrite an existing account. Public registration continues to create ordinary users. Admins can promote moderators and send notices from `/admin`; moderators can restrict accounts and remove comments.
 
 ## Frames, styles, and promo codes
 
@@ -68,4 +68,4 @@ SELECT 'MOONLIGHT-2026', 'frame', id, 100 FROM frames WHERE slug = 'frame-004';
 
 ## Playback and AniList
 
-AniList's public GraphQL API supplies titles, covers, genres, and episode counts. The watch route uses the AniList ID and episode number. Set `PLAYER_EMBED_BASE_URL` only to an endpoint for content you own, have licensed, or are otherwise authorized to distribute. No third-party stream hosts or unlicensed stream catalog are bundled.
+AniList's public GraphQL API supplies the home page's trending banner and titles, search results, anime details, covers, genres, and episode counts. The watch route uses the AniList ID and episode number, with episode selection constrained to the listed episode count. Set `PLAYER_EMBED_BASE_URL` only to an HTTPS endpoint for content you own, have licensed, or are otherwise authorized to distribute. Without that setting, anime details, episode selection, and comments work, but the video player remains a setup prompt. No third-party stream hosts or unlicensed stream catalog are bundled.

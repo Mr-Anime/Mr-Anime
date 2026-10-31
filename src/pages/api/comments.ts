@@ -1,14 +1,15 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { currentUser, json } from "../../lib/auth";
 
 export const GET: APIRoute = async (context) => {
-  const { url, locals } = context;
+  const { url } = context;
   const animeId = Number(url.searchParams.get("animeId"));
   const episode = Number(url.searchParams.get("episode"));
   if (!Number.isSafeInteger(animeId) || animeId < 1 || !Number.isSafeInteger(episode) || episode < 1) {
     return json({ error: "A valid anime ID and episode are required." }, 400);
   }
-  const [result, viewer] = await Promise.all([locals.runtime.env.DB.prepare(`
+  const [result, viewer] = await Promise.all([env.DB.prepare(`
     SELECT c.id, c.user_id, c.body, c.created_at, u.username, u.badge, ns.css_class, f.image_path AS frame_image
     FROM comments c JOIN users u ON u.id = c.user_id
     LEFT JOIN profiles p ON p.user_id = u.id
@@ -37,7 +38,7 @@ export const POST: APIRoute = async (context) => {
     return json({ error: "A valid anime ID and episode are required." }, 400);
   }
   if (body.length < 1 || body.length > 1000) return json({ error: "Comments must be between 1 and 1000 characters." }, 400);
-  const result = await context.locals.runtime.env.DB.prepare(
+  const result = await env.DB.prepare(
     "INSERT INTO comments (user_id, anime_id, episode, body) VALUES (?, ?, ?, ?)",
   ).bind(user.id, animeId, episode, body).run();
   return json({ id: result.meta.last_row_id }, 201);
@@ -57,7 +58,7 @@ export const DELETE: APIRoute = async (context) => {
   if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
   const commentId = Number(input.commentId);
   if (!Number.isSafeInteger(commentId) || commentId < 1) return json({ error: "A valid comment ID is required." }, 400);
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   const existing = await db.prepare("SELECT id, user_id FROM comments WHERE id = ?").bind(commentId).first<{ id: number; user_id: number }>();
   if (!existing) return json({ error: "Comment not found." }, 404);
   await db.batch([
@@ -80,7 +81,7 @@ export const PATCH: APIRoute = async (context) => {
   if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
   const commentId = Number(input.commentId);
   if (!Number.isSafeInteger(commentId) || commentId < 1) return json({ error: "A valid comment ID is required." }, 400);
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   const comment = await db.prepare("SELECT id, user_id FROM comments WHERE id = ? AND status = 'visible'")
     .bind(commentId).first<{ id: number; user_id: number }>();
   if (!comment) return json({ error: "Comment not found." }, 404);

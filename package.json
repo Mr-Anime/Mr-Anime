@@ -11,7 +11,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "wrangler deploy --keep-vars"
+    "deploy": "wrangler deploy --keep-vars",
+    "db:init": "wrangler d1 execute mr-anime-db --remote --file=./schema.sql",
+    "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.3",

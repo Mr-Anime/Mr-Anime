@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { hashPassword, issueSession, json } from "../../../lib/auth";
 
 export const POST: APIRoute = async (context) => {
-  const { request, locals } = context;
+  const { request } = context;
   let input: Record<string, unknown>;
   try {
     input = await request.json() as Record<string, unknown>;
@@ -25,13 +26,13 @@ export const POST: APIRoute = async (context) => {
   }
 
   const passwordHash = await hashPassword(password);
-  const result = await locals.runtime.env.DB.prepare(
+  const result = await env.DB.prepare(
     "INSERT OR IGNORE INTO users (username, email, password_hash) VALUES (?, ?, ?)",
   ).bind(username, email, passwordHash).run();
 
   if (result.meta.changes === 0) return json({ error: "That email or username is already in use." }, 409);
   const userId = Number(result.meta.last_row_id);
-  await locals.runtime.env.DB.prepare("INSERT INTO profiles (user_id) VALUES (?)").bind(userId).run();
+  await env.DB.prepare("INSERT INTO profiles (user_id) VALUES (?)").bind(userId).run();
   await issueSession(context, userId);
   return json({ user: { username } }, 201);
 };

@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { currentUser, json } from "../../lib/auth";
 
 export const GET: APIRoute = async (context) => {
@@ -6,7 +7,7 @@ export const GET: APIRoute = async (context) => {
   if (!user || (user.role !== "moderator" && user.role !== "admin")) {
     return json({ error: "Moderator access is required." }, 403);
   }
-  const result = await context.locals.runtime.env.DB.prepare(`
+  const result = await env.DB.prepare(`
     SELECT c.id, c.user_id, c.anime_id, c.episode, c.body, c.created_at, u.username
     FROM comments c JOIN users u ON u.id = c.user_id
     WHERE c.status = 'flagged'
@@ -32,7 +33,7 @@ export const POST: APIRoute = async (context) => {
   if (!Number.isSafeInteger(commentId) || commentId < 1 || (action !== "remove" && action !== "dismiss")) {
     return json({ error: "A valid comment ID and moderation action are required." }, 400);
   }
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   const comment = await db.prepare("SELECT id, user_id FROM comments WHERE id = ? AND status = 'flagged'")
     .bind(commentId).first<{ id: number; user_id: number }>();
   if (!comment) return json({ error: "Flagged comment not found." }, 404);

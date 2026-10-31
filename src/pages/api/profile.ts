@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { currentUser, json } from "../../lib/auth";
 
 export const GET: APIRoute = async (context) => {
   const user = await currentUser(context);
   if (!user) return json({ error: "Sign in to view your profile." }, 401);
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   await db.prepare("INSERT OR IGNORE INTO profiles (user_id) VALUES (?)").bind(user.id).run();
   const [profile, frames, styles] = await Promise.all([
     db.prepare(`
@@ -44,7 +45,7 @@ export const PATCH: APIRoute = async (context) => {
       (styleId !== null && (!Number.isSafeInteger(styleId) || styleId < 1))) {
     return json({ error: "Invalid profile item selection." }, 400);
   }
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   if (frameId !== null) {
     const owned = await db.prepare(`
       SELECT 1 FROM user_inventory i JOIN frames f ON f.id = i.item_id

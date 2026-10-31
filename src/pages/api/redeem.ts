@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { currentUser, json } from "../../lib/auth";
 
 export const POST: APIRoute = async (context) => {
@@ -13,7 +14,7 @@ export const POST: APIRoute = async (context) => {
   if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
   const code = typeof input.code === "string" ? input.code.trim() : "";
   if (!/^[A-Za-z0-9_-]{3,64}$/.test(code)) return json({ error: "Enter a valid promo code." }, 400);
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   const promo = await db.prepare("SELECT id, item_type, item_id FROM promo_codes WHERE code = ? COLLATE NOCASE AND active = 1")
     .bind(code).first<{ id: number; item_type: string; item_id: number }>();
   if (!promo) return json({ error: "This code is invalid or inactive." }, 404);

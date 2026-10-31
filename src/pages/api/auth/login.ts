@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { issueSession, json, verifyPassword } from "../../../lib/auth";
 
 export const POST: APIRoute = async (context) => {
@@ -13,7 +14,7 @@ export const POST: APIRoute = async (context) => {
   const password = typeof input.password === "string" ? input.password : "";
   if (!email || !password) return json({ error: "Email and password are required." }, 400);
 
-  const user = await context.locals.runtime.env.DB.prepare(
+  const user = await env.DB.prepare(
     "SELECT id, username, password_hash, status, blocked_until FROM users WHERE email = ?",
   ).bind(email).first<{ id: number; username: string; password_hash: string; status: string; blocked_until: string | null }>();
 
@@ -24,7 +25,7 @@ export const POST: APIRoute = async (context) => {
     return json({ error: "This account is currently restricted." }, 403);
   }
   if (user.status === "blocked") {
-    await context.locals.runtime.env.DB.prepare(
+    await env.DB.prepare(
       "UPDATE users SET status = 'active', blocked_until = NULL WHERE id = ?",
     ).bind(user.id).run();
   }

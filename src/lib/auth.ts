@@ -1,4 +1,5 @@
 import type { APIContext } from "astro";
+import { env } from "cloudflare:workers";
 
 const SESSION_COOKIE = "mr_anime_session";
 const SESSION_DAYS = 30;
@@ -51,7 +52,7 @@ export async function issueSession(context: APIContext, userId: number): Promise
   const token = toHex(crypto.getRandomValues(new Uint8Array(32)));
   const tokenHash = await hashToken(token);
   const expiresAt = new Date(Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  await context.locals.runtime.env.DB.prepare(
+  await env.DB.prepare(
     "INSERT INTO sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
   ).bind(userId, tokenHash, expiresAt).run();
   context.cookies.set(SESSION_COOKIE, token, {
@@ -72,7 +73,7 @@ export async function currentUser(context: APIContext): Promise<User | null> {
   const token = context.cookies.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const tokenHash = await hashToken(token);
-  const row = await context.locals.runtime.env.DB.prepare(`
+  const row = await env.DB.prepare(`
     SELECT u.id, u.username, u.role, u.badge, u.status, u.blocked_until
     FROM sessions s JOIN users u ON u.id = s.user_id
     WHERE s.token_hash = ? AND s.expires_at > ?
@@ -82,7 +83,7 @@ export async function currentUser(context: APIContext): Promise<User | null> {
     return null;
   }
   if (row.status === "blocked") {
-    await context.locals.runtime.env.DB.prepare("UPDATE users SET status = 'active', blocked_until = NULL WHERE id = ?").bind(row.id).run();
+    await env.DB.prepare("UPDATE users SET status = 'active', blocked_until = NULL WHERE id = ?").bind(row.id).run();
   }
   const { status: _status, blocked_until: _blockedUntil, ...user } = row;
   return user;

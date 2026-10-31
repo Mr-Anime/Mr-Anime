@@ -1,10 +1,11 @@
 import type { APIRoute } from "astro";
+import { env } from "cloudflare:workers";
 import { currentUser, json } from "../../lib/auth";
 
 export const GET: APIRoute = async (context) => {
   const user = await currentUser(context);
   if (!user || user.role !== "admin") return json({ error: "Admin access is required." }, 403);
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
   const [users, frames, styles] = await Promise.all([
     db.prepare("SELECT id, username, email, role, status, blocked_until, badge, created_at FROM users ORDER BY created_at DESC LIMIT 200").all(),
     db.prepare("SELECT id, name FROM frames WHERE active = 1 ORDER BY name").all(),
@@ -26,7 +27,7 @@ export const POST: APIRoute = async (context) => {
   }
   if (!input || typeof input !== "object" || Array.isArray(input)) return json({ error: "A JSON object is required." }, 400);
   const action = typeof input.action === "string" ? input.action : "";
-  const db = context.locals.runtime.env.DB;
+  const db = env.DB;
 
   if (action === "notice") {
     if (actor.role !== "admin") return json({ error: "Only admins can send notices." }, 403);
