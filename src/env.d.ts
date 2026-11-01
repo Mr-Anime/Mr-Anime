@@ -13,6 +13,10 @@
   PROVIDER_1_BASE?: string;
   PROVIDER_2_BASE?: string;
   PROVIDER_3_BASE?: string;
+  PROVIDER_MEGAPLAY_BASE?: string;
+  PROVIDER_ANIXO_BASE?: string;
+  PROVIDER_TRYEMBED_BASE?: string;
+  PROVIDER_VIDNEST_BASE?: string;
 }
 
 declare namespace App {
