@@ -1,0 +1,19 @@
+name = "mr-anime"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mr_anime"
+database_id = "REPLACE_WITH_D1_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "mr-anime"
+
+[vars]
+AUTH_SECRET = "REPLACE"
+GOOGLE_CLIENT_ID = "REPLACE"
+GOOGLE_CLIENT_SECRET = "REPLACE"
+ENCODER_WEBHOOK_SECRET = "REPLACE"
+NEXT_PUBLIC_SITE_NAME = "Mr.Anime"
