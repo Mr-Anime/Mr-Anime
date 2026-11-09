@@ -1,0 +1,30 @@
+{
+  "name": "mr-anime",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Mr.Anime — anime streaming platform (React + Vite, Cloudflare Pages Functions, Supabase)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "npm run build && wrangler pages dev dist",
+    "functions:dev": "wrangler pages dev dist --port 8788",
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "db:types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" > src/lib/database.types.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261104.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitejs/plugin-react": "^6.2.1",
+    "dompurify": "^3.3.0",
+    "tailwindcss": "^4.3.5",
+    "vite": "^8.3.6",
+    "wrangler": "^4.158.0"
+  }
+}

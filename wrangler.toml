@@ -1,0 +1,39 @@
+# Cloudflare Pages configuration for Mr.Anime.
+#
+# - `assets.directory` points at the Vite build output.
+# - Functions live in ./functions and run on /api/*.
+# - KV namespace binding MRANIME_CACHE is used for edge cache and
+#   availability checks. Create it with:
+#     npx wrangler kv namespace create MRANIME_KV
+#   and paste the returned id below (and the preview_id for local dev).
+#
+# Secrets are NOT stored here. Set them with `wrangler pages secret put`
+# or in the Cloudflare dashboard (see README).
+
+name = "mr-anime"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[vars]
+APP_URL = "https://mr-anime.pages.dev"
+AVAILABILITY_TTL_SECONDS = "86400"
+TRENDING_TTL_SECONDS = "1800"
+
+[[kv_namespaces]]
+binding = "MRANIME_CACHE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+
+[env.preview.vars]
+APP_URL = "https://preview.mr-anime.pages.dev"
+
+[env.production.vars]
+APP_URL = "https://mr-anime.pages.dev"
+
+# Secrets to define (dashboard > Workers & Pages > mr-anime > Settings > Variables,
+# or `wrangler pages secret put NAME`):
+#   SUPABASE_URL                (public)
+#   SUPABASE_ANON_KEY           (public)
+#   SUPABASE_SERVICE_ROLE_KEY   (server only)
+#   SEED_ADMIN_EMAIL            (optional: auto-promote this account to admin)
