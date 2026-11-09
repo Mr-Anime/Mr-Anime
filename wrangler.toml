@@ -16,20 +16,21 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
 
 [vars]
-APP_URL = "https://mr-anime.pages.dev"
+APP_URL = "https://mranime.cyou"
 AVAILABILITY_TTL_SECONDS = "86400"
 TRENDING_TTL_SECONDS = "1800"
+SUPABASE_URL = "https://pksccdcijtgsgtemaclo.supabase.co"
 
 [[kv_namespaces]]
-binding = "MRANIME_CACHE"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_KV_PREVIEW_NAMESPACE_ID"
+binding = "Mr.Anime"
+id = "b51985d429744a2b814690e85e4070c3"
+preview_id = "b51985d429744a2b814690e85e4070c3"
 
 [env.preview.vars]
-APP_URL = "https://preview.mr-anime.pages.dev"
+APP_URL = "https://mranime.cyou"
 
 [env.production.vars]
-APP_URL = "https://mr-anime.pages.dev"
+APP_URL = "https://mranime.cyou"
 
 # Secrets to define (dashboard > Workers & Pages > mr-anime > Settings > Variables,
 # or `wrangler pages secret put NAME`):
