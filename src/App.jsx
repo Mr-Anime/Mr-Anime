@@ -5,10 +5,28 @@ import RouteError from './pages/RouteError.jsx';
 import NotFound from './pages/NotFound.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
-import Placeholder from './pages/Placeholder.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import ProtectedRoute from './components/auth/ProtectedRoute.jsx';
 
 const Home = lazy(() => import('./pages/Home.jsx'));
+const Browse = lazy(() => import('./pages/Browse.jsx'));
+const Genre = lazy(() => import('./pages/Genre.jsx'));
+const Search = lazy(() => import('./pages/Search.jsx'));
+const Schedule = lazy(() => import('./pages/Schedule.jsx'));
+const AnimeDetails = lazy(() => import('./pages/AnimeDetails.jsx'));
+const Watch = lazy(() => import('./pages/Watch.jsx'));
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Signup = lazy(() => import('./pages/Signup.jsx'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'));
+const Watchlist = lazy(() => import('./pages/Watchlist.jsx'));
+const History = lazy(() => import('./pages/History.jsx'));
+const Profile = lazy(() => import('./pages/Profile.jsx'));
+const Admin = lazy(() => import('./pages/Admin.jsx'));
+const About = lazy(() => import('./pages/About.jsx'));
+const Dmca = lazy(() => import('./pages/Dmca.jsx'));
+const Terms = lazy(() => import('./pages/Terms.jsx'));
+const Privacy = lazy(() => import('./pages/Privacy.jsx'));
 
 function PageFallback() {
   return (
@@ -18,8 +36,14 @@ function PageFallback() {
   );
 }
 
-const ph = (title, module, description) => (
-  <Placeholder title={title} module={module} description={description} />
+const page = (Component) => (
+  <Suspense fallback={<PageFallback />}>
+    <Component />
+  </Suspense>
+);
+
+const protectedPage = (Component, requireAdmin = false) => (
+  <ProtectedRoute requireAdmin={requireAdmin}>{page(Component)}</ProtectedRoute>
 );
 
 const router = createBrowserRouter([
@@ -29,25 +53,25 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
     hydrateFallbackElement: <PageFallback />,
     children: [
-      { index: true, element: <Suspense fallback={<PageFallback />}><Home /></Suspense> },
-      { path: 'browse', element: ph('Browse', 'Module 3 (discovery pages)') },
-      { path: 'genre/:name', element: ph('Genre', 'Module 3 (discovery pages)') },
-      { path: 'search', element: ph('Search', 'Module 3 (discovery pages)') },
-      { path: 'schedule', element: ph('Airing Schedule', 'Module 3 (discovery pages)') },
-      { path: 'anime/:anilistId', element: ph('Anime details', 'Module 3 (details page)') },
-      { path: 'watch/:anilistId/:episode', element: ph('Watch', 'Module 5 (player)') },
-      { path: 'login', element: ph('Log in', 'Module 4 (auth)') },
-      { path: 'signup', element: ph('Sign up', 'Module 4 (auth)') },
-      { path: 'forgot-password', element: ph('Reset password', 'Module 4 (auth)') },
-      { path: 'reset-password', element: ph('Set a new password', 'Module 4 (auth)') },
-      { path: 'watchlist', element: ph('My Watchlist', 'Module 6 (library)') },
-      { path: 'history', element: ph('Continue Watching', 'Module 6 (library)') },
-      { path: 'profile', element: ph('Profile & Settings', 'Module 6 (library)') },
-      { path: 'admin', element: ph('Admin Panel', 'Module 7 (admin)') },
-      { path: 'about', element: ph('About Mr.Anime', 'Module 8 (static pages)') },
-      { path: 'dmca', element: ph('DMCA & Contact', 'Module 8 (static pages)') },
-      { path: 'terms', element: ph('Terms of Service', 'Module 8 (static pages)') },
-      { path: 'privacy', element: ph('Privacy Policy', 'Module 8 (static pages)') },
+      { index: true, element: page(Home) },
+      { path: 'browse', element: page(Browse) },
+      { path: 'genre/:name', element: page(Genre) },
+      { path: 'search', element: page(Search) },
+      { path: 'schedule', element: page(Schedule) },
+      { path: 'anime/:anilistId', element: page(AnimeDetails) },
+      { path: 'watch/:anilistId/:episode', element: page(Watch) },
+      { path: 'login', element: page(Login) },
+      { path: 'signup', element: page(Signup) },
+      { path: 'forgot-password', element: page(ForgotPassword) },
+      { path: 'reset-password', element: page(ResetPassword) },
+      { path: 'watchlist', element: protectedPage(Watchlist) },
+      { path: 'history', element: protectedPage(History) },
+      { path: 'profile', element: protectedPage(Profile) },
+      { path: 'admin', element: protectedPage(Admin, true) },
+      { path: 'about', element: page(About) },
+      { path: 'dmca', element: page(Dmca) },
+      { path: 'terms', element: page(Terms) },
+      { path: 'privacy', element: page(Privacy) },
       { path: '*', element: <NotFound /> },
     ],
   },

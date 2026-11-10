@@ -22,7 +22,7 @@ TRENDING_TTL_SECONDS = "1800"
 SUPABASE_URL = "https://pksccdcijtgsgtemaclo.supabase.co"
 
 [[kv_namespaces]]
-binding = "Mr.Anime"
+binding = "MRANIME_CACHE"
 id = "b51985d429744a2b814690e85e4070c3"
 preview_id = "b51985d429744a2b814690e85e4070c3"
 

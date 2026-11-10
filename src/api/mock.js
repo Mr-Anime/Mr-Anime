@@ -160,11 +160,44 @@ function availabilityFor(id) {
   return { anilistId: n, hasSub: true, hasDub, subEpisodes: n % 5 === 0 ? 6 : null, dubEpisodes: hasDub && n % 4 === 0 ? 4 : null, override: false };
 }
 
+const OVERRIDES = new Map();
+
+function availabilityWithOverride(id) {
+  const base = availabilityFor(id);
+  const o = OVERRIDES.get(Number(id));
+  if (!o) return base;
+  return { ...base, hasSub: o.hasSub, hasDub: o.hasDub, subEpisodes: o.subEpisodes ?? null, dubEpisodes: o.dubEpisodes ?? null, override: true };
+}
+
 function delay(ms = 350) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-export async function mockResponse(path) {
+function matchesFilters(m, params) {
+  const genre = params.get('genre')?.split(',').filter(Boolean);
+  if (genre?.length && !genre.some((g) => m.genres.includes(g))) return false;
+  const format = params.get('format');
+  if (format && m.format !== format.replace(/-/g, '_')) return false;
+  const status = params.get('status');
+  if (status && m.status !== status) return false;
+  const year = Number(params.get('year') || params.get('seasonYear'));
+  if (year && m.seasonYear !== year) return false;
+  const season = params.get('season');
+  if (season && m.season !== season) return false;
+  return true;
+}
+
+function paginate(list, params) {
+  const page = Math.max(1, Number(params.get('page') || 1));
+  const perPage = Math.max(1, Math.min(50, Number(params.get('perPage') || 24)));
+  const slice = list.slice((page - 1) * perPage, page * perPage);
+  return {
+    pageInfo: { total: list.length, currentPage: page, lastPage: Math.max(1, Math.ceil(list.length / perPage)), hasNextPage: page * perPage < list.length, perPage },
+    media: slice,
+  };
+}
+
+export async function mockResponse(path, opts = {}) {
   await delay();
   const url = new URL(path, 'http://mock.local');
   const p = url.pathname;
@@ -178,11 +211,17 @@ export async function mockResponse(path) {
           popularSeason: { data: ALL.slice(4, 18) },
           topRated: { data: [...ALL].sort((a, b) => b.averageScore - a.averageScore).slice(0, 14) },
           recentlyUpdated: { data: ALL.slice(2, 16) },
-          upcoming: { data: ALL.filter((m) => m.status === 'NOT_YET_RELEASED').concat(ALL.slice(0, 8)).slice(0, 14) },
+          upcoming: { data: ALL.filter((m) => m.status === 'NOT_YET_RELEASED').concat(ALL.filter((m) => m.status !== 'NOT_YET_RELEASED')).slice(0, 14) },
         },
       };
     }
     return { data: ALL.slice(0, 10) };
+  }
+
+  if (p === '/api/anime/batch') {
+    const ids = (params.get('ids') || '').split(',').map(Number).filter(Boolean);
+    const cards = ids.map((id) => ALL.find((m) => m.id === id)).filter(Boolean).map(makeCardFromMedia);
+    return { data: cards };
   }
 
   const animeMatch = p.match(/^\/api\/anime\/(\d+)$/);
@@ -193,38 +232,68 @@ export async function mockResponse(path) {
   }
 
   if (p === '/api/search') {
-    const q = (params.get('q') || '').toLowerCase();
-    let list = ALL;
-    if (q) list = list.filter((m) => JSON.stringify(m.title).toLowerCase().includes(q));
-    const genre = params.get('genre')?.split(',');
-    if (genre?.length) list = list.filter((m) => genre.some((g) => m.genres.includes(g)));
-    const page = Number(params.get('page') || 1);
-    const perPage = Number(params.get('perPage') || 24);
-    const slice = list.slice((page - 1) * perPage, page * perPage);
-    if (params.get('suggestions')) return { data: list.slice(0, perPage).map((m) => ({ id: m.id, title: m.title, coverImage: m.coverImage, format: m.format, seasonYear: m.seasonYear, averageScore: m.averageScore })) };
-    return { pageInfo: { total: list.length, currentPage: page, lastPage: Math.ceil(list.length / perPage), hasNextPage: page * perPage < list.length, perPage }, media: slice };
+    const q = (params.get('q') || '').trim().toLowerCase();
+    let list = q ? ALL.filter((m) => JSON.stringify(m.title).toLowerCase().includes(q)) : ALL;
+    list = list.filter((m) => matchesFilters(m, params));
+    if (params.get('sort') === 'SCORE_DESC') list = [...list].sort((a, b) => b.averageScore - a.averageScore);
+    if (params.get('suggestions')) {
+      const perPage = Number(params.get('perPage') || 6);
+      return { data: list.slice(0, perPage).map((m) => ({ id: m.id, title: m.title, coverImage: m.coverImage, format: m.format, seasonYear: m.seasonYear, averageScore: m.averageScore })) };
+    }
+    return paginate(list, params);
   }
 
   if (p === '/api/schedule') {
-    const list = ALL.slice(0, 18).map((m) => ({
-      id: m.id,
-      title: m.title,
-      coverImage: m.coverImage,
-      format: m.format,
-      episodes: m.episodes,
-      nextAiringEpisode: m.nextAiringEpisode || { episode: (m.episodes || 12) + 1, airingAt: Math.floor(Date.now() / 1000) + ((m.id % 7) + 1) * 86400, timeUntilAiring: 86400 },
-    }));
-    return { airingSchedules: list.map((m) => ({ id: m.id, airingAt: m.nextAiringEpisode.airingAt, episode: m.nextAiringEpisode.episode, media: m })) };
+    const now = Math.floor(Date.now() / 1000);
+    const list = ALL.slice(0, 18).map((m) => {
+      const next = m.nextAiringEpisode || { episode: (m.episodes || 12) + 1, airingAt: now + ((m.id % 7) + 1) * 86400 - 3600, timeUntilAiring: 86400 };
+      return {
+        id: m.id,
+        airingAt: next.airingAt,
+        episode: next.episode,
+        media: { id: m.id, title: m.title, coverImage: m.coverImage, format: m.format, episodes: m.episodes, nextAiringEpisode: next },
+      };
+    });
+    return { airingSchedules: list.sort((a, b) => a.airingAt - b.airingAt) };
   }
 
   const availMatch = p.match(/^\/api\/availability\/(\d+)$/);
-  if (availMatch) return { data: availabilityFor(availMatch[1]) };
+  if (availMatch) return { data: availabilityWithOverride(availMatch[1]) };
 
-  if (p.startsWith('/api/admin/')) {
-    return { users: 128, watchlistEntries: 942, historyEntries: 3110, cachedShows: ALL.length, cacheOverrides: 3 };
+  if (p === '/api/admin/stats') {
+    return { users: 128, watchlistEntries: 942, historyEntries: 3110, cachedShows: ALL.length, cacheOverrides: OVERRIDES.size };
+  }
+
+  if (p === '/api/admin/availability') {
+    const method = opts.method || 'GET';
+    if (method === 'GET') {
+      return { data: [...OVERRIDES.values()].map((o) => ({ ...o, updatedAt: new Date().toISOString(), updatedBy: null })) };
+    }
+    if (method === 'DELETE') {
+      const id = Number(params.get('anilistId'));
+      OVERRIDES.delete(id);
+      return { data: { anilistId: id, deleted: true } };
+    }
+    const body = opts.body || {};
+    const anilistId = Number(body.anilistId);
+    if (!anilistId) throw Object.assign(new Error('anilistId required'), { status: 400 });
+    const saved = {
+      anilistId,
+      hasSub: Boolean(body.hasSub),
+      hasDub: Boolean(body.hasDub),
+      subEpisodes: body.subEpisodes == null || body.subEpisodes === '' ? null : Number(body.subEpisodes),
+      dubEpisodes: body.dubEpisodes == null || body.dubEpisodes === '' ? null : Number(body.dubEpisodes),
+    };
+    OVERRIDES.set(anilistId, saved);
+    return { data: { ...saved, updatedAt: new Date().toISOString(), updatedBy: null } };
   }
 
   throw Object.assign(new Error('Mock: unknown path ' + p), { status: 404 });
+}
+
+function makeCardFromMedia(m) {
+  const { id, title, coverImage, bannerImage, format, seasonYear, status, episodes, nextAiringEpisode, averageScore, genres, description } = m;
+  return { id, title, coverImage, bannerImage, format, seasonYear, status, episodes, nextAiringEpisode, averageScore, genres, description };
 }
 
 export { iso, ROMAJI_SLUG };

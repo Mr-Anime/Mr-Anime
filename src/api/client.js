@@ -2,10 +2,7 @@
  * Thin client for the Pages Functions API (/api/*).
  *
  * In dev, VITE_API_BASE is empty and Vite proxies /api to `wrangler pages dev`.
- * The Worker serves AniList-backed endpoints (Module 3).
- *
- * While the Workers are not yet built you can render the UI against mock data:
- *   VITE_USE_MOCK_API=true   in .env
+ * Set VITE_USE_MOCK_API=true to render against src/api/mock.js instead.
  */
 
 const BASE = import.meta.env.VITE_API_BASE || '';
@@ -20,22 +17,45 @@ export class ApiError extends Error {
   }
 }
 
-async function request(path, { signal, timeout = 15000 } = {}) {
+let tokenGetter = null;
+/** Register a function returning the current Supabase access token (or null). */
+export function setAccessToken(getter) {
+  tokenGetter = getter;
+}
+
+async function authHeaders() {
+  if (!tokenGetter) return {};
+  try {
+    const token = await tokenGetter();
+    return token ? { authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
+async function request(path, { signal, timeout = 15000, method = 'GET', body } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort('timeout'), timeout);
   const onAbort = () => controller.abort(signal.reason);
   signal?.addEventListener('abort', onAbort);
 
   try {
-    const res = await fetch(`${BASE}${path}`, { signal: controller.signal, headers: { accept: 'application/json' } });
+    const headers = { accept: 'application/json', ...(await authHeaders()) };
+    if (body !== undefined) headers['content-type'] = 'application/json';
+    const res = await fetch(`${BASE}${path}`, {
+      method,
+      signal: controller.signal,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
     if (!res.ok) {
-      let body = null;
+      let payload = null;
       try {
-        body = await res.json();
+        payload = await res.json();
       } catch {
         /* non-JSON error body */
       }
-      throw new ApiError(body?.error || `Request failed (${res.status})`, { status: res.status, code: body?.code });
+      throw new ApiError(payload?.error || `Request failed (${res.status})`, { status: res.status, code: payload?.code });
     }
     return await res.json();
   } catch (err) {
@@ -49,12 +69,11 @@ async function request(path, { signal, timeout = 15000 } = {}) {
   }
 }
 
-async function get(path, opts) {
+async function call(path, opts) {
   if (USE_MOCK_API) {
-    // @TODO remove once Workers are live and verified in production.
     try {
       const { mockResponse } = await import('./mock.js');
-      return await mockResponse(path);
+      return await mockResponse(path, opts);
     } catch (err) {
       throw err instanceof ApiError ? err : new ApiError(err.message || 'Mock request failed', { status: err.status });
     }
@@ -73,12 +92,16 @@ function qs(params) {
 }
 
 export const api = {
-  trending: (opts) => get('/api/trending', opts),
-  homeRows: (opts) => get('/api/trending?rows=1', opts),
-  anime: (id, opts) => get(`/api/anime/${encodeURIComponent(id)}`, opts),
-  search: (params, opts) => get(`/api/search${qs(params)}`, opts),
-  suggestions: (q, opts) => get(`/api/search${qs({ q, perPage: 6, suggestions: 1 })}`, opts),
-  schedule: (params, opts) => get(`/api/schedule${qs(params)}`, opts),
-  availability: (id, opts) => get(`/api/availability/${encodeURIComponent(id)}`, opts),
-  adminStats: (opts) => get('/api/admin/stats', opts),
+  trending: (opts) => call('/api/trending', opts),
+  homeRows: (opts) => call('/api/trending?rows=1', opts),
+  anime: (id, opts) => call(`/api/anime/${encodeURIComponent(id)}`, opts),
+  animeBatch: (ids, opts) => call(`/api/anime/batch${qs({ ids })}`, opts),
+  search: (params, opts) => call(`/api/search${qs(params)}`, opts),
+  suggestions: (q, opts) => call(`/api/search${qs({ q, perPage: 6, suggestions: 1 })}`, opts),
+  schedule: (params, opts) => call(`/api/schedule${qs(params)}`, opts),
+  availability: (id, opts) => call(`/api/availability/${encodeURIComponent(id)}`, opts),
+  adminStats: (opts) => call('/api/admin/stats', opts),
+  adminOverrides: (opts) => call('/api/admin/availability', opts),
+  saveAdminOverride: (override, opts) => call('/api/admin/availability', { ...opts, method: 'POST', body: override }),
+  deleteAdminOverride: (anilistId, opts) => call(`/api/admin/availability?anilistId=${encodeURIComponent(anilistId)}`, { ...opts, method: 'DELETE' }),
 };
