@@ -1,8 +1,15 @@
-  {
-      "permissions": {        "allow": [
-          "Write",          "Edit",
-          "Bash(npm:*)",          "Bash(npx:*)",
-          "Bash(node:*)",
-          "Bash(mkdir:*)",          "Bash(ls:*)",
-          "Bash(cat:*)"        ]
-      }    }
+{
+  "permissions": {
+    "allow": [
+      "Write",
+      "Edit",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(ls -R src functions public supabase 2>/dev/null | head -50)"
+    ]
+  }
+}

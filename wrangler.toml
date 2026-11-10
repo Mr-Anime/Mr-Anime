@@ -10,7 +10,7 @@
 # Secrets are NOT stored here. Set them with `wrangler pages secret put`
 # or in the Cloudflare dashboard (see README).
 
-name = "mr-anime"
+name = "mranimeiop"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "dist"
