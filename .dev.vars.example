@@ -7,3 +7,6 @@ SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 APP_URL=http://localhost:8788
 SEED_ADMIN_EMAIL=
+# Leave empty locally — direct AniList calls work from your machine.
+# In production set this to your Vercel proxy, e.g. https://mr-anime.vercel.app/api/anilist
+ANILIST_ENDPOINT=

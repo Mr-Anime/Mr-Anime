@@ -20,6 +20,10 @@ APP_URL = "https://mranime.cyou"
 AVAILABILITY_TTL_SECONDS = "86400"
 TRENDING_TTL_SECONDS = "1800"
 SUPABASE_URL = "https://pksccdcijtgsgtemaclo.supabase.co"
+# AniList blocks Cloudflare Workers' egress IPs, so production must proxy
+# through a non-Cloudflare host (see api/anilist.js + README). Leave empty to
+# call graphql.anilist.co directly (works in local `wrangler pages dev`).
+ANILIST_ENDPOINT = ""
 
 [[kv_namespaces]]
 binding = "MRANIME_CACHE"

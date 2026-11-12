@@ -23,8 +23,8 @@ export const onRequest = handle(async ({ request, env }) => {
   const payload = await cachedJson(env, `schedule:v1:${dayKey}`, 900, async () => {
     const mid = from + Math.floor((to - from) / 2);
     const [a, b] = await Promise.all([
-      anilistQuery(SCHEDULE_QUERY, { from, to: mid }),
-      anilistQuery(SCHEDULE_QUERY, { from: mid, to }),
+      anilistQuery(SCHEDULE_QUERY, { from, to: mid }, { env }),
+      anilistQuery(SCHEDULE_QUERY, { from: mid, to }, { env }),
     ]);
     const seen = new Set();
     const list = [...(a?.Page?.airingSchedules || []), ...(b?.Page?.airingSchedules || [])]

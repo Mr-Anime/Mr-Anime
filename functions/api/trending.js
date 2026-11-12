@@ -14,7 +14,7 @@ export const onRequest = handle(async ({ request, env }) => {
     const { season, seasonYear } = currentSeason();
     const key = `trending:rows:v1:${season}-${seasonYear}`;
     const rows = await cachedJson(env, key, ttl, async () => {
-      const data = await anilistQuery(HOME_ROWS_QUERY, { season, seasonYear });
+      const data = await anilistQuery(HOME_ROWS_QUERY, { season, seasonYear }, { env });
       const out = {};
       for (const [name, page] of Object.entries(data)) {
         out[name] = { data: (page?.media || []).map(toCard).filter(Boolean) };
@@ -25,7 +25,7 @@ export const onRequest = handle(async ({ request, env }) => {
   }
 
   const payload = await cachedJson(env, 'trending:top:v1', ttl, async () => {
-    const data = await anilistQuery(PAGE_QUERY, { page: 1, perPage: 10, sort: ['TRENDING_DESC'] });
+    const data = await anilistQuery(PAGE_QUERY, { page: 1, perPage: 10, sort: ['TRENDING_DESC'] }, { env });
     return { data: (data?.Page?.media || []).map(toCard).filter(Boolean) };
   });
   return payload;

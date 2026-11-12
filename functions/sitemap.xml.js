@@ -11,7 +11,7 @@ export async function onRequest({ env, request }) {
   let items = [];
   try {
     const data = await cachedJson(env, 'sitemap:v1', 21600, async () => {
-      const res = await anilistQuery(SITEMAP_QUERY, {});
+      const res = await anilistQuery(SITEMAP_QUERY, {}, { env });
       return { ids: (res?.Page?.media || []).map((m) => m.id) };
     });
     items = data?.ids || [];

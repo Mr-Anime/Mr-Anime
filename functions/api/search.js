@@ -44,7 +44,7 @@ export const onRequest = handle(async ({ request, env }) => {
 
   const cacheKey = `search:v1:${suggestions ? 'sug' : 'page'}:${JSON.stringify(variables)}`;
   const payload = await cachedJson(env, cacheKey, suggestions ? SEARCH_TTL * 12 : SEARCH_TTL, async () => {
-    const data = await anilistQuery(PAGE_QUERY, variables);
+    const data = await anilistQuery(PAGE_QUERY, variables, { env });
     const pageData = data?.Page || {};
     if (suggestions) return { data: (pageData.media || []).map(toSuggestion) };
     return { pageInfo: toPageInfo(pageData), media: (pageData.media || []).map(toMedia) };

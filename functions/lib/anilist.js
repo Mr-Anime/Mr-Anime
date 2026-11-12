@@ -1,7 +1,13 @@
 import { ApiError } from './http.js';
 
-const ENDPOINT = 'https://graphql.anilist.co';
+const DEFAULT_ENDPOINT = 'https://graphql.anilist.co';
 const TIMEOUT_MS = 9000;
+
+// AniList manually blocks Cloudflare Workers' egress IPs, so in production
+// ANILIST_ENDPOINT points at a non-Cloudflare proxy (see api/anilist.js).
+function endpointFor(env) {
+  return env?.ANILIST_ENDPOINT || DEFAULT_ENDPOINT;
+}
 
 /** Fields every card/grid item needs. */
 export const CARD_FRAGMENT = `
@@ -121,11 +127,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * POST a GraphQL query to AniList with a timeout and one retry on
  * rate-limits / transient 5xx. Throws ApiError with a stable code.
  */
-export async function anilistQuery(query, variables = {}, { retries = 1 } = {}) {
+export async function anilistQuery(query, variables = {}, { retries = 1, env } = {}) {
+  const endpoint = endpointFor(env);
   for (let attempt = 0; ; attempt++) {
     let res;
     try {
-      res = await fetch(ENDPOINT, {
+      res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -164,6 +171,12 @@ export async function anilistQuery(query, variables = {}, { retries = 1 } = {}) 
         status: 429,
         code: 'RATE_LIMITED',
         headers: { 'retry-after': res.headers.get('retry-after') || '30' },
+      });
+    }
+    if (res.status === 403) {
+      throw new ApiError('AniList is blocking requests from this server. Set ANILIST_ENDPOINT to a non-Cloudflare proxy.', {
+        status: 502,
+        code: 'UPSTREAM_BLOCKED',
       });
     }
     if (res.status === 404) throw new ApiError('Not found on AniList.', { status: 404, code: 'NOT_FOUND' });
