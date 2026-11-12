@@ -27,6 +27,7 @@ const About = lazy(() => import('./pages/About.jsx'));
 const Dmca = lazy(() => import('./pages/Dmca.jsx'));
 const Terms = lazy(() => import('./pages/Terms.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
+const Docs = lazy(() => import('./pages/Docs.jsx'));
 
 function PageFallback() {
   return (
@@ -72,6 +73,7 @@ const router = createBrowserRouter([
       { path: 'dmca', element: page(Dmca) },
       { path: 'terms', element: page(Terms) },
       { path: 'privacy', element: page(Privacy) },
+      { path: 'docs', element: page(Docs) },
       { path: '*', element: <NotFound /> },
     ],
   },

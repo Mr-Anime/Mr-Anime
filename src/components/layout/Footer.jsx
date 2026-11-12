@@ -3,6 +3,7 @@ import Logo from './Logo.jsx';
 
 const LINKS = [
   { to: '/about', label: 'About' },
+  { to: '/docs', label: 'API Docs' },
   { to: '/dmca', label: 'DMCA / Contact' },
   { to: '/terms', label: 'Terms of Service' },
   { to: '/privacy', label: 'Privacy Policy' },
