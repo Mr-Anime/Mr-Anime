@@ -1,0 +1,11 @@
+# Netlify deployment used ONLY as the AniList proxy for Cloudflare Pages.
+# The site itself is built and served by Cloudflare Pages (see wrangler.toml);
+# this config exists so the repo can also be deployed to Netlify and expose
+# POST /api/anilist (see netlify/functions/anilist.mjs).
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "20"

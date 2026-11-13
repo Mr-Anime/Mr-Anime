@@ -55,7 +55,41 @@ Every error uses the same envelope:
 | 504  | `TIMEOUT`         | Upstream request timed out.                               |
 | 500  | `INTERNAL`        | Unexpected server error.                                  |
 
-> **Note:** AniList manually blocks Cloudflare Workers' egress IPs. Production therefore proxies through `ANILIST_ENDPOINT` (see `api/anilist.js` and `README`). If you see `UPSTREAM_BLOCKED`, set that variable to a non-Cloudflare proxy.
+> **Note:** AniList manually blocks Cloudflare Workers' egress IPs. Production therefore proxies through `ANILIST_ENDPOINT` (see below). If you see `UPSTREAM_BLOCKED`, set that variable to a non-Cloudflare proxy.
+
+### AniList proxy (required in production)
+
+Both `api/anilist.js` (Vercel) and `netlify/functions/anilist.mjs` (Netlify) expose the same contract:
+
+```http
+POST /api/anilist
+Content-Type: application/json
+
+{ "query": "query { Media(id: 16498, type: ANIME) { id } }", "variables": {} }
+```
+
+The response is AniList's response passed through with its original status code.
+
+Health probe — open this in a browser after deploying:
+
+```http
+GET /api/anilist?check=1
+```
+
+```json
+{ "ok": true, "status": 200, "latencyMs": 123 }
+```
+
+`ok: false` returns `502 UPSTREAM_ERROR` (AniList rejected the request) or `504 TIMEOUT` (network failure / 9 s timeout).
+
+Deploy either one, then set the Cloudflare Pages variable:
+
+```bash
+# Vercel
+ANILIST_ENDPOINT=https://<project>.vercel.app/api/anilist
+# Netlify
+ANILIST_ENDPOINT=https://<site>.netlify.app/api/anilist
+```
 
 ### Caching
 
@@ -335,4 +369,5 @@ Returns the saved row in the same shape as the list above.
 | `/api/admin/availability` | `functions/api/admin/availability.js` |
 | `/sitemap.xml` | `functions/sitemap.xml.js` |
 | `/robots.txt` | `functions/robots.txt.js` |
+| `/api/anilist` (proxy) | `api/anilist.js` (Vercel) / `netlify/functions/anilist.mjs` (Netlify) |
 | Shared helpers | `functions/lib/{anilist,map,http,cache,query,supabase}.js` |

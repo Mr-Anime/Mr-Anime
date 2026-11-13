@@ -9,7 +9,10 @@
       "Bash(mkdir:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
-      "Bash(ls -R src functions public supabase 2>/dev/null | head -50)"
+      "Bash(ls -R src functions public supabase 2>/dev/null | head -50)",
+      "Bash(git status --short | head -50)",
+      "Bash(ls -R api functions docs 2>/dev/null | head -60)",
+      "Bash(ls *.md docs 2>/dev/null; echo ---; cat .gitignore; echo ---; cat .env.example)"
     ]
   }
 }
