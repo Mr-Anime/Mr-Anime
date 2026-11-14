@@ -10,13 +10,14 @@ import { useLocalStorage } from '../hooks/useLocalStorage.js';
  * Demo mode (no keys, or `setDemoUser` used): a localStorage user so the UI
  * stays fully usable without a backend.
  *
- * `user` shape: { id, email, username, avatar_url, role, verified }.
+ * `user` shape: { id, email, username, avatar_url, role, verified, banned }.
  */
 const AuthContext = createContext({
   user: null,
   loading: true,
   session: null,
   isAdmin: false,
+  isModerator: false,
   isDemoMode: false,
   signIn: async () => {},
   signUp: async () => {},
@@ -27,7 +28,7 @@ const AuthContext = createContext({
   setDemoUser: () => {},
 });
 
-const PROFILE_COLUMNS = 'id, username, avatar_url, role, verified';
+const PROFILE_COLUMNS = 'id, username, avatar_url, role, verified, banned';
 
 async function fetchProfile(userId) {
   if (!supabase) return null;
@@ -48,6 +49,7 @@ function composeUser(sessionUser, profile) {
     avatar_url: profile?.avatar_url || sessionUser.user_metadata?.avatar_url || null,
     role: profile?.role || 'user',
     verified: profile?.role === 'admin' ? true : Boolean(profile?.verified),
+    banned: Boolean(profile?.banned),
   };
 }
 
@@ -171,6 +173,7 @@ export function AuthProvider({ children }) {
       session,
       loading,
       isAdmin: user?.role === 'admin',
+      isModerator: user?.role === 'admin' || user?.role === 'moderator',
       isDemoMode: !isSupabaseConfigured,
       signIn,
       signUp,

@@ -12,7 +12,9 @@
       "Bash(ls -R src functions public supabase 2>/dev/null | head -50)",
       "Bash(git status --short | head -50)",
       "Bash(ls -R api functions docs 2>/dev/null | head -60)",
-      "Bash(ls *.md docs 2>/dev/null; echo ---; cat .gitignore; echo ---; cat .env.example)"
+      "Bash(ls *.md docs 2>/dev/null; echo ---; cat .gitignore; echo ---; cat .env.example)",
+      "Bash(find src api functions supabase public -type f | head -100 && echo \"---\" && cat package.json && echo \"---\" && cat .env.example && echo \"---\" && cat .dev.vars.example)",
+      "Bash(find public -maxdepth 2 -type f | head -50 && echo \"--- env names ---\" && grep -o '^[A-Z_0-9]*' .env .dev.vars 2>/dev/null && echo \"--- docs ---\" && head -60 docs/API.md)"
     ]
   }
 }

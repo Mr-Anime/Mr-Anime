@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { api } from '../api/client.js';
 import { useApi } from '../hooks/useApi.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { adminDeleteOverride, adminListOverrides, adminSaveOverride, adminStats } from '../lib/admin.js';
 import { useDocumentMeta } from '../lib/meta.js';
 import Container from '../components/ui/Container.jsx';
 import PageHeader from '../components/ui/PageHeader.jsx';
@@ -14,9 +15,10 @@ import SmtpForm from '../components/admin/SmtpForm.jsx';
 import UserBadges from '../components/admin/UserBadges.jsx';
 
 export default function Admin() {
+  const { user } = useAuth();
   const { success, error: toastError } = useToast();
-  const stats = useApi(useCallback((opts) => api.adminStats(opts), []));
-  const overrides = useApi(useCallback((opts) => api.adminOverrides(opts), []));
+  const stats = useApi(useCallback(() => adminStats(), []));
+  const overrides = useApi(useCallback(() => adminListOverrides(), []));
 
   const [editing, setEditing] = useState(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -25,7 +27,7 @@ export default function Admin() {
 
   useDocumentMeta({ title: 'Admin panel' });
 
-  const rows = overrides.data?.data || [];
+  const rows = overrides.data || [];
 
   const openNew = () => {
     setEditing(null);
@@ -40,7 +42,7 @@ export default function Admin() {
   const save = async (payload) => {
     setSaving(true);
     try {
-      await api.saveAdminOverride(payload);
+      await adminSaveOverride(payload, user.id);
       success('Override saved.');
       setFormOpen(false);
       overrides.retry();
@@ -55,7 +57,7 @@ export default function Admin() {
   const remove = async (row) => {
     setBusyId(row.anilistId);
     try {
-      await api.deleteAdminOverride(row.anilistId);
+      await adminDeleteOverride(row.anilistId);
       success(`Override for #${row.anilistId} deleted.`);
       overrides.retry();
       stats.retry();
@@ -81,7 +83,7 @@ export default function Admin() {
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">Overview</h2>
         {stats.error ? (
           <p className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm text-zinc-300">
-            {stats.error.status === 401 || stats.error.status === 403 ? 'You need admin access to view stats.' : stats.error.message}
+            {stats.error.message}
           </p>
         ) : (
           <StatsCards stats={stats.loading ? null : stats.data} />
@@ -121,8 +123,8 @@ export default function Admin() {
 
       <section className="mt-12">
         <div className="mb-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">User badges</h2>
-          <p className="mt-0.5 text-xs text-zinc-500">Give verified badges to trusted users. The badge appears next to their name in comments.</p>
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">User badges & roles</h2>
+          <p className="mt-0.5 text-xs text-zinc-500">Verify users or give them the moderator role. Badges appear next to names in comments.</p>
         </div>
         <UserBadges />
       </section>
@@ -138,8 +140,8 @@ export default function Admin() {
       </section>
 
       <p className="mt-8 text-xs text-zinc-500">
-        Player servers are configured in <code className="text-zinc-300">src/config/providers.js</code>. Admin access is granted by the
-        <code className="mx-1 text-zinc-300">role</code> column on your profile row.
+        Stats, overrides and badges load directly from Supabase with your signed-in session. SMTP still uses the server API.
+        Admin access is granted by the <code className="text-zinc-300">role</code> column on your profile row.
       </p>
     </Container>
   );
