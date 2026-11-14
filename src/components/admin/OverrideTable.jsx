@@ -25,7 +25,7 @@ export default function OverrideTable({ rows, loading, error, onRetry, onEdit, o
           {rows.map((r) => (
             <tr key={r.anilistId} className="hover:bg-white/[0.02]">
               <td className="px-3 py-2 font-mono text-xs text-zinc-300">
-                <Link to={`/anime/${r.anilistId}`} className="hover:text-brand">{r.anilistId}</Link>
+                <Link to={`/info/${r.anilistId}`} className="hover:text-brand">{r.anilistId}</Link>
               </td>
               <td className="px-3 py-2"><Flag on={r.hasSub} /></td>
               <td className="px-3 py-2"><Flag on={r.hasDub} /></td>

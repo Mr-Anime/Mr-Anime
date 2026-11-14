@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext.jsx';
 import { useToast } from '../../../context/ToastContext.jsx';
 import { getWatchlistEntry, removeWatchlistEntry, setWatchlistStatus } from '../../../lib/library.js';
@@ -11,6 +11,7 @@ export default function WatchlistButton({ anilistId }) {
   const { user, isDemoMode } = useAuth();
   const { success, error: toastError } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const [status, setStatus] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -31,7 +32,7 @@ export default function WatchlistButton({ anilistId }) {
   const change = useCallback(
     async (next) => {
       if (!user) {
-        navigate('/login', { state: { from: `/anime/${anilistId}` } });
+        navigate('/login', { state: { from: location.pathname + location.search } });
         return;
       }
       if (isDemoMode) {
@@ -55,7 +56,7 @@ export default function WatchlistButton({ anilistId }) {
         setBusy(false);
       }
     },
-    [user, isDemoMode, anilistId, success, toastError, navigate],
+    [user, isDemoMode, anilistId, success, toastError, navigate, location.pathname, location.search],
   );
 
   return (

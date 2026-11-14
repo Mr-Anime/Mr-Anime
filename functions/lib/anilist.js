@@ -116,6 +116,7 @@ export const SITEMAP_QUERY = `query Sitemap {
   Page(page: 1, perPage: 500) {
     media(sort: POPULARITY_DESC, type: ANIME, format_in: [TV, MOVIE]) {
       id
+      title { english romaji native userPreferred }
       bannerImage
     }
   }

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import LazyImage from '../../ui/LazyImage.jsx';
 import { SubBadge, DubBadge } from '../Badges.jsx';
+import { playerPath } from '../../../lib/slug.js';
 
 const PAGE = 24;
 
@@ -53,7 +54,7 @@ export default function EpisodeGrid({ media, availability }) {
             {visible.map((ep) => (
               <Link
                 key={ep}
-                to={`/watch/${media.id}/${ep}?lang=${lang}`}
+                to={playerPath(media, ep, lang)}
                 className="grid h-11 place-items-center rounded-lg border border-white/10 bg-white/5 text-sm font-medium text-zinc-200 transition-colors hover:border-brand/60 hover:bg-brand/15 hover:text-white"
               >
                 {ep}

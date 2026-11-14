@@ -7,6 +7,7 @@ import Icon from '../ui/Icon.jsx';
 import LazyImage from '../ui/LazyImage.jsx';
 import { mediaTitle } from '../../lib/format.js';
 import { formatLabel } from '../anime/Badges.jsx';
+import { infoPath } from '../../lib/slug.js';
 
 export default function SearchBar({ autoFocusOnMount = false, onSubmitted }) {
   const [query, setQuery] = useState('');
@@ -67,7 +68,7 @@ export default function SearchBar({ autoFocusOnMount = false, onSubmitted }) {
     } else if (e.key === 'Enter' && active >= 0 && items[active]) {
       e.preventDefault();
       setOpen(false);
-      navigate(`/anime/${items[active].id}`);
+      navigate(infoPath(items[active]));
       onSubmitted?.();
     }
   }
@@ -112,7 +113,7 @@ export default function SearchBar({ autoFocusOnMount = false, onSubmitted }) {
                   onMouseEnter={() => setActive(i)}
                   onClick={() => {
                     setOpen(false);
-                    navigate(`/anime/${m.id}`);
+                    navigate(infoPath(m));
                     onSubmitted?.();
                   }}
                   className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors ${i === active ? 'bg-white/10' : 'hover:bg-white/5'}`}

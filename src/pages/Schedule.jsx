@@ -10,6 +10,7 @@ import Button from '../components/ui/Button.jsx';
 import LazyImage from '../components/ui/LazyImage.jsx';
 import { Skeleton } from '../components/ui/Skeleton.jsx';
 import { EmptyState, ErrorState } from '../components/ui/StateView.jsx';
+import { infoPath, playerPath } from '../lib/slug.js';
 
 const DAY_MS = 86400000;
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -117,7 +118,7 @@ function ScheduleRow({ slot, now }) {
         <p className="text-sm font-semibold text-white">{time}</p>
         <p className={`mt-0.5 text-[10px] ${msLeft > 0 ? 'text-zinc-500' : 'text-emerald-400'}`}>{formatCountdown(msLeft)}</p>
       </div>
-      <Link to={`/anime/${media.id}`} className="flex min-w-0 flex-1 items-center gap-3 group">
+      <Link to={infoPath(media)} className="flex min-w-0 flex-1 items-center gap-3 group">
         <LazyImage src={media.coverImage?.large} alt={mediaTitle(media)} className="h-[68px] w-12 shrink-0 rounded-lg" fallbackLabel={mediaTitle(media)} />
         <div className="min-w-0">
           <p className="line-clamp-1 text-sm font-semibold text-white group-hover:text-brand">{mediaTitle(media)}</p>
@@ -127,7 +128,7 @@ function ScheduleRow({ slot, now }) {
           </p>
         </div>
       </Link>
-      <Button to={`/watch/${media.id}/${episode}`} size="sm" variant="secondary" className="shrink-0">
+      <Button to={playerPath(media, episode, 'sub')} size="sm" variant="secondary" className="shrink-0">
         Watch
       </Button>
     </li>

@@ -3,6 +3,7 @@ import LazyImage from '../../ui/LazyImage.jsx';
 import Icon from '../../ui/Icon.jsx';
 import Button from '../../ui/Button.jsx';
 import { formatCount, formatDuration, formatScore, formatSeasonYear, mediaTitle, STATUS_LABELS, FORMAT_LABELS } from '../../../lib/format.js';
+import { playerPath } from '../../../lib/slug.js';
 
 const STATUS_DOT = {
   RELEASING: 'bg-emerald-400',
@@ -69,7 +70,7 @@ export default function DetailsHero({ media, availability, children }) {
             </div>
 
             <div className="mt-5 flex flex-wrap items-center gap-2.5">
-              <Button to={`/watch/${media.id}/1`} size="lg" disabled={!canWatch} className="shadow-lg shadow-brand/20">
+              <Button to={playerPath(media, 1, 'sub')} size="lg" disabled={!canWatch} className="shadow-lg shadow-brand/20">
                 <Icon name="play" size={18} fill />
                 Watch now
               </Button>

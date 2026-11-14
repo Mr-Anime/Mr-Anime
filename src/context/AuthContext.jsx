@@ -10,7 +10,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage.js';
  * Demo mode (no keys, or `setDemoUser` used): a localStorage user so the UI
  * stays fully usable without a backend.
  *
- * `user` shape: { id, email, username, avatar_url, role }.
+ * `user` shape: { id, email, username, avatar_url, role, verified }.
  */
 const AuthContext = createContext({
   user: null,
@@ -27,7 +27,7 @@ const AuthContext = createContext({
   setDemoUser: () => {},
 });
 
-const PROFILE_COLUMNS = 'id, username, avatar_url, role';
+const PROFILE_COLUMNS = 'id, username, avatar_url, role, verified';
 
 async function fetchProfile(userId) {
   if (!supabase) return null;
@@ -47,6 +47,7 @@ function composeUser(sessionUser, profile) {
     username: profile?.username || sessionUser.user_metadata?.username || sessionUser.email?.split('@')[0] || 'Anime fan',
     avatar_url: profile?.avatar_url || sessionUser.user_metadata?.avatar_url || null,
     role: profile?.role || 'user',
+    verified: profile?.role === 'admin' ? true : Boolean(profile?.verified),
   };
 }
 

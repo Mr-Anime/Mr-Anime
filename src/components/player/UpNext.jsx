@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import LazyImage from '../ui/LazyImage.jsx';
 import { FORMAT_LABELS, mediaTitle } from '../../lib/format.js';
+import { playerPath } from '../../lib/slug.js';
 
 /** Sidebar of the next scheduled episodes with Watch shortcuts. */
 export default function UpNext({ slots = [], currentId }) {
@@ -13,7 +14,7 @@ export default function UpNext({ slots = [], currentId }) {
       <ul className="space-y-2.5">
         {list.map((s) => (
           <li key={`${s.media.id}-${s.episode}`}>
-            <Link to={`/watch/${s.media.id}/${s.episode}`} className="group flex items-center gap-3">
+            <Link to={playerPath(s.media, s.episode, 'sub')} className="group flex items-center gap-3">
               <LazyImage src={s.media.coverImage?.large} alt={mediaTitle(s.media)} className="h-16 w-11 shrink-0 rounded-md" fallbackLabel={mediaTitle(s.media)} />
               <div className="min-w-0">
                 <p className="line-clamp-1 text-sm font-medium text-zinc-100 group-hover:text-brand">{mediaTitle(s.media)}</p>

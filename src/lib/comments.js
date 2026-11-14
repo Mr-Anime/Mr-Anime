@@ -1,6 +1,6 @@
 import { supabase } from './supabase/client.js';
 
-const COLUMNS = 'id, user_id, anilist_id, episode, body, status, created_at, author_username, author_avatar_url';
+const COLUMNS = 'id, user_id, anilist_id, episode, body, status, created_at, author_username, author_avatar_url, author_verified';
 
 function requireClient() {
   if (!supabase) throw new Error('Comments are not configured on this deployment.');
@@ -22,6 +22,7 @@ function toComment(row) {
     createdAt: row.created_at,
     username: row.author_username,
     avatarUrl: row.author_avatar_url,
+    verified: Boolean(row.author_verified),
   };
 }
 

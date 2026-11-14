@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import Icon from '../ui/Icon.jsx';
+import { playerPath } from '../../lib/slug.js';
 
 /** Prev / next episode + a scrollable episode strip (bounded by availability). */
-export default function EpisodeNav({ mediaId, episode, count, lang }) {
+export default function EpisodeNav({ media, episode, count, lang }) {
   const wrap = (n) => Math.min(Math.max(1, n), Math.max(1, count));
   const prevDisabled = episode <= 1;
   const nextDisabled = count > 0 && episode >= count;
@@ -11,7 +12,7 @@ export default function EpisodeNav({ mediaId, episode, count, lang }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <Link
-          to={`/watch/${mediaId}/${wrap(episode - 1)}?lang=${lang}`}
+          to={playerPath(media, wrap(episode - 1), lang)}
           aria-disabled={prevDisabled}
           tabIndex={prevDisabled ? -1 : undefined}
           className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-sm ${
@@ -23,7 +24,7 @@ export default function EpisodeNav({ mediaId, episode, count, lang }) {
         </Link>
         <span className="text-xs text-zinc-500">Episode {episode} of {count || '?'}</span>
         <Link
-          to={`/watch/${mediaId}/${wrap(episode + 1)}?lang=${lang}`}
+          to={playerPath(media, wrap(episode + 1), lang)}
           aria-disabled={nextDisabled}
           tabIndex={nextDisabled ? -1 : undefined}
           className={`inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 px-3 text-sm ${
@@ -41,7 +42,7 @@ export default function EpisodeNav({ mediaId, episode, count, lang }) {
           return (
             <div key={ep} role="listitem" ref={active ? (el) => el?.scrollIntoView({ block: 'nearest', inline: 'center' }) : undefined}>
               <Link
-                to={`/watch/${mediaId}/${ep}?lang=${lang}`}
+                to={playerPath(media, ep, lang)}
                 aria-current={active ? 'page' : undefined}
                 className={`grid h-8 min-w-9 place-items-center rounded-md px-2 text-xs font-medium transition-colors ${
                   active ? 'bg-brand text-white' : 'bg-white/5 text-zinc-300 hover:bg-white/15 hover:text-white'

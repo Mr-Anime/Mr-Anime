@@ -19,10 +19,9 @@ function bearerToken(request) {
 }
 
 /**
- * Verify the caller via the anon-key auth client, then require role=admin
- * from the profiles table. Returns { user, profile, admin }.
+ * Verify the caller's Supabase session and return the auth user.
  */
-export async function requireAdmin(request, env) {
+export async function requireUser(request, env) {
   const token = bearerToken(request);
   if (!token) throw new ApiError('Sign in required.', { status: 401, code: 'UNAUTHORIZED' });
 
@@ -33,17 +32,26 @@ export async function requireAdmin(request, env) {
   const authClient = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await authClient.auth.getUser(token);
   if (error || !data?.user) throw new ApiError('Invalid or expired session.', { status: 401, code: 'UNAUTHORIZED' });
+  return { user: data.user };
+}
+
+/**
+ * Verify the caller via the anon-key auth client, then require role=admin
+ * from the profiles table. Returns { user, profile, admin }.
+ */
+export async function requireAdmin(request, env) {
+  const { user } = await requireUser(request, env);
 
   const admin = serviceClient(env);
   const { data: profile, error: profileError } = await admin
     .from('profiles')
-    .select('id, username, role')
-    .eq('id', data.user.id)
+    .select('id, username, role, verified')
+    .eq('id', user.id)
     .maybeSingle();
   if (profileError) throw new ApiError('Could not verify your account.', { status: 502, code: 'UPSTREAM_ERROR' });
   if (profile?.role !== 'admin') throw new ApiError('Admin access required.', { status: 403, code: 'FORBIDDEN' });
 
-  return { user: data.user, profile, admin };
+  return { user, profile, admin };
 }
 
 export async function countRows(client, table) {

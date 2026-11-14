@@ -6,6 +6,7 @@ import Button from '../ui/Button.jsx';
 import { HeroSkeleton } from '../ui/Skeleton.jsx';
 import { ErrorState } from '../ui/StateView.jsx';
 import { formatScore, mediaTitle, formatSeasonYear, FORMAT_LABELS } from '../../lib/format.js';
+import { infoPath, playerPath } from '../../lib/slug.js';
 
 const AUTOPLAY_MS = 7000;
 
@@ -103,11 +104,11 @@ export default function HeroSlider({ items, loading, error, onRetry }) {
           )}
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button to={`/watch/${current.id}/1`} size="lg" className="shadow-lg shadow-brand/30">
+            <Button to={playerPath(current, 1, 'sub')} size="lg" className="shadow-lg shadow-brand/30">
               <Icon name="play" size={18} fill />
               Watch Now
             </Button>
-            <Button to={`/anime/${current.id}`} size="lg" variant="secondary">
+            <Button to={infoPath(current)} size="lg" variant="secondary">
               <Icon name="info" size={18} />
               Details
             </Button>

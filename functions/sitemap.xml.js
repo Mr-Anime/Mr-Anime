@@ -1,5 +1,6 @@
 import { anilistQuery, SITEMAP_QUERY } from './lib/anilist.js';
 import { cachedJson } from './lib/cache.js';
+import { mediaSlug } from '../src/lib/slug.js';
 
 function escapeXml(value) {
   return String(value).replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[c]);
@@ -10,11 +11,11 @@ export async function onRequest({ env, request }) {
 
   let items = [];
   try {
-    const data = await cachedJson(env, 'sitemap:v1', 21600, async () => {
+    const data = await cachedJson(env, 'sitemap:v2', 21600, async () => {
       const res = await anilistQuery(SITEMAP_QUERY, {}, { env });
-      return { ids: (res?.Page?.media || []).map((m) => m.id) };
+      return { items: (res?.Page?.media || []).map((m) => ({ id: m.id, slug: mediaSlug(m) })) };
     });
-    items = data?.ids || [];
+    items = data?.items || [];
   } catch (err) {
     console.warn('[sitemap] AniList unavailable, emitting static entries only:', err.message);
   }
@@ -22,7 +23,7 @@ export async function onRequest({ env, request }) {
   const staticPaths = ['/', '/browse', '/schedule', '/about', '/dmca', '/terms', '/privacy'];
   const urls = [
     ...staticPaths.map((p) => `  <url><loc>${escapeXml(appUrl + p)}</loc></url>`),
-    ...items.map((id) => `  <url><loc>${escapeXml(`${appUrl}/anime/${id}`)}</loc></url>`),
+    ...items.map((m) => `  <url><loc>${escapeXml(`${appUrl}/info/${m.id}/${m.slug}`)}</loc></url>`),
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

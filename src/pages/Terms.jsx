@@ -44,7 +44,7 @@ export default function Terms() {
       <h2>8. Changes</h2>
       <p>We may update these Terms; continued use after changes means you accept the revised Terms.</p>
       <h2>9. Contact</h2>
-      <p>Questions about these Terms: hello@mranime.cyou</p>
+      <p>Questions about these Terms: mranimeweb@gmail.com</p>
     </LegalPage>
   );
 }

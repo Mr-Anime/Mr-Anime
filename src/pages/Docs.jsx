@@ -176,6 +176,34 @@ const ENDPOINTS = [
     ],
   },
   {
+    id: 'player',
+    method: 'GET',
+    path: '/api/player/:anilistId/:episode',
+    title: 'Player servers',
+    summary: 'Streaming servers for one episode (third-party embed URLs, filtered by availability). Same-origin requests from Mr.Anime are allowed; outside callers need an API token from /developer.',
+    auth: true,
+    authLabel: 'Token',
+    variants: [
+      {
+        label: 'Example',
+        query: '?lang=sub',
+        pathOverride: '/api/player/16498/1',
+        response: `{
+  "data": {
+    "anilistId": 16498,
+    "episode": 1,
+    "lang": "sub",
+    "episodeAllowed": true,
+    "servers": [
+      { "id": "megaplay", "name": "MegaPlay", "url": "https://…" }
+    ],
+    "availability": { "hasSub": true, "hasDub": true, "subEpisodes": null, "dubEpisodes": null, "override": false }
+  }
+}`,
+      },
+    ],
+  },
+  {
     id: 'admin',
     method: 'GET',
     path: '/api/admin/*',
@@ -258,7 +286,7 @@ function EndpointSection({ endpoint, origin }) {
         <code className="text-sm font-semibold text-white">{endpoint.path}</code>
         {endpoint.auth && (
           <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-zinc-400">
-            <Icon name="lock" size={10} /> Admin
+            <Icon name="lock" size={10} /> {endpoint.authLabel || 'Admin'}
           </span>
         )}
       </div>

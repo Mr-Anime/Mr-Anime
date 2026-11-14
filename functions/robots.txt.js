@@ -6,6 +6,7 @@ Disallow: /watchlist
 Disallow: /history
 Disallow: /profile
 Disallow: /admin
+Disallow: /developer
 Disallow: /reset-password
 
 Sitemap: ${appUrl}/sitemap.xml

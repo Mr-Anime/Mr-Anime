@@ -7,6 +7,7 @@ import { formatTimeAgo } from '../../lib/format.js';
 import Button from '../ui/Button.jsx';
 import Icon from '../ui/Icon.jsx';
 import { Skeleton } from '../ui/Skeleton.jsx';
+import VerifiedBadge from '../ui/VerifiedBadge.jsx';
 
 const MAX_LENGTH = 2000;
 
@@ -170,7 +171,10 @@ function CommentItem({ comment, canDelete, canModerate, busy, onToggleHidden, on
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-            <span className="font-semibold text-zinc-200">{comment.username}</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-zinc-200">
+              {comment.username}
+              {comment.verified && <VerifiedBadge size={14} />}
+            </span>
             <span className="text-zinc-600">·</span>
             <time dateTime={comment.createdAt} className="text-zinc-500">
               {formatTimeAgo(Math.floor(new Date(comment.createdAt).getTime() / 1000))}

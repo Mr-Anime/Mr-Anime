@@ -5,7 +5,7 @@ Public JSON API served by Cloudflare Pages Functions (`functions/`). All anime d
 - Base URL (production): `https://mranime.cyou`
 - Base URL (preview): `https://<deployment>.mr-anime.pages.dev`
 - All routes live under `/api/*` and return JSON.
-- Authentication: none for public routes. Admin routes require a Supabase access token (see [Admin](#admin)).
+- Authentication: none for public routes. The player API accepts same-origin calls or a bearer API token from `/developer`. Admin routes require a Supabase access token (see [Admin](#admin)).
 
 ---
 
@@ -289,6 +289,53 @@ GET /api/availability/16498
 
 ---
 
+## Player
+
+### `GET /api/player/:anilistId/:episode?lang=sub|dub`
+
+Returns the streaming servers for one episode. Videos are never hosted here: each server is a third-party embed URL built server-side from `src/config/providers.js`.
+
+```http
+GET /api/player/16498/1?lang=sub
+```
+
+```json
+{
+  "data": {
+    "anilistId": 16498,
+    "episode": 1,
+    "lang": "sub",
+    "episodeAllowed": true,
+    "servers": [
+      { "id": "megaplay", "name": "MegaPlay", "url": "https://…" }
+    ],
+    "availability": { "hasSub": true, "hasDub": true, "subEpisodes": null, "dubEpisodes": null, "override": false }
+  }
+}
+```
+
+`episodeAllowed` is `false` and `servers` is empty when the language is disabled or the episode cap is exceeded. Responses are cached for 5 minutes.
+
+**Authentication:** requests from the Mr.Anime site itself (same origin) are allowed. External callers must send an API token:
+
+```http
+Authorization: Bearer mra_…
+```
+
+### Developer tokens
+
+Tokens are created at `/developer` (signed-in users) and stored hashed (SHA-256) in `public.api_tokens`:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/dev/tokens` | List your active tokens (prefix only). |
+| `POST` | `/api/dev/tokens` | Create a token — `{ "name": "My bot" }`. The raw token is returned once. |
+| `DELETE` | `/api/dev/tokens?id=…` | Revoke a token immediately. |
+
+All three require the Supabase access token of the signed-in user as a bearer header.
+
+---
+
 ## Admin
 
 Admin routes require a Supabase access token:
@@ -372,6 +419,27 @@ Content-Type: application/json
 
 Saves through the Supabase Management API, so the Pages project needs the server secret `SUPABASE_ACCESS_TOKEN` plus the `SUPABASE_PROJECT_ID` var. Omit `pass` to keep the stored password.
 
+### `GET /api/admin/users?q=username`
+
+Search profiles by username (min 2 characters, max 20 results).
+
+```json
+{ "data": [ { "id": "uuid", "username": "sakura", "role": "user", "verified": true } ] }
+```
+
+### `PUT /api/admin/users`
+
+Toggle a user's verified badge. The badge is snapshotted onto their comments (`author_verified`) so it renders next to their name.
+
+```http
+PUT /api/admin/users
+Content-Type: application/json
+
+{ "userId": "uuid", "verified": true }
+```
+
+Admins are always returned as `verified: true`.
+
 ---
 
 ## Comments
@@ -384,8 +452,16 @@ Comments are read and written directly against Supabase (`public.comments`) with
 
 | Route           | Description |
 |-----------------|-------------|
-| `/sitemap.xml`  | Sitemap of static pages + top 500 popular anime. |
-| `/robots.txt`   | Crawler rules; disallows `/api/`, `/watchlist`, `/history`, `/profile`, `/admin`, `/reset-password`. |
+| `/sitemap.xml`  | Sitemap of static pages + top 500 popular anime, using the `/info/{id}/{slug}` URLs. |
+| `/robots.txt`   | Crawler rules; disallows `/api/`, `/watchlist`, `/history`, `/profile`, `/admin`, `/developer`, `/reset-password`. |
+
+### App routes
+
+| Route | Page |
+|-------|------|
+| `/info/:anilistId/:animeSlug?` | Anime details (`/info/16498/attack-on-titan`). The slug is cosmetic — the AniList id is authoritative. |
+| `/player/:animeSlug/:episode?lang=sub\|dub` | Player. The slug ends with `-{anilistId}` (e.g. `/player/attack-on-titan-16498/1?lang=sub`) so the id can be recovered without a lookup. |
+| `/developer` | Create and revoke personal API tokens (signed-in users). |
 
 ---
 
@@ -399,10 +475,13 @@ Comments are read and written directly against Supabase (`public.comments`) with
 | `/api/search` | `functions/api/search.js` |
 | `/api/schedule` | `functions/api/schedule.js` |
 | `/api/availability/:id` | `functions/api/availability/[id].js` |
+| `/api/player/:anilistId/:episode` | `functions/api/player/[anilistId]/[episode].js` |
+| `/api/dev/tokens` | `functions/api/dev/tokens.js` |
 | `/api/admin/stats` | `functions/api/admin/stats.js` |
 | `/api/admin/availability` | `functions/api/admin/availability.js` |
 | `/api/admin/smtp` | `functions/api/admin/smtp.js` |
+| `/api/admin/users` | `functions/api/admin/users.js` |
 | `/sitemap.xml` | `functions/sitemap.xml.js` |
 | `/robots.txt` | `functions/robots.txt.js` |
 | `/api/anilist` (proxy) | `api/anilist.js` (Vercel) / `netlify/functions/anilist.mjs` (Netlify) |
-| Shared helpers | `functions/lib/{anilist,map,http,cache,query,supabase}.js` |
+| Shared helpers | `functions/lib/{anilist,map,http,cache,query,supabase,tokens}.js` |

@@ -28,6 +28,8 @@ const Dmca = lazy(() => import('./pages/Dmca.jsx'));
 const Terms = lazy(() => import('./pages/Terms.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
 const Docs = lazy(() => import('./pages/Docs.jsx'));
+const Developer = lazy(() => import('./pages/Developer.jsx'));
+const LegacyRedirect = lazy(() => import('./pages/LegacyRedirect.jsx'));
 
 function PageFallback() {
   return (
@@ -59,8 +61,10 @@ const router = createBrowserRouter([
       { path: 'genre/:name', element: page(Genre) },
       { path: 'search', element: page(Search) },
       { path: 'schedule', element: page(Schedule) },
-      { path: 'anime/:anilistId', element: page(AnimeDetails) },
-      { path: 'watch/:anilistId/:episode', element: page(Watch) },
+      { path: 'info/:anilistId/:animeSlug?', element: page(AnimeDetails) },
+      { path: 'player/:animeSlug/:episode', element: page(Watch) },
+      { path: 'anime/:anilistId', element: page(LegacyRedirect) },
+      { path: 'watch/:anilistId/:episode', element: page(LegacyRedirect) },
       { path: 'login', element: page(Login) },
       { path: 'signup', element: page(Signup) },
       { path: 'forgot-password', element: page(ForgotPassword) },
@@ -69,6 +73,7 @@ const router = createBrowserRouter([
       { path: 'history', element: protectedPage(History) },
       { path: 'profile', element: protectedPage(Profile) },
       { path: 'admin', element: protectedPage(Admin, true) },
+      { path: 'developer', element: protectedPage(Developer) },
       { path: 'about', element: page(About) },
       { path: 'dmca', element: page(Dmca) },
       { path: 'terms', element: page(Terms) },

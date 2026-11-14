@@ -3,6 +3,7 @@ import LazyImage from '../ui/LazyImage.jsx';
 import Icon from '../ui/Icon.jsx';
 import { formatLabel } from '../anime/Badges.jsx';
 import { LIST_STATUSES, mediaTitle } from '../../lib/format.js';
+import { infoPath } from '../../lib/slug.js';
 
 export default function WatchlistCard({ media, status, busy, onStatusChange, onRemove }) {
   if (!media) return null;
@@ -10,11 +11,11 @@ export default function WatchlistCard({ media, status, busy, onStatusChange, onR
 
   return (
     <div className="group relative">
-      <Link to={`/anime/${media.id}`} className="block rounded-xl focus-visible:ring-2 focus-visible:ring-brand">
+      <Link to={infoPath(media)} className="block rounded-xl focus-visible:ring-2 focus-visible:ring-brand">
         <LazyImage src={media.coverImage?.large} alt={title} className="aspect-[2/3] w-full rounded-xl" imgClassName="group-hover:scale-105 transition-transform duration-300" fallbackLabel={title} />
       </Link>
       <div className="mt-2">
-        <Link to={`/anime/${media.id}`} className="line-clamp-2 text-sm font-medium text-zinc-100 hover:text-white">{title}</Link>
+        <Link to={infoPath(media)} className="line-clamp-2 text-sm font-medium text-zinc-100 hover:text-white">{title}</Link>
         <p className="mt-0.5 text-xs text-zinc-500">{formatLabel(media.format, media.seasonYear)}</p>
       </div>
       <div className="mt-1.5 flex items-center gap-1">

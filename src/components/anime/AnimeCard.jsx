@@ -3,6 +3,7 @@ import LazyImage from '../ui/LazyImage.jsx';
 import Icon from '../ui/Icon.jsx';
 import { SubBadge, DubBadge, EpisodeBadge, ScoreBadge, formatLabel } from './Badges.jsx';
 import { getEpisodeCount, mediaTitle, STATUS_LABELS } from '../../lib/format.js';
+import { infoPath } from '../../lib/slug.js';
 
 /**
  * Card used across Home rows, grids and recommendations.
@@ -18,7 +19,7 @@ export default function AnimeCard({ media, availability, className = '', priorit
 
   return (
     <Link
-      to={`/anime/${media.id}`}
+      to={infoPath(media)}
       className={`group relative block outline-none transition-transform duration-300 focus-visible:ring-2 focus-visible:ring-brand rounded-xl ${className}`}
       aria-label={`${title}${media.format ? `, ${media.format}` : ''}`}
     >

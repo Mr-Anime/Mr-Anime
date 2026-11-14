@@ -10,6 +10,7 @@ import PageHeader from '../components/ui/PageHeader.jsx';
 import Button from '../components/ui/Button.jsx';
 import Icon from '../components/ui/Icon.jsx';
 import { AuthInput } from '../components/auth/AuthField.jsx';
+import VerifiedBadge from '../components/ui/VerifiedBadge.jsx';
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
 
@@ -107,7 +108,10 @@ export default function Profile() {
           {avatar ? <img src={avatar} alt="" className="h-full w-full object-cover" /> : initial}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-base font-semibold text-white">{user?.username || 'Anime fan'}</p>
+          <p className="inline-flex items-center gap-1.5 truncate text-base font-semibold text-white">
+            {user?.username || 'Anime fan'}
+            {user?.verified && <VerifiedBadge size={16} />}
+          </p>
           <p className="truncate text-sm text-zinc-500">{user?.email}</p>
           {user?.role === 'admin' && <span className="mt-1 inline-block rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">Admin</span>}
         </div>

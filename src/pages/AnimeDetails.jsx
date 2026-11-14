@@ -4,6 +4,7 @@ import { api } from '../api/client.js';
 import { useApi } from '../hooks/useApi.js';
 import { useDocumentMeta } from '../lib/meta.js';
 import { getEpisodeCount, mediaTitle, FORMAT_LABELS } from '../lib/format.js';
+import { infoPath } from '../lib/slug.js';
 import Container from '../components/ui/Container.jsx';
 import { Skeleton } from '../components/ui/Skeleton.jsx';
 import { ErrorState } from '../components/ui/StateView.jsx';
@@ -29,7 +30,7 @@ export default function AnimeDetails() {
     description: m ? String(m.description || '').replace(/<[^>]*>/g, '').slice(0, 160) || undefined : undefined,
     image: m?.bannerImage || m?.coverImage?.extraLarge,
     type: 'video.tv_show',
-    canonicalPath: `/anime/${anilistId}`,
+    canonicalPath: m ? infoPath(m) : `/info/${anilistId}`,
     jsonLd: m
       ? {
           '@context': 'https://schema.org',

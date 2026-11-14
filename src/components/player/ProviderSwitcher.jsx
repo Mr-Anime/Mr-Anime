@@ -7,7 +7,7 @@ export default function ProviderSwitcher({ providers, activeId, lang, onChange }
       <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">Server</span>
       <div className="flex flex-wrap gap-1.5">
         {providers.map((p) => {
-          const supported = p.supports.includes(lang);
+          const supported = p.supports ? p.supports.includes(lang) : true;
           const active = p.id === activeId;
           return (
             <button

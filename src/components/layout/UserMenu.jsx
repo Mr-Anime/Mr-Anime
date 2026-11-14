@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useDismiss } from '../../lib/scroll.js';
 import Icon from '../ui/Icon.jsx';
 import Button from '../ui/Button.jsx';
+import VerifiedBadge from '../ui/VerifiedBadge.jsx';
 
 export default function UserMenu({ compact = false }) {
   const { user, signOut, isAdmin } = useAuth();
@@ -40,12 +41,16 @@ export default function UserMenu({ compact = false }) {
       {open && (
         <div role="menu" className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-xl border border-white/10 bg-surface-2/98 py-1.5 shadow-2xl shadow-black/60 backdrop-blur-md">
           <div className="border-b border-white/5 px-4 py-2">
-            <p className="truncate text-sm font-semibold text-white">{user.username || 'Anime fan'}</p>
+            <p className="inline-flex items-center gap-1.5 truncate text-sm font-semibold text-white">
+              {user.username || 'Anime fan'}
+              {user.verified && <VerifiedBadge size={14} />}
+            </p>
             <p className="truncate text-xs text-zinc-500">{user.email}</p>
           </div>
           <MenuLink to="/watchlist" icon="bookmark" onClick={() => setOpen(false)}>My Watchlist</MenuLink>
           <MenuLink to="/history" icon="clock" onClick={() => setOpen(false)}>Continue Watching</MenuLink>
           <MenuLink to="/profile" icon="settings" onClick={() => setOpen(false)}>Settings</MenuLink>
+          <MenuLink to="/developer" icon="lock" onClick={() => setOpen(false)}>Developer API</MenuLink>
           {isAdmin && <MenuLink to="/admin" icon="grid" onClick={() => setOpen(false)}>Admin Panel</MenuLink>}
           <button
             role="menuitem"

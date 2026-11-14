@@ -13,6 +13,7 @@ import Icon from '../components/ui/Icon.jsx';
 import LazyImage from '../components/ui/LazyImage.jsx';
 import { Skeleton } from '../components/ui/Skeleton.jsx';
 import { EmptyState, ErrorState } from '../components/ui/StateView.jsx';
+import { infoPath, playerPath } from '../lib/slug.js';
 
 export default function History() {
   const { user, isDemoMode } = useAuth();
@@ -94,7 +95,7 @@ export default function History() {
               {continueRows.map((r) => {
                 const m = mediaMap[r.anilistId];
                 return (
-                  <Link key={r.anilistId} to={`/watch/${r.anilistId}/${r.episode}`} className="group w-[190px] shrink-0 sm:w-[220px]">
+                  <Link key={r.anilistId} to={m ? playerPath(m, r.episode, 'sub') : `/player/anime-${r.anilistId}/${r.episode}?lang=sub`} className="group w-[190px] shrink-0 sm:w-[220px]">
                     <div className="relative overflow-hidden rounded-xl">
                       <LazyImage src={m?.bannerImage || m?.coverImage?.large} alt="" className="aspect-video w-full" imgClassName="group-hover:scale-105 transition-transform duration-300" />
                       <span className="absolute bottom-1.5 left-1.5 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-semibold text-white">EP {r.episode}</span>
@@ -119,12 +120,12 @@ export default function History() {
                   <li key={`${r.anilistId}-${r.episode}`} className="flex items-center gap-3 p-3">
                     <LazyImage src={m?.coverImage?.large} alt="" className="h-14 w-10 shrink-0 rounded-md" />
                     <div className="min-w-0 flex-1">
-                      <Link to={`/anime/${r.anilistId}`} className="line-clamp-1 text-sm font-medium text-zinc-100 hover:text-brand">
+                      <Link to={m ? infoPath(m) : `/info/${r.anilistId}`} className="line-clamp-1 text-sm font-medium text-zinc-100 hover:text-brand">
                         {m ? mediaTitle(m) : `Anime #${r.anilistId}`}
                       </Link>
                       <p className="text-xs text-zinc-500">Episode {r.episode} · {formatTimeAgo(Math.floor(new Date(r.updatedAt).getTime() / 1000))}</p>
                     </div>
-                    <Button to={`/watch/${r.anilistId}/${r.episode}`} size="sm" variant="secondary">Continue</Button>
+                    <Button to={m ? playerPath(m, r.episode, 'sub') : `/player/anime-${r.anilistId}/${r.episode}?lang=sub`} size="sm" variant="secondary">Continue</Button>
                     <button type="button" onClick={() => remove(r)} aria-label="Remove from history" className="grid h-8 w-8 place-items-center rounded-lg text-zinc-500 hover:bg-brand/15 hover:text-brand">
                       <Icon name="trash" size={15} />
                     </button>

@@ -26,7 +26,7 @@ export default function Dmca() {
         <li>Your physical or electronic signature.</li>
       </ul>
       <p>
-        Email: <strong>dmca@mranime.cyou</strong>
+        Email: <strong>mranimeweb@gmail.com</strong>
       </p>
       <p>
         Valid requests are actioned promptly. Because video is embedded from third parties, we may remove the link or block the
@@ -39,7 +39,7 @@ export default function Dmca() {
       </p>
       <h2>General contact</h2>
       <p>
-        Business and other enquiries: <strong>hello@mranime.cyou</strong>
+        Business and other enquiries: <strong>mranimeweb@gmail.com</strong>
       </p>
     </LegalPage>
   );

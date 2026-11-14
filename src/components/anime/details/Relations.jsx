@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import LazyImage from '../../ui/LazyImage.jsx';
 import { FORMAT_LABELS, mediaTitle } from '../../../lib/format.js';
+import { infoPath } from '../../../lib/slug.js';
 
 const RELATION_LABELS = {
   PREQUEL: 'Prequel',
@@ -28,7 +29,7 @@ export default function Relations({ edges = [] }) {
       <h2 className="mb-4 text-lg font-bold text-white sm:text-xl">Related</h2>
       <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
         {list.map((e) => (
-          <Link key={`${e.relationType}-${e.node.id}`} to={`/anime/${e.node.id}`} className="group w-[124px] shrink-0">
+          <Link key={`${e.relationType}-${e.node.id}`} to={infoPath(e.node)} className="group w-[124px] shrink-0">
             <LazyImage src={e.node.coverImage?.large} alt={mediaTitle(e.node)} className="aspect-[2/3] w-full rounded-lg" imgClassName="group-hover:scale-105 transition-transform duration-300" fallbackLabel={mediaTitle(e.node)} />
             <p className="mt-1.5 line-clamp-1 text-[11px] font-semibold uppercase tracking-wide text-brand">{RELATION_LABELS[e.relationType] || e.relationType}</p>
             <p className="line-clamp-2 text-xs text-zinc-300 group-hover:text-white">{mediaTitle(e.node)}</p>
