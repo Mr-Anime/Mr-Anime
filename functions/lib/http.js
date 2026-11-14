@@ -1,6 +1,7 @@
 const BASE_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   'x-content-type-options': 'nosniff',
+  'strict-transport-security': 'max-age=31536000; includeSubDomains',
 };
 
 export class ApiError extends Error {

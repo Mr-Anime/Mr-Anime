@@ -104,4 +104,6 @@ export const api = {
   adminOverrides: (opts) => call('/api/admin/availability', opts),
   saveAdminOverride: (override, opts) => call('/api/admin/availability', { ...opts, method: 'POST', body: override }),
   deleteAdminOverride: (anilistId, opts) => call(`/api/admin/availability?anilistId=${encodeURIComponent(anilistId)}`, { ...opts, method: 'DELETE' }),
+  adminSmtp: (opts) => call('/api/admin/smtp', opts),
+  saveAdminSmtp: (settings, opts) => call('/api/admin/smtp', { ...opts, method: 'PUT', body: settings }),
 };

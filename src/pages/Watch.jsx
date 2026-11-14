@@ -17,6 +17,7 @@ import ProviderSwitcher from '../components/player/ProviderSwitcher.jsx';
 import LangToggle from '../components/player/LangToggle.jsx';
 import EpisodeNav from '../components/player/EpisodeNav.jsx';
 import UpNext from '../components/player/UpNext.jsx';
+import CommentsSection from '../components/comments/CommentsSection.jsx';
 
 export default function Watch() {
   const { anilistId, episode: episodeParam } = useParams();
@@ -155,6 +156,10 @@ export default function Watch() {
             Mr.Anime does not host any video files. All streams are embedded from third-party providers. If a server
             fails to load, switch to another server or report it on our <Link to="/dmca" className="text-zinc-300 hover:text-brand">contact page</Link>.
           </p>
+
+          <div className="mt-8">
+            <CommentsSection anilistId={m.id} episode={episode} />
+          </div>
         </div>
 
         <aside className="space-y-4">

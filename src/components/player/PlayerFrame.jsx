@@ -38,7 +38,6 @@ export default function PlayerFrame({ src, provider, title, onLoad }) {
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         allowFullScreen
         referrerPolicy="origin"
-        sandbox={provider?.sandbox}
         onLoad={() => {
           setLoaded(true);
           onLoad?.();

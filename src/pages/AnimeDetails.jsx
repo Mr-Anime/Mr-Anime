@@ -14,6 +14,7 @@ import Characters from '../components/anime/details/Characters.jsx';
 import Relations from '../components/anime/details/Relations.jsx';
 import Recommendations from '../components/anime/details/Recommendations.jsx';
 import WatchlistButton from '../components/anime/details/WatchlistButton.jsx';
+import CommentsSection from '../components/comments/CommentsSection.jsx';
 
 export default function AnimeDetails() {
   const { anilistId } = useParams();
@@ -89,6 +90,7 @@ export default function AnimeDetails() {
 
         <Relations edges={m.relations?.edges} />
         <Recommendations items={(m.recommendations?.nodes || []).map((n) => n.mediaRecommendation || n)} />
+        <CommentsSection anilistId={m.id} />
       </Container>
     </>
   );

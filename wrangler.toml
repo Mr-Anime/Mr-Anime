@@ -20,6 +20,7 @@ APP_URL = "https://mranime.cyou"
 AVAILABILITY_TTL_SECONDS = "86400"
 TRENDING_TTL_SECONDS = "1800"
 SUPABASE_URL = "https://pksccdcijtgsgtemaclo.supabase.co"
+SUPABASE_PROJECT_ID = "pksccdcijtgsgtemaclo"
 # AniList blocks Cloudflare Workers' egress IPs, so production must proxy
 # through a non-Cloudflare host (see api/anilist.js + README). Leave empty to
 # call graphql.anilist.co directly (works in local `wrangler pages dev`).
@@ -41,4 +42,5 @@ APP_URL = "https://mranime.cyou"
 #   SUPABASE_URL                (public)
 #   SUPABASE_ANON_KEY           (public)
 #   SUPABASE_SERVICE_ROLE_KEY   (server only)
+#   SUPABASE_ACCESS_TOKEN       (server only: admin panel SMTP settings via Management API)
 #   SEED_ADMIN_EMAIL            (optional: auto-promote this account to admin)

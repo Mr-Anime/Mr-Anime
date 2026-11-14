@@ -10,6 +10,7 @@ import Icon from '../components/ui/Icon.jsx';
 import StatsCards from '../components/admin/StatsCards.jsx';
 import OverrideTable from '../components/admin/OverrideTable.jsx';
 import OverrideForm from '../components/admin/OverrideForm.jsx';
+import SmtpForm from '../components/admin/SmtpForm.jsx';
 
 export default function Admin() {
   const { success, error: toastError } = useToast();
@@ -115,6 +116,16 @@ export default function Admin() {
           onDelete={remove}
           busyId={busyId}
         />
+      </section>
+
+      <section className="mt-12">
+        <div className="mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Password reset email (SMTP)</h2>
+          <p className="mt-0.5 text-xs text-zinc-500">
+            Supabase Auth uses this SMTP server for forgot-password, confirmation and magic-link emails. Changes apply immediately.
+          </p>
+        </div>
+        <SmtpForm />
       </section>
 
       <p className="mt-8 text-xs text-zinc-500">

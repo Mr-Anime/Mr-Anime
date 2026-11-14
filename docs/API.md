@@ -344,6 +344,40 @@ Returns the saved row in the same shape as the list above.
 { "data": { "anilistId": 16498, "deleted": true } }
 ```
 
+### `GET /api/admin/smtp`
+
+Current Supabase Auth SMTP settings (used for password reset, confirmation and magic-link emails). The password is never returned.
+
+```json
+{
+  "data": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "user": "smtp-user",
+    "senderEmail": "noreply@mranime.cyou",
+    "senderName": "Mr.Anime",
+    "configured": true
+  }
+}
+```
+
+### `PUT /api/admin/smtp`
+
+```http
+PUT /api/admin/smtp
+Content-Type: application/json
+
+{ "host": "smtp.example.com", "port": 587, "user": "smtp-user", "pass": "secret", "senderEmail": "noreply@mranime.cyou", "senderName": "Mr.Anime" }
+```
+
+Saves through the Supabase Management API, so the Pages project needs the server secret `SUPABASE_ACCESS_TOKEN` plus the `SUPABASE_PROJECT_ID` var. Omit `pass` to keep the stored password.
+
+---
+
+## Comments
+
+Comments are read and written directly against Supabase (`public.comments`) with RLS, not through `/api`. Anime-level comments use `episode = NULL`; episode comments set `episode` to the episode number. Visible comments are readable by everyone, authors can delete their own, and admins can hide/restore or delete any comment.
+
 ---
 
 ## Non-API routes
@@ -367,6 +401,7 @@ Returns the saved row in the same shape as the list above.
 | `/api/availability/:id` | `functions/api/availability/[id].js` |
 | `/api/admin/stats` | `functions/api/admin/stats.js` |
 | `/api/admin/availability` | `functions/api/admin/availability.js` |
+| `/api/admin/smtp` | `functions/api/admin/smtp.js` |
 | `/sitemap.xml` | `functions/sitemap.xml.js` |
 | `/robots.txt` | `functions/robots.txt.js` |
 | `/api/anilist` (proxy) | `api/anilist.js` (Vercel) / `netlify/functions/anilist.mjs` (Netlify) |

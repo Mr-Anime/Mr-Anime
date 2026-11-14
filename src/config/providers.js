@@ -29,7 +29,6 @@ export const PROVIDERS = [
     name: 'MegaPlay',
     urlTemplate: 'https://megaplay.buzz/stream/ani/{anilistId}/{episode}/{lang}',
     supports: ['sub', 'dub'],
-    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-presentation',
   },
   {
     id: 'anixo',
@@ -37,7 +36,6 @@ export const PROVIDERS = [
     urlTemplate: 'https://anixo.buzz/embed/ani/{anilistId}/{episode}/{lang}',
     supports: ['sub', 'dub'],
     // @TODO verify AniXo dub coverage; if DUB is unsupported, remove 'dub'.
-    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-presentation',
   },
   {
     id: 'tryembed',
@@ -46,7 +44,6 @@ export const PROVIDERS = [
     supports: ['sub', 'dub'],
     // @TODO confirm the tryembed pattern (see header). Placeholder if wrong:
     //       https://tryembed.us.cc/embed/{anilistId}/{episode}/{lang}
-    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-presentation',
   },
   {
     id: 'vidnest',
@@ -56,7 +53,6 @@ export const PROVIDERS = [
     // @TODO vidnest appears to expect a Referer of an upstream site when
     //       hot-linking. If iframes stay blank, either drop this provider or
     //       serve it through a same-origin proxy in functions/api/.
-    sandbox: 'allow-scripts allow-same-origin allow-forms allow-popups allow-presentation',
   },
 ];
 
