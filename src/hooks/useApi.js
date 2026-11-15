@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 /**
  * Fetch helper with loading/error/data states, abort on unmount and retry.
  * `fetcher` must be a stable function (wrap in useCallback) that accepts { signal }.
+ * A new `fetcher` identity (i.e. changed useCallback deps) triggers a refetch.
  */
 export function useApi(fetcher, deps = [], { enabled = true, initialData = null } = {}) {
   const [state, setState] = useState({ data: initialData, error: null, loading: enabled });
@@ -28,7 +29,7 @@ export function useApi(fetcher, deps = [], { enabled = true, initialData = null 
       });
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...deps, enabled, attempt]);
+  }, [fetcher, ...deps, enabled, attempt]);
 
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
   return { ...state, retry };

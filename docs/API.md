@@ -393,7 +393,7 @@ Returns the saved row in the same shape as the list above.
 
 ### `GET /api/admin/smtp`
 
-Current Supabase Auth SMTP settings (used for password reset, confirmation and magic-link emails). The password is never returned.
+Current Supabase Auth SMTP settings (used for password reset, confirmation and magic-link emails). The password is never returned. `source` is `supabase`, `environment` or `none`; `editable` is `false` when the values come from environment variables and no management token is available.
 
 ```json
 {
@@ -403,10 +403,14 @@ Current Supabase Auth SMTP settings (used for password reset, confirmation and m
     "user": "smtp-user",
     "senderEmail": "noreply@mranime.cyou",
     "senderName": "Mr.Anime",
-    "configured": true
+    "configured": true,
+    "source": "supabase",
+    "editable": true
   }
 }
 ```
+
+If the project has no SMTP config but `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_SENDER_EMAIL` and `SMTP_SENDER_NAME` are set on the Pages deployment, they are applied to the project automatically (when `SUPABASE_ACCESS_TOKEN` exists) and reported as `source: "environment"`.
 
 ### `PUT /api/admin/smtp`
 

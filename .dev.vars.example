@@ -12,6 +12,16 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_PROJECT_ID=YOUR_PROJECT_REF
 SUPABASE_ACCESS_TOKEN=
 
+# Optional: configure Supabase Auth email from the deployment environment.
+# When set, the admin panel reports "Configured"; with SUPABASE_ACCESS_TOKEN
+# present the values are applied to the project automatically.
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_SENDER_EMAIL=
+SMTP_SENDER_NAME=Mr.Anime
+
 APP_URL=http://localhost:8788
 SEED_ADMIN_EMAIL=
 # Leave empty locally — direct AniList calls work from your machine.

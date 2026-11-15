@@ -12,6 +12,8 @@ export default function SmtpForm() {
   const { success, error: toastError } = useToast();
   const [form, setForm] = useState(EMPTY);
   const [configured, setConfigured] = useState(false);
+  const [source, setSource] = useState('none');
+  const [editable, setEditable] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -24,6 +26,8 @@ export default function SmtpForm() {
         if (!active) return;
         const s = res?.data;
         setConfigured(Boolean(s?.configured));
+        setSource(s?.source || 'none');
+        setEditable(s?.editable !== false);
         setForm({
           host: s?.host || '',
           port: String(s?.port || 587),
@@ -54,7 +58,7 @@ export default function SmtpForm() {
     setError('');
     setSaving(true);
     try {
-      await api.saveAdminSmtp({
+      const saved = await api.saveAdminSmtp({
         host: form.host.trim(),
         port,
         user: form.user.trim(),
@@ -62,7 +66,9 @@ export default function SmtpForm() {
         senderEmail: form.senderEmail.trim(),
         senderName: form.senderName.trim() || 'Mr.Anime',
       });
-      setConfigured(true);
+      setConfigured(saved?.data?.configured ?? true);
+      setSource(saved?.data?.source || 'supabase');
+      setEditable(saved?.data?.editable !== false);
       setForm((f) => ({ ...f, pass: '' }));
       success('SMTP settings saved. Password reset emails now use this server.');
     } catch (err) {
@@ -80,12 +86,23 @@ export default function SmtpForm() {
     <form onSubmit={submit} className="rounded-xl border border-white/10 bg-surface-3/50 p-4">
       <div className="mb-3 flex items-center gap-2">
         <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${configured ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-300'}`}>
-          {configured ? 'Configured' : 'Not configured'}
+          {configured ? (source === 'environment' ? 'Configured (environment)' : 'Configured') : 'Not configured'}
         </span>
         <span className="text-xs text-zinc-500">Applies to password reset, email confirmation and magic-link emails.</span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      {!editable && configured && (
+        <p className="mb-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-400">
+          Read-only: these values come from the server environment variables <code className="text-zinc-300">SMTP_HOST</code>,{' '}
+          <code className="text-zinc-300">SMTP_PORT</code>, <code className="text-zinc-300">SMTP_USER</code>,{' '}
+          <code className="text-zinc-300">SMTP_PASS</code>, <code className="text-zinc-300">SMTP_SENDER_EMAIL</code> and{' '}
+          <code className="text-zinc-300">SMTP_SENDER_NAME</code>. Configure{' '}
+          <code className="text-zinc-300">SUPABASE_ACCESS_TOKEN</code> to edit them here; they are then applied to Supabase
+          Auth automatically.
+        </p>
+      )}
+
+      <fieldset disabled={!editable} className="grid gap-3 border-0 p-0 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-medium text-zinc-400">SMTP host</span>
           <input className={inputClass} value={form.host} onChange={set('host')} placeholder="smtp.resend.com" />
@@ -117,12 +134,12 @@ export default function SmtpForm() {
           <span className="mb-1 block text-xs font-medium text-zinc-400">From name</span>
           <input className={inputClass} value={form.senderName} onChange={set('senderName')} placeholder="Mr.Anime" />
         </label>
-      </div>
+      </fieldset>
 
       {error && <p className="mt-3 text-xs text-brand" role="alert">{error}</p>}
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button type="submit" loading={saving}>Save SMTP settings</Button>
+        <Button type="submit" loading={saving} disabled={!editable}>Save SMTP settings</Button>
         <span className="text-xs text-zinc-500">The saved password is never sent back to the browser.</span>
       </div>
     </form>
