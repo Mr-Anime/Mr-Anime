@@ -55,7 +55,11 @@ async function request(path, { signal, timeout = 15000, method = 'GET', body } =
       } catch {
         /* non-JSON error body */
       }
-      throw new ApiError(payload?.error || `Request failed (${res.status})`, { status: res.status, code: payload?.code });
+      const message = payload?.error_description || payload?.error || `Request failed (${res.status})`;
+      throw new ApiError(message, {
+        status: res.status,
+        code: payload?.code || (typeof payload?.error === 'string' ? payload.error : undefined),
+      });
     }
     return await res.json();
   } catch (err) {
@@ -104,6 +108,12 @@ export const api = {
   devTokens: (opts) => call('/api/dev/tokens', opts),
   createDevToken: (name, opts) => call('/api/dev/tokens', { ...opts, method: 'POST', body: { name } }),
   revokeDevToken: (id, opts) => call(`/api/dev/tokens${qs({ id })}`, { ...opts, method: 'DELETE' }),
+  oauthApps: (opts) => call('/api/oauth/apps', opts),
+  createOauthApp: (app, opts) => call('/api/oauth/apps', { ...opts, method: 'POST', body: app }),
+  revokeOauthApp: (id, opts) => call(`/api/oauth/apps${qs({ id })}`, { ...opts, method: 'DELETE' }),
+  oauthAuthorizeInfo: (params, opts) => call(`/api/oauth/authorize${qs(params)}`, opts),
+  approveOauth: (params, opts) => call('/api/oauth/authorize', { ...opts, method: 'POST', body: params }),
+  oauthUserinfo: (opts) => call('/api/oauth/userinfo', opts),
   adminUsers: (q, opts) => call(`/api/admin/users${qs({ q })}`, opts),
   setUserVerified: (userId, verified, opts) => call('/api/admin/users', { ...opts, method: 'PUT', body: { userId, verified } }),
   adminStats: (opts) => call('/api/admin/stats', opts),

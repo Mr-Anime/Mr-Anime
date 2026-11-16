@@ -29,6 +29,7 @@ const Terms = lazy(() => import('./pages/Terms.jsx'));
 const Privacy = lazy(() => import('./pages/Privacy.jsx'));
 const Docs = lazy(() => import('./pages/Docs.jsx'));
 const Developer = lazy(() => import('./pages/Developer.jsx'));
+const OAuthAuthorize = lazy(() => import('./pages/OAuthAuthorize.jsx'));
 const LegacyRedirect = lazy(() => import('./pages/LegacyRedirect.jsx'));
 
 function PageFallback() {
@@ -74,6 +75,7 @@ const router = createBrowserRouter([
       { path: 'profile', element: protectedPage(Profile) },
       { path: 'admin', element: protectedPage(Admin, true) },
       { path: 'developer', element: protectedPage(Developer) },
+      { path: 'oauth/authorize', element: protectedPage(OAuthAuthorize) },
       { path: 'about', element: page(About) },
       { path: 'dmca', element: page(Dmca) },
       { path: 'terms', element: page(Terms) },

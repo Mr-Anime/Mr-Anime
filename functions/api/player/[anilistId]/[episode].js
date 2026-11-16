@@ -1,5 +1,6 @@
 import { PROVIDERS } from '../../../../src/config/providers.js';
 import { ApiError, badRequest, handle, json } from '../../../lib/http.js';
+import { hasScope } from '../../../lib/oauth.js';
 import { serviceClient } from '../../../lib/supabase.js';
 import { bearerToken, hashApiToken } from '../../../lib/tokens.js';
 
@@ -62,12 +63,38 @@ async function authorize(request, env, url) {
     .is('revoked_at', null)
     .maybeSingle();
   if (error) throw new ApiError('Could not verify API token.', { status: 502, code: 'UPSTREAM_ERROR' });
-  if (!data) throw new ApiError('Invalid API token. Create one at /developer.', { status: 401, code: 'UNAUTHORIZED' });
 
-  admin.from('api_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', data.id).then(
-    () => {},
-    () => {},
-  );
+  if (!data) {
+    const { data: oauth, error: oauthError } = await admin
+      .from('oauth_tokens')
+      .select('id, scope')
+      .eq('token_hash', hash)
+      .is('revoked_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+    if (oauthError) throw new ApiError('Could not verify API token.', { status: 502, code: 'UPSTREAM_ERROR' });
+    if (!oauth || !hasScope(oauth.scope, 'read')) {
+      throw new ApiError('Invalid API token. Create one at /developer.', { status: 401, code: 'UNAUTHORIZED' });
+    }
+    admin
+      .from('oauth_tokens')
+      .update({ last_used_at: new Date().toISOString() })
+      .eq('id', oauth.id)
+      .then(
+        () => {},
+        () => {},
+      );
+    return;
+  }
+
+  admin
+    .from('api_tokens')
+    .update({ last_used_at: new Date().toISOString() })
+    .eq('id', data.id)
+    .then(
+      () => {},
+      () => {},
+    );
 }
 
 function buildUrl(provider, anilistId, episode, lang) {

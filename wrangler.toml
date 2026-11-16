@@ -40,7 +40,8 @@ APP_URL = "https://mranime.cyou"
 # Secrets to define (dashboard > Workers & Pages > mr-anime > Settings > Variables,
 # or `wrangler pages secret put NAME`):
 #   SUPABASE_URL                (public)
-#   SUPABASE_ANON_KEY           (public)
+#   SUPABASE_ANON_KEY           (public; required by Functions — the server also
+#                                falls back to VITE_SUPABASE_ANON_KEY if this is absent)
 #   SUPABASE_SERVICE_ROLE_KEY   (server only)
 #   SUPABASE_ACCESS_TOKEN       (server only: admin panel SMTP settings via Management API)
 #   SEED_ADMIN_EMAIL            (optional: auto-promote this account to admin)

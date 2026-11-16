@@ -316,10 +316,11 @@ GET /api/player/16498/1?lang=sub
 
 `episodeAllowed` is `false` and `servers` is empty when the language is disabled or the episode cap is exceeded. Responses are cached for 5 minutes.
 
-**Authentication:** requests from the Mr.Anime site itself (same origin) are allowed. External callers must send an API token:
+**Authentication:** requests from the Mr.Anime site itself (same origin) are allowed. External callers must send a personal API token or an OAuth access token:
 
 ```http
 Authorization: Bearer mra_…
+Authorization: Bearer mrao_…
 ```
 
 ### Developer tokens
@@ -333,6 +334,60 @@ Tokens are created at `/developer` (signed-in users) and stored hashed (SHA-256)
 | `DELETE` | `/api/dev/tokens?id=…` | Revoke a token immediately. |
 
 All three require the Supabase access token of the signed-in user as a bearer header.
+
+### OAuth 2.0 (developer apps)
+
+Signed-in users can register apps at `/developer` and use the standard authorization-code flow. PKCE (`S256`) is supported and recommended for public clients; confidential clients may authenticate with `client_id` + `client_secret` instead. OAuth access tokens (`mrao_…`) are accepted anywhere a personal token is and are stored hashed (SHA-256) in `public.oauth_tokens`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/oauth/apps` | List your OAuth apps. |
+| `POST` | `/api/oauth/apps` | Register an app — `{ "name": "My bot", "redirectUris": ["https://…/callback"] }`. The `clientSecret` is returned once. |
+| `DELETE` | `/api/oauth/apps?id=…` | Revoke an app and all of its tokens. |
+| `GET` | `/api/oauth/authorize` | Validate an authorization request and describe the app (public). |
+| `POST` | `/api/oauth/authorize` | Approve the request (signed-in user); returns `{ "redirectTo": "https://…?code=…&state=…" }`. |
+| `POST` | `/api/oauth/token` | Exchange an authorization code or refresh token. |
+| `GET` | `/api/oauth/userinfo` | Profile of the user who authorized the token. |
+| `POST` | `/api/oauth/revoke` | Revoke an access or refresh token (RFC 7009). |
+
+The `/api/oauth/apps` and `POST /api/oauth/authorize` calls require the Supabase access token of the signed-in user. `/api/oauth/token` and `/api/oauth/revoke` authenticate the app with HTTP Basic auth or `client_id`/`client_secret` body fields (public clients with PKCE may omit the secret at exchange).
+
+**Flow**
+
+1. Send the user's browser to the consent page on the site (not the API):
+
+```http
+GET /oauth/authorize?client_id=<client-id>&redirect_uri=<uri>&response_type=code&scope=read&state=xyz&code_challenge=<S256>&code_challenge_method=S256
+```
+
+2. After approval the browser returns to `redirect_uri` with `code` and `state` (or `error=access_denied`).
+
+3. Exchange the code:
+
+```http
+POST /api/oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code&code=<code>&redirect_uri=<uri>&client_id=<client-id>&code_verifier=<verifier>
+```
+
+```json
+{
+  "access_token": "mrao_…",
+  "token_type": "Bearer",
+  "expires_in": 86400,
+  "refresh_token": "mrar_…",
+  "scope": "read"
+}
+```
+
+4. Call the player API with `Authorization: Bearer mrao_…`, or fetch the authorizing user from `/api/oauth/userinfo`:
+
+```json
+{ "sub": "uuid", "username": "animefan", "avatar_url": "https://…", "verified": false, "scope": "read" }
+```
+
+Authorization codes are single-use and expire after 10 minutes. Access tokens live 24 hours; refresh tokens live 90 days and rotate on every use (`grant_type=refresh_token`). Token errors use the OAuth envelope `{ "error": "invalid_grant", "error_description": "…" }`.
 
 ---
 
@@ -457,7 +512,7 @@ Comments are read and written directly against Supabase (`public.comments`) with
 | Route           | Description |
 |-----------------|-------------|
 | `/sitemap.xml`  | Sitemap of static pages + top 500 popular anime, using the `/info/{id}/{slug}` URLs. |
-| `/robots.txt`   | Crawler rules; disallows `/api/`, `/watchlist`, `/history`, `/profile`, `/admin`, `/developer`, `/reset-password`. |
+| `/robots.txt`   | Crawler rules; disallows `/api/`, `/watchlist`, `/history`, `/profile`, `/admin`, `/developer`, `/oauth/`, `/reset-password`. |
 
 ### App routes
 
@@ -465,7 +520,8 @@ Comments are read and written directly against Supabase (`public.comments`) with
 |-------|------|
 | `/info/:anilistId/:animeSlug?` | Anime details (`/info/16498/attack-on-titan`). The slug is cosmetic — the AniList id is authoritative. |
 | `/player/:animeSlug/:episode?lang=sub\|dub` | Player. The slug ends with `-{anilistId}` (e.g. `/player/attack-on-titan-16498/1?lang=sub`) so the id can be recovered without a lookup. |
-| `/developer` | Create and revoke personal API tokens (signed-in users). |
+| `/developer` | Create and revoke personal API tokens and OAuth apps (signed-in users). |
+| `/oauth/authorize` | OAuth consent screen (`client_id`, `redirect_uri`, `response_type`, `scope`, `state`, PKCE params). |
 
 ---
 
@@ -481,6 +537,11 @@ Comments are read and written directly against Supabase (`public.comments`) with
 | `/api/availability/:id` | `functions/api/availability/[id].js` |
 | `/api/player/:anilistId/:episode` | `functions/api/player/[anilistId]/[episode].js` |
 | `/api/dev/tokens` | `functions/api/dev/tokens.js` |
+| `/api/oauth/apps` | `functions/api/oauth/apps.js` |
+| `/api/oauth/authorize` | `functions/api/oauth/authorize.js` |
+| `/api/oauth/token` | `functions/api/oauth/token.js` |
+| `/api/oauth/revoke` | `functions/api/oauth/revoke.js` |
+| `/api/oauth/userinfo` | `functions/api/oauth/userinfo.js` |
 | `/api/admin/stats` | `functions/api/admin/stats.js` |
 | `/api/admin/availability` | `functions/api/admin/availability.js` |
 | `/api/admin/smtp` | `functions/api/admin/smtp.js` |
@@ -488,4 +549,4 @@ Comments are read and written directly against Supabase (`public.comments`) with
 | `/sitemap.xml` | `functions/sitemap.xml.js` |
 | `/robots.txt` | `functions/robots.txt.js` |
 | `/api/anilist` (proxy) | `api/anilist.js` (Vercel) / `netlify/functions/anilist.mjs` (Netlify) |
-| Shared helpers | `functions/lib/{anilist,map,http,cache,query,supabase,tokens}.js` |
+| Shared helpers | `functions/lib/{anilist,map,http,cache,query,supabase,tokens,oauth}.js` |

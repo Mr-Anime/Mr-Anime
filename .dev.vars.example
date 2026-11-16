@@ -2,6 +2,8 @@
 # Copy to .dev.vars for `wrangler pages dev` (SERVER-ONLY secrets).
 # NEVER commit .dev.vars. Never prefix these with VITE_.
 # ------------------------------------------------------------------
+# SUPABASE_ANON_KEY is what Functions read; if it is missing the server falls
+# back to VITE_SUPABASE_ANON_KEY. Set the canonical name in production too.
 SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key

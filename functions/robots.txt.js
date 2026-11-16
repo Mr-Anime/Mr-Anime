@@ -7,6 +7,7 @@ Disallow: /history
 Disallow: /profile
 Disallow: /admin
 Disallow: /developer
+Disallow: /oauth/
 Disallow: /reset-password
 
 Sitemap: ${appUrl}/sitemap.xml

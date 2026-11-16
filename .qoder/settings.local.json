@@ -14,7 +14,8 @@
       "Bash(ls -R api functions docs 2>/dev/null | head -60)",
       "Bash(ls *.md docs 2>/dev/null; echo ---; cat .gitignore; echo ---; cat .env.example)",
       "Bash(find src api functions supabase public -type f | head -100 && echo \"---\" && cat package.json && echo \"---\" && cat .env.example && echo \"---\" && cat .dev.vars.example)",
-      "Bash(find public -maxdepth 2 -type f | head -50 && echo \"--- env names ---\" && grep -o '^[A-Z_0-9]*' .env .dev.vars 2>/dev/null && echo \"--- docs ---\" && head -60 docs/API.md)"
+      "Bash(find public -maxdepth 2 -type f | head -50 && echo \"--- env names ---\" && grep -o '^[A-Z_0-9]*' .env .dev.vars 2>/dev/null && echo \"--- docs ---\" && head -60 docs/API.md)",
+      "Bash(for f in functions/lib/supabase.js functions/lib/oauth.js functions/api/oauth/apps.js functions/api/oauth/authorize.js functions/api/oauth/token.js functions/api/oauth/revoke.js functions/api/oauth/userinfo.js \"functions/api/player/[anilistId]/[episode].js\" functions/robots.txt.js; do node --check \"$f\" || echo \"FAILED: $f\"; done; echo \"syntax checks done\")"
     ]
   }
 }

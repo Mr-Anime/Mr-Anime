@@ -2,9 +2,22 @@ import './runtime.js';
 import { createClient } from '@supabase/supabase-js';
 import { ApiError } from './http.js';
 
+/**
+ * Accept the build-time VITE_ names as a fallback: Pages exposes every
+ * dashboard variable to Functions, and deployments have historically set
+ * VITE_SUPABASE_* only.
+ */
+function supabaseUrl(env) {
+  return env.SUPABASE_URL || env.VITE_SUPABASE_URL;
+}
+
+function anonKey(env) {
+  return env.SUPABASE_ANON_KEY || env.VITE_SUPABASE_ANON_KEY;
+}
+
 /** Service-role client for server-side reads/writes. Never expose its results raw. */
 export function serviceClient(env) {
-  const url = env.SUPABASE_URL;
+  const url = supabaseUrl(env);
   const key = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
     throw new ApiError('Supabase is not configured on the server.', { status: 503, code: 'INTERNAL' });
@@ -25,8 +38,8 @@ export async function requireUser(request, env) {
   const token = bearerToken(request);
   if (!token) throw new ApiError('Sign in required.', { status: 401, code: 'UNAUTHORIZED' });
 
-  const url = env.SUPABASE_URL;
-  const anon = env.SUPABASE_ANON_KEY;
+  const url = supabaseUrl(env);
+  const anon = anonKey(env);
   if (!url || !anon) throw new ApiError('Supabase is not configured on the server.', { status: 503, code: 'INTERNAL' });
 
   const authClient = createClient(url, anon, { auth: { persistSession: false, autoRefreshToken: false } });
